@@ -58,8 +58,8 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public final static Map<String, Virus<?>> singletons = new HashMap<>();
 	public final static Map<String, Virus<?>> singletonByClassName = new HashMap<>();
 	public final static Map<String, SequenceValidator<?>> sequenceValidators = new HashMap<>();
-	public static final Map<String, MutationsValidator<?>> mutationsValidators = new HashMap<>();;
-	public static final Map<String, SequenceReadsValidator<?>> sequenceReadsValidators = new HashMap<>();
+	public final static Map<String, MutationsValidator<?>> mutationsValidators = new HashMap<>();;
+	public final static Map<String, SequenceReadsValidator<?>> sequenceReadsValidators = new HashMap<>();
 	
 	public static void registerInstance(String name, Virus<?> singleton) {
 		singletons.put(name, singleton);
@@ -295,8 +295,16 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		List<String> mainSubtypes = getMainSubtypes(strain);
 		List<MutationPrevalence<VirusT>> mutPrevs = new ArrayList<>();
 		for (String subtype : mainSubtypes) {
-			Map<Character, List<AminoAcidPercent<VirusT>>> subtypeAAPcnts = new TreeMap<>();
+			Map<Character, List<AminoAcidPercent<VirusT>>> naiveSubtypeAAPcnts = new TreeMap<>();
+			Map<Character, List<AminoAcidPercent<VirusT>>> artSubtypeAAPcnts = new TreeMap<>();
 			for (String rx : new String[] {"naive", "art"}) {
+				Map<Character, List<AminoAcidPercent<VirusT>>> subtypeAAPcnts;
+				if (rx.equals("naive")) {
+					subtypeAAPcnts = naiveSubtypeAAPcnts;
+				}
+				else {
+					subtypeAAPcnts = artSubtypeAAPcnts;
+				}
 				for (
 					AminoAcidPercent<VirusT> aaPcnt :
 					getAminoAcidPercents(strain, rx, subtype).get(genePos)
@@ -312,16 +320,21 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 					subtypeAAPcnts.get(aa).add(aaPcnt);
 				}
 			}
-			for (char aa : subtypeAAPcnts.keySet()) {
-				List<AminoAcidPercent<VirusT>> rxAAPcnts = subtypeAAPcnts.get(aa);
-				AminoAcidPercent<VirusT> naiveAAPcnt = rxAAPcnts.get(0);
-				AminoAcidPercent<VirusT> artAAPcnt = rxAAPcnts.get(0);
+			for (char aa : naiveSubtypeAAPcnts.keySet()) {
+				List<AminoAcidPercent<VirusT>> naiveRxAAPcnts = naiveSubtypeAAPcnts.get(aa);
+				AminoAcidPercent<VirusT> naiveAAPcnt = naiveRxAAPcnts.get(0);
+				List<AminoAcidPercent<VirusT>> artRxAAPcnts = artSubtypeAAPcnts.get(aa);
+				AminoAcidPercent<VirusT> artAAPcnt = artRxAAPcnts.get(0);
+				if (naiveAAPcnt.getPercent() < 0.0001 && artAAPcnt.getPercent() < 0.0001) {
+					// AA prevalence must be greater than 0.01% 
+					continue;
+				}
 				mutPrevs.add(new MutationPrevalence<>(subtype, naiveAAPcnt, artAAPcnt));
 			}
 		}
 		if (mutPrevs.stream().anyMatch(mp -> (
 			mp.getFrequencyNaive() > 0 || mp.getFrequencyTreated() > 0 ||
-			mp.getPercentageNaive() >= 0.001 || mp.getPercentageTreated() >= 0.001))
+			mp.getPercentageNaive() >= 0.0001 || mp.getPercentageTreated() >= 0.0001))
 		) {
 			return Collections.unmodifiableList(mutPrevs);
 		}

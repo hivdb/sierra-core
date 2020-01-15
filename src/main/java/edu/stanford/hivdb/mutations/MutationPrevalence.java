@@ -55,8 +55,10 @@ public class MutationPrevalence<VirusT extends Virus<VirusT>> {
 	) {
 		this(
 			naiveAAPcnt.getMutation(), subtype,
-			naiveAAPcnt.getTotal(), naiveAAPcnt.getCount(), naiveAAPcnt.getPercent(),
-			artAAPcnt.getTotal(), artAAPcnt.getCount(), artAAPcnt.getPercent()
+			naiveAAPcnt.getTotal(), naiveAAPcnt.getCount(),
+			naiveAAPcnt.getPercent() * 100,
+			artAAPcnt.getTotal(), artAAPcnt.getCount(),
+			artAAPcnt.getPercent() * 100
 		);
 	}
 	
