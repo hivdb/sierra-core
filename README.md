@@ -1,1 +1,1 @@
-# Sierra Project - Utilities Package
+# Sierra Core - Utilities Package
