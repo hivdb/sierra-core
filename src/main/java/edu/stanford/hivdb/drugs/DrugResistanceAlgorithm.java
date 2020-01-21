@@ -132,7 +132,12 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 	}
 	
 	public String getEnumCompatName() {
-		return "_" + getName().replaceAll("[^_0-9A-Za-z]", "_");
+		String name = getName().replaceAll("[^_0-9A-Za-z-]", "_");
+		name = name.replace("-stanford", "stanford").replace('-', 'p');
+		if (name.matches("^\\d")) {
+			name = "_" + name;
+		}
+		return name;
 	}
 	
 	@Override
