@@ -8,7 +8,7 @@ plugins {
 group = 'edu.stanford.hivdb'
 version = '3.0.0b2'
 
-description = 'Sierra - Utilities'
+description = 'Sierra - Core'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -44,28 +44,6 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.2.0'
 }
-
-task clearCachable(type: Exec, group: 'Generator', description: 'Clean files created by Cachable.') {
-    commandLine 'rm'
-    args '-rf', 'src/main/resources/__cached_classes'
-}
-
-task updateCachable(type: JavaExec, group: 'Generator', description: 'Generate files with Cachable.') {
-    main = 'edu.stanford.hivdb.utilities.Cachable'
-    classpath = sourceSets.main.runtimeClasspath
-    systemProperty 'hivdb.updateCachable', """
-        edu.stanford.hivdb.mutations.Apobec
-        edu.stanford.hivdb.mutations.MutationTypePairs
-        edu.stanford.hivdb.mutations.Sdrms
-        edu.stanford.hivdb.mutations.DRMs
-        edu.stanford.hivdb.mutations.Tsms
-        edu.stanford.hivdb.mutations.MutationPrevalences
-        edu.stanford.hivdb.mutations.DRMs
-    """
-}
-
-updateCachable.dependsOn classes
-updateCachable.dependsOn clearCachable
 
 jacocoTestReport {
     reports {
