@@ -95,6 +95,10 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		return name;
 	}
 	
+	public String getDisplay() {
+		return String.format("%s %s", family, version);
+	}
+	
 	public String name() {
 		return name;
 	}

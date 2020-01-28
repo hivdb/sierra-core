@@ -56,6 +56,7 @@ import edu.stanford.hivdb.viruses.WithGene;
 public class GeneDRAsi<VirusT extends Virus<VirusT>> extends GeneDR<VirusT> implements WithGene<VirusT> {
 
 	protected final AsiResult<VirusT> asiObject;
+	private DrugResistanceAlgorithm<VirusT> algorithm;
 	
 	public static <VirusT extends Virus<VirusT>> Map<Gene<VirusT>, GeneDR<VirusT>> getResistanceByGeneFromAlignedGeneSeqs(
 		List<AlignedGeneSeq<VirusT>> alignedGeneSeqs, DrugResistanceAlgorithm<VirusT> algorithm
@@ -87,6 +88,7 @@ public class GeneDRAsi<VirusT extends Virus<VirusT>> extends GeneDR<VirusT> impl
 
 	public GeneDRAsi(Gene<VirusT> gene, MutationSet<VirusT> mutations, DrugResistanceAlgorithm<VirusT> algorithm) {
 		super(gene, mutations);
+		this.algorithm = algorithm;
 		this.asiObject = new AsiResult<>(gene, mutations, algorithm);
 
 		drugClassDrugMutScores = asiObject.getDrugClassDrugMutScores();
@@ -107,6 +109,14 @@ public class GeneDRAsi<VirusT extends Virus<VirusT>> extends GeneDR<VirusT> impl
 	
 	public AsiResult<VirusT> getAsiObject() {
 		return asiObject;
+	}
+	
+	public DrugResistanceAlgorithm<VirusT> getAlgorithm() {
+		return algorithm;
+	}
+	
+	public DrugResistanceAlgorithm<VirusT> getVersion() {
+		return algorithm;
 	}
 
 	@Override

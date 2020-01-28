@@ -29,6 +29,7 @@ import edu.stanford.hivdb.comments.BoundComment;
 import edu.stanford.hivdb.comments.CommentType;
 import edu.stanford.hivdb.drugs.Drug;
 import edu.stanford.hivdb.drugs.DrugClass;
+import edu.stanford.hivdb.drugs.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.viruses.Gene;
@@ -67,12 +68,14 @@ public abstract class GeneDR<VirusT extends Virus<VirusT>> {
 	}
 
 	public Gene<VirusT> getGene() { return gene; }
-
+	
 	public abstract Map<Drug<VirusT>, Double> getDrugClassTotalDrugScores(DrugClass<VirusT> drugClass);
 	public abstract Double getTotalDrugScore(Drug<VirusT> drug);
 	public abstract Integer getDrugLevel(Drug<VirusT> drug);
 	public abstract String getDrugLevelText(Drug<VirusT> drug);
 	public abstract String getDrugLevelSIR(Drug<VirusT> drug);
+	public abstract DrugResistanceAlgorithm<VirusT> getAlgorithm();
+	public abstract DrugResistanceAlgorithm<VirusT> getVersion();
 
 	public MutationSet<VirusT> getMutations() { return mutations; }
 

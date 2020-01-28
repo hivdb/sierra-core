@@ -35,6 +35,7 @@ public class Drug<VirusT extends Virus<VirusT>> implements Comparable<Drug<Virus
 	private final String name;
 	private final String fullName;
 	private final String displayAbbr;
+	private final List<String> synonyms;
 	private final String drugClass;
 
 	private transient VirusT virusInstance;
@@ -48,17 +49,22 @@ public class Drug<VirusT extends Virus<VirusT>> implements Comparable<Drug<Virus
 			drugMap.put(drug.getName(), drug);
 			drugMap.put(drug.getFullName(), drug);
 			drugMap.put(drug.getDisplayAbbr(), drug);
+			for (String synonym : drug.getSynonyms()) {
+				drugMap.put(synonym, drug);
+			}
 		}
 		return Collections.unmodifiableMap(drugMap);
 	}
 	
 	private Drug(
 		String name, String fullName,
-		String displayAbbr, String drugClass
+		String displayAbbr, List<String>synonyms,
+		String drugClass
 	) {
 		this.name = name;
 		this.fullName = fullName;
 		this.displayAbbr = displayAbbr;
+		this.synonyms = synonyms; 
 		this.drugClass = drugClass;
 	}
 
@@ -90,6 +96,15 @@ public class Drug<VirusT extends Virus<VirusT>> implements Comparable<Drug<Virus
 
 	public String getFullName() {
 		return fullName;
+	}
+	
+	public List<String> getSynonyms() {
+		if (synonyms == null) {
+			return Collections.emptyList();
+		}
+		else {
+			return Collections.unmodifiableList(synonyms);
+		}
 	}
 
 	public String getDisplayAbbr() {
