@@ -305,7 +305,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 			}
 			else {
 				// refSequence insertion, delete codon(s) from naseq
-				pos = -pos;
 				if (deleteAfter > 0) {
 					naseq =
 						naseq.substring(0, pos * 3) +
