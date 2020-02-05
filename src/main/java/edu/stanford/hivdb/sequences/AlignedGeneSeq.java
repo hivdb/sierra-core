@@ -205,11 +205,11 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	}
 	
 	public String getAdjustedAlignedNAs() {
-		return gene.applyCodonModifiersForNASeq(getAlignedNAs(), firstAA, lastAA, gene.getVirusInstance().getGenotypingCompatibleStrain());
+		return gene.applyCodonModifiersForNASeq(getAlignedNAs(), firstAA, lastAA, gene.getVirusInstance().getMainStrain());
 	}
 
 	public String getAdjustedAlignedAAs() {
-		return gene.applyCodonModifiersForAASeq(getAlignedAAs(), firstAA, lastAA, gene.getVirusInstance().getGenotypingCompatibleStrain());
+		return gene.applyCodonModifiersForAASeq(getAlignedAAs(), firstAA, lastAA, gene.getVirusInstance().getMainStrain());
 	}
 
 	public int getFirstNA() { return firstNA; }

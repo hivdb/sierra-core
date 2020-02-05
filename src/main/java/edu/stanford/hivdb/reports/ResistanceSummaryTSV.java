@@ -21,7 +21,6 @@ package edu.stanford.hivdb.reports;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,6 @@ import edu.stanford.hivdb.drugs.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
-import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.sequences.AlignedSequence;
 import edu.stanford.hivdb.utilities.TSV;
@@ -65,6 +63,7 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 
 	private ResistanceSummaryTSV(VirusT virusIns) {
 		this.virusIns = virusIns;
+		MutationType<VirusT> otherMutType = virusIns.getOtherMutationType();
 
 		List<String> hFields = new ArrayList<>();
 		hFields.add("Sequence Name");
@@ -72,15 +71,14 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 		hFields.add("Genes");
 		for (DrugClass<VirusT> drugClass : virusIns.getDrugClasses()) {
 			for (MutationType<VirusT> mtype : drugClass.getMutationTypes()) {
-				String mtypeText = mtype.getName();
-				if (mtypeText.equals("Other")) {
+				if (mtype == otherMutType) {
 					continue;
 				}
 				hFields.add(mtype.getFullName(drugClass));
 			}
 			for (Drug<VirusT> drug : drugClass.getDrugs()) {
-				hFields.add(drug.getDisplayAbbr() + " Score");
-				hFields.add(drug.getDisplayAbbr() + " Level");
+				hFields.add(String.format("%s Score", drug.getDisplayAbbr()));
+				hFields.add(String.format("%s Level", drug.getDisplayAbbr()));
 			}
 		}
 		hFields.add("Algorithm Name");
@@ -89,12 +87,15 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 		headerFields = Collections.unmodifiableList(hFields);
 	}
 
-	public String makeReport(
+	protected List<String> getHeaderFields() {
+		return headerFields;
+	}
+
+	protected List<Map<String, String>> getReportRows(
 		List<AlignedSequence<VirusT>> alignedSeqs, List<Map<Gene<VirusT>,
 		GeneDR<VirusT>>> allResistanceResults, DrugResistanceAlgorithm<VirusT> algorithm
 	) {
-		List<List<String>> sequenceRows = new ArrayList<>();
-		Map<String, Map<String, String>> tabularResults = new TreeMap<>();
+		List<Map<String, String>> sequenceRows = new ArrayList<>();
 
 		int numSeqs = alignedSeqs.size();
 		for (int i=0; i < numSeqs; i ++) {
@@ -102,7 +103,6 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 			Map<Gene<VirusT>, GeneDR<VirusT>> resistanceResults = allResistanceResults.get(i);
 
 			String seqName = alignedSeq.getInputSequence().getHeader();
-			tabularResults.put(seqName, new TreeMap<String, String>());
 
 			List<Gene<VirusT>> geneList = Lists.newArrayList(resistanceResults.keySet());
 			geneList.sort(Gene::compareTo);
@@ -113,80 +113,64 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 			);
 			Strain<VirusT> strain = alignedSeq.getStrain();
 
-			List<String> sequenceRecord = new ArrayList<>();
-			sequenceRecord.add(seqName);
-			sequenceRecord.add(strain.getName());
-			sequenceRecord.add(genes);
+			Map<String, String> sequenceRecord = new HashMap<>();
+			sequenceRecord.put("Sequence Name", seqName);
+			sequenceRecord.put("Strain", strain.getName());
+			sequenceRecord.put("Genes", genes);
 			for (String absGene : virusIns.getAbstractGenes()) {
 				Gene<VirusT> gene = strain.getGene(absGene);
 				GeneDR<VirusT> result = resistanceResults.getOrDefault(gene, null);
-				for (DrugClass<VirusT> drugClass : gene.getDrugClasses()) {
-					sequenceRecord.addAll(getScoredMutations(drugClass, result));
-					sequenceRecord.addAll(getScores(drugClass, result));
-				}
+				sequenceRecord.putAll(getScoreDetails(result));
 			}
 
-			sequenceRecord.add(algorithm.getFamily());
-			sequenceRecord.add(algorithm.getVersion());
-			sequenceRecord.add(algorithm.getPublishDate());
+			sequenceRecord.put("Algorithm Name", algorithm.getFamily());
+			sequenceRecord.put("Algorithm Version", algorithm.getVersion());
+			sequenceRecord.put("Algorithm Date", algorithm.getPublishDate());
 			sequenceRows.add(sequenceRecord);
 
-			for (int j=0; j<headerFields.size(); j++) {
-				String field = headerFields.get(j);
-				String dataItem = sequenceRecord.get(j);
-				tabularResults.get(seqName).put(field, dataItem);
-			}
 		}
-		return TSV.dumps(headerFields, sequenceRows);
+		return sequenceRows;
 	}
 
-	private List<String> getScores(DrugClass<VirusT> drugClass, GeneDR<VirusT> geneDR) {
-		List<String> resistanceScoresAndLevels = new ArrayList<>();
+	public String getReport(
+		List<AlignedSequence<VirusT>> alignedSeqs, List<Map<Gene<VirusT>,
+		GeneDR<VirusT>>> allResistanceResults, DrugResistanceAlgorithm<VirusT> algorithm
+	) {
+		return TSV.dumpMaps(
+			headerFields,
+			getReportRows(alignedSeqs, allResistanceResults, algorithm),
+			"NA");
+	}
 
-		for (Drug<VirusT> drug : drugClass.getDrugs()) {
-			if (geneDR == null) {
-				resistanceScoresAndLevels.add("NA");
-				resistanceScoresAndLevels.add("NA");
-			}
-			else {
+	private Map<String, String> getScoreDetails(GeneDR<VirusT> geneDR) {
+		if (geneDR == null) {
+			return Collections.emptyMap();
+		}
+		MutationType<VirusT> otherMutType = virusIns.getOtherMutationType();
+		Map<String, String> results = new HashMap<>();
+
+		for (DrugClass<VirusT> drugClass : geneDR.getGene().getDrugClasses()) {
+			for (Drug<VirusT> drug : drugClass.getDrugs()) {
 				int score = geneDR.getTotalDrugScore(drug).intValue();
 				int level = geneDR.getDrugLevel(drug);
-				resistanceScoresAndLevels.add(Integer.toString(score));
-				resistanceScoresAndLevels.add(Integer.toString(level));
+				results.put(
+					String.format("%s Score", drug.getDisplayAbbr()),
+					Integer.toString(score));
+				results.put(
+					String.format("%s Level", drug.getDisplayAbbr()),
+					Integer.toString(level));
 			}
-		}
-		return resistanceScoresAndLevels;
-	}
-
-
-	private List<String> getScoredMutations(DrugClass<VirusT> drugClass, GeneDR<VirusT> geneDR) {
-		List<String> scoredMutations = new ArrayList<>();
-		Map<MutationType<VirusT>, MutationSet<VirusT>> mutationsByTypes;
-		if (geneDR == null) {
-			mutationsByTypes = Collections.emptyMap();
-		}
-		else {
-			mutationsByTypes = geneDR.groupMutationsByTypes();
-		}
-
-		for (MutationType<VirusT> mtype : drugClass.getMutationTypes()) {
-			if (mtype.toString().equals("Other")) {
-				continue;
-			}
-			String mutationsText = "NA";
-			if (mutationsByTypes.containsKey(mtype)) {
-				MutationSet<VirusT> muts = mutationsByTypes.get(mtype);
-				if (muts.size() > 0) {
-					mutationsText = muts.join();
+			for (MutationType<VirusT> mtype : drugClass.getMutationTypes()) {
+				if (mtype == otherMutType) {
+					continue;
 				}
-				else {
-					mutationsText = "None";
-				}
+				results.put(
+					mtype.getFullName(drugClass),
+					geneDR.getMutationsByType(mtype).join()
+				);
 			}
-			scoredMutations.add(mutationsText);
 		}
-		return scoredMutations;
+		return results;
 	}
-
 
 }

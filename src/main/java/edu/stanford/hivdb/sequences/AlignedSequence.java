@@ -182,7 +182,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 
 	public GenotypeResult<VirusT> getGenotypeResult() {
 		if (!isEmpty && genotypeResult == null) {
-			Strain<VirusT> targetStrain = virusInstance.getGenotypingCompatibleStrain();
+			Strain<VirusT> targetStrain = virusInstance.getMainStrain();
 			// Tweak the alignment first
 			String compatConcatSeq = concatAlignments(false, targetStrain);
 			int absFirstNA = targetStrain.getAbsoluteFirstNA();

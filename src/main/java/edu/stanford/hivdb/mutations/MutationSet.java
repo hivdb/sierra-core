@@ -381,7 +381,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 		return subtractsBy(new MutationSet<>(mutations));
 	}
 
-	private MutationSet<VirusT> filterBy(Predicate<Mutation<VirusT>> predicate) {
+	public MutationSet<VirusT> filterBy(Predicate<Mutation<VirusT>> predicate) {
 		return new MutationSet<>(
 			this
 			.getSplitted()
@@ -391,7 +391,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 		);
 	}
 
-	private <T> Map<T, MutationSet<VirusT>> filterAndGroupBy(
+	public <T> Map<T, MutationSet<VirusT>> filterAndGroupBy(
 			Predicate<Mutation<VirusT>> predicate, Function<Mutation<VirusT>, T> function) {
 		Map<T, List<Mutation<VirusT>>> tmp = this
 			.stream()
@@ -404,7 +404,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 		return r;
 	}
 
-	private <T> Map<T, MutationSet<VirusT>> groupBy(Function<Mutation<VirusT>, T> function) {
+	public <T> Map<T, MutationSet<VirusT>> groupBy(Function<Mutation<VirusT>, T> function) {
 		Map<T, List<Mutation<VirusT>>> tmp = this
 			.stream()
 			.collect(Collectors.groupingBy(function));

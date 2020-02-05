@@ -20,6 +20,7 @@ package edu.stanford.hivdb.utilities;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public abstract class TSV {
 
@@ -66,5 +67,14 @@ public abstract class TSV {
 			headers.toArray(new String[0]),
 			rows.stream().map(
 				row -> row.toArray(new String[0])).toArray(String[][]::new));
+	}
+
+	public static String dumpMaps(List<String> headers, Collection<Map<String, String>> rows, String naText) {
+		return dumps(
+			headers.toArray(new String[0]),
+			rows.stream().map(
+				row -> headers.stream().map(h -> row.getOrDefault(h, naText)).toArray(String[]::new)
+			).toArray(String[][]::new)
+		);
 	}
 }

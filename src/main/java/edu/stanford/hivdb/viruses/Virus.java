@@ -143,7 +143,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 
 	public List<GenotypeReference<VirusT>> getGenotypeReferences();
 
-	public Strain<VirusT> getGenotypingCompatibleStrain();
+	public Strain<VirusT> getMainStrain();
 
 	public Gene<VirusT> extractMutationGene(String mutText);
 
