@@ -54,26 +54,28 @@ import edu.stanford.hivdb.sequences.SequenceValidator;
 import edu.stanford.hivdb.utilities.ValidationResult;
 
 public interface Virus<VirusT extends Virus<VirusT>> {
-	
+
 	public final static Map<String, Virus<?>> singletons = new HashMap<>();
 	public final static Map<String, Virus<?>> singletonByClassName = new HashMap<>();
 	public final static Map<String, SequenceValidator<?>> sequenceValidators = new HashMap<>();
 	public final static Map<String, MutationsValidator<?>> mutationsValidators = new HashMap<>();;
 	public final static Map<String, SequenceReadsValidator<?>> sequenceReadsValidators = new HashMap<>();
-	
-	public static void registerInstance(String name, Virus<?> singleton) {
-		singletons.put(name, singleton);
+
+	public static void registerInstance(Virus<?> singleton) {
+		singletons.put(singleton.getName(), singleton);
 		singletonByClassName.put(singleton.getClass().getName(), singleton);
 	}
-	
+
 	public static Virus<?> getInstance(String name) {
 		return singletons.get(name);
 	}
-	
+
 	public static <VirusT extends Virus<VirusT>> VirusT getInstance(Class<VirusT> klass) {
 		return klass.cast(singletonByClassName.get(klass.getName()));
 	}
-	
+
+	public String getName();
+
 	public Collection<Strain<VirusT>> getStrains();
 
 	public default Strain<VirusT> getStrain(String name) {
@@ -84,7 +86,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		}
 		throw new NullPointerException(String.format("strain \"%s\" not found", name));
 	}
-	
+
 	public Collection<Gene<VirusT>> getGenes(Strain<VirusT> strain);
 
 	public Gene<VirusT> getGene(String name);
@@ -100,13 +102,13 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	}
 
 	public Collection<DrugClass<VirusT>> getDrugClasses();
-	
+
 	public Map<String, DrugClass<VirusT>> getDrugClassSynonymMap();
 
 	public default DrugClass<VirusT> getDrugClass(String name) {
 		return getDrugClassSynonymMap().get(name);
 	}
-	
+
 	public Collection<Drug<VirusT>> getDrugs();
 
 	public Map<String, Drug<VirusT>> getDrugSynonymMap();
@@ -123,7 +125,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public default Drug<VirusT> getDrug(String name) {
 		return getDrugSynonymMap().get(name);
 	}
-	
+
 	public Collection<Genotype<VirusT>> getGenotypes();
 
 	public default Genotype<VirusT> getGenotype(String name) {
@@ -134,15 +136,15 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		}
 		throw new NullPointerException(String.format("Genotype \"%s\" not found", name));
 	}
-	
+
 	public Genotype<VirusT> getGenotypeUnknown();
-	
+
 	public Genotyper<VirusT> getGenotyper();
-	
+
 	public List<GenotypeReference<VirusT>> getGenotypeReferences();
 
 	public Strain<VirusT> getGenotypingCompatibleStrain();
-	
+
 	public Gene<VirusT> extractMutationGene(String mutText);
 
 	public Mutation<VirusT> parseMutationString(Gene<VirusT> defaultGene, String mutText);
@@ -150,7 +152,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Mutation<VirusT> parseMutationString(String mutText);
 
 	public MutationSet<VirusT> newMutationSet(String formattedMuts);
-	
+
 	public MutationSet<VirusT> newMutationSet(Collection<String> formattedMuts);
 
 	public MutationSet<VirusT> newMutationSet(Gene<VirusT> defaultGene, String formattedMuts);
@@ -158,7 +160,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public MutationSet<VirusT> newMutationSet(Gene<VirusT> defaultGene, Collection<String> formattedMuts);
 
 	public Map<DrugClass<VirusT>, MutationSet<VirusT>> getDrugResistMutations();
-	
+
 	public default MutationSet<VirusT> getDrugResistMutations(DrugClass<VirusT> drugClass) {
 		return getDrugResistMutations().get(drugClass);
 	}
@@ -167,7 +169,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 
 	public default MutationSet<VirusT> getSurveilDrugResistMutations(DrugClass<VirusT> drugClass) {
 		return getSurveilDrugResistMutations().get(drugClass);
-		
+
 	}
 
 	public Map<DrugClass<VirusT>, MutationSet<VirusT>> getRxSelectedMutations();
@@ -194,7 +196,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		}
 		throw new NullPointerException(String.format("Mutation type \"%s\" not found", mutTypeText));
 	}
-	
+
 	public default MutationType<VirusT> getOtherMutationType() {
 		return getMutationType("Other");
 	}
@@ -231,9 +233,9 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	}
 
 	public List<String> getMainSubtypes(Strain<VirusT> strain);
-	
+
 	public Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithms();
-	
+
 	public default Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithms(Strain<VirusT> strain) {
 		return (
 			getDrugResistAlgorithms()
@@ -242,7 +244,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
-	
+
 	public default Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithmsByFamily(String family) {
 		return (
 			getDrugResistAlgorithms()
@@ -251,7 +253,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
-	
+
 	public default DrugResistanceAlgorithm<VirusT> getDrugResistAlgorithm(String name) {
 		return (
 			getDrugResistAlgorithms()
@@ -261,7 +263,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.get()
 		);
 	}
-	
+
 	public default DrugResistanceAlgorithm<VirusT> getDrugResistAlgorithm(String family, String version) {
 		return (
 			getDrugResistAlgorithms()
@@ -279,7 +281,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
-	
+
 	public default DrugResistanceAlgorithm<VirusT> getLatestDrugResistAlgorithm(String family) {
 		return (
 			getDrugResistAlgorithmsByFamily(family)
@@ -326,7 +328,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 				List<AminoAcidPercent<VirusT>> artRxAAPcnts = artSubtypeAAPcnts.get(aa);
 				AminoAcidPercent<VirusT> artAAPcnt = artRxAAPcnts.get(0);
 				if (naiveAAPcnt.getPercent() < 0.0001 && artAAPcnt.getPercent() < 0.0001) {
-					// AA prevalence must be greater than 0.01% 
+					// AA prevalence must be greater than 0.01%
 					continue;
 				}
 				mutPrevs.add(new MutationPrevalence<>(subtype, naiveAAPcnt, artAAPcnt));
@@ -340,13 +342,13 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		}
 		return Collections.emptyList();
 	}
-	
+
 	public ConditionalComments<VirusT> getConditionalComments();
-	
+
 	public default void registerSequenceValidator(SequenceValidator<VirusT> validator) {
 		sequenceValidators.put(this.getClass().getName(), validator);
 	}
-	
+
 	public default List<ValidationResult> validateSequence(AlignedSequence<VirusT> alignedSeq) {
 		String className = this.getClass().getName();
 		if (sequenceValidators.containsKey(className)) {
@@ -362,7 +364,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public default void registerMutationsValidator(MutationsValidator<VirusT> validator) {
 		mutationsValidators.put(this.getClass().getName(), validator);
 	}
-	
+
 	public default List<ValidationResult> validateMutations(MutationSet<VirusT> mutations) {
 		String className = this.getClass().getName();
 		if (mutationsValidators.containsKey(className)) {
@@ -374,7 +376,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			return Collections.emptyList();
 		}
 	}
-	
+
 	public default void registerSequenceReadsValidator(SequenceReadsValidator<VirusT> validator) {
 		sequenceReadsValidators.put(this.getClass().getName(), validator);
 	}
