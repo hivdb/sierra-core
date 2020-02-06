@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import edu.stanford.hivdb.comments.ConditionalComments;
@@ -146,6 +147,19 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Strain<VirusT> getMainStrain();
 
 	public Gene<VirusT> extractMutationGene(String mutText);
+
+	public default Set<Gene<VirusT>> extractMutationGenes(Collection<String> mutations) {
+		int numGenes = getAbstractGenes().size();
+		Set<Gene<VirusT>> knownGenes = new TreeSet<>();
+		for (String mutText : mutations) {
+			Gene<VirusT> gene = extractMutationGene(mutText);
+			knownGenes.add(gene);
+			if (knownGenes.size() == numGenes) {
+				break;
+			}
+		}
+		return knownGenes;
+	}
 
 	public Mutation<VirusT> parseMutationString(Gene<VirusT> defaultGene, String mutText);
 
