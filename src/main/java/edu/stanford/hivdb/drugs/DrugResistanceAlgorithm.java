@@ -3,6 +3,7 @@ package edu.stanford.hivdb.drugs;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +12,6 @@ import org.fstrf.stanfordAsiInterpreter.resistance.ASIParsingException;
 import org.fstrf.stanfordAsiInterpreter.resistance.xml.XmlAsiTransformer;
 
 import edu.stanford.hivdb.viruses.Gene;
-import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
@@ -20,14 +20,13 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 	final private String family;
 	final private String version;
 	final private String publishDate;
-	final private Strain<VirusT> strain;
 	final private String xmlText;
 	final private transient String originalLevelText;
 	final private transient String originalLevelSIR;
-	final private transient Map<Gene<VirusT>, org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene> geneMap;
+	final private transient Map<String, org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene> geneMap;
 
-	private static <VirusT extends Virus<VirusT>> Map<Gene<VirusT>, org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene> initGeneMap(
-		String xmlText, Strain<VirusT> strain
+	private static <VirusT extends Virus<VirusT>> Map<String, org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene> initGeneMap(
+		String xmlText, VirusT virus
 	) {
 		InputStream resource = new ByteArrayInputStream(xmlText.getBytes());
 		Map<?, ?> geneMap;
@@ -37,18 +36,14 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		} catch (Exception e) {
 			throw new ExceptionInInitializerError(e);
 		}
-		Set<String> absGenes = (
-			strain.getGenes().stream()
-			.map(gene -> gene.getAbstractGene())
-			.collect(Collectors.toSet())
-		);
+		Set<String> absGenes = new HashSet<>(virus.getAbstractGenes());
 		return Collections.unmodifiableMap(geneMap
 			.entrySet()
 			.stream()
 			// removes genes supported by algorithm but not by Virus implementation
 			.filter(e -> absGenes.contains(e.getKey()))
 			.collect(Collectors.toMap(
-				e -> strain.getGene((String) e.getKey()),
+				e -> ((String) e.getKey()),
 				e -> (org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene) e.getValue()
 			))
 		);
@@ -65,17 +60,17 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		}
 	}
 	
-	public DrugResistanceAlgorithm(Strain<VirusT> strain, String xmlText) {
-		this(null, null, null, null, strain, xmlText);
+	public DrugResistanceAlgorithm(VirusT virus, String xmlText) {
+		this(null, null, null, null, virus, xmlText);
 	}
 	
-	public DrugResistanceAlgorithm(String name, Strain<VirusT> strain, String xmlText) {
-		this(name, null, null, null, strain, xmlText);
+	public DrugResistanceAlgorithm(String name, VirusT virus, String xmlText) {
+		this(name, null, null, null, virus, xmlText);
 	}
 	
 	public DrugResistanceAlgorithm(
 		String name, String family, String version,
-		String publishDate, Strain<VirusT> strain, String xmlText
+		String publishDate, VirusT virus, String xmlText
 	) {
 		Map<?, ?> algInfo = getAlgorithmInfo(xmlText);
 		Map<?, ?> algNVD = (Map<?, ?>) algInfo.get("ALGNAME_ALGVERSION_ALGDATE");
@@ -86,9 +81,8 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		this.publishDate = publishDate == null ? (String) algNVD.get("ALGDATE") : publishDate;
 		this.originalLevelText = (String) originalLevel.get("ORIGINAL");
 		this.originalLevelSIR = (String) originalLevel.get("SIR");
-		this.strain = strain;
 		this.xmlText = xmlText;
-		this.geneMap = initGeneMap(xmlText, strain);
+		this.geneMap = initGeneMap(xmlText, virus);
 	}
 	
 	public String getName() {
@@ -123,12 +117,8 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		return originalLevelSIR;
 	}
 	
-	public Strain<VirusT> getStrain() {
-		return strain;
-	}
-	
 	public org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene getASIGene(Gene<VirusT> gene) {
-		return geneMap.get(gene);
+		return geneMap.get(gene.getAbstractGene());
 	}
 	
 	public String getXMLText() {

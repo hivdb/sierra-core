@@ -250,15 +250,6 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 
 	public Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithms();
 
-	public default Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithms(Strain<VirusT> strain) {
-		return (
-			getDrugResistAlgorithms()
-			.stream()
-			.filter(dra -> dra.getStrain() == strain)
-			.collect(Collectors.toList())
-		);
-	}
-
 	public default Collection<DrugResistanceAlgorithm<VirusT>> getDrugResistAlgorithmsByFamily(String family) {
 		return (
 			getDrugResistAlgorithms()
