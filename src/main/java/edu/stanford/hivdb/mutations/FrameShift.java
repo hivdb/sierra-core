@@ -130,7 +130,7 @@ public class FrameShift<VirusT extends Virus<VirusT>> implements Comparable<Fram
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(6434, 15675) // any two random prime numbers
+		return new HashCodeBuilder(6449, 15671) // any two random prime numbers
 			.append(gene)
 			.append(position)
 			.append(type)
