@@ -122,32 +122,29 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 			String commentName = cmtDef.getId();
 			ConditionalComment<VirusT> condComment = condCommentMap.get(commentName);
 			Mutation<VirusT> mut;
-			if (condComment.getConditionType() == ConditionType.MUTATION) {
-				mut = (
-					muts
-					.get(condComment.getMutationGene(), condComment.getMutationPosition())
-					.intersectsWith(
-						condComment.getMutationAAs().chars()
-						.mapToObj(e -> (char) e)
-						.collect(Collectors.toList())
-					)
-				);
-			}
-			else {
+			if (condComment.getConditionType() != ConditionType.MUTATION) {
 				throw new RuntimeException(
-					String.format("Invalid comment name: %s", commentName)
-				);
+						String.format("Invalid comment name: %s", commentName)
+					);
 			}
 			
-			List<String> highlight = new ArrayList<>();
-			highlight.add(mut.getHumanFormat());
-			results.add(new BoundComment<>(
-				condComment.getStrain(), condComment.getName(),
-				condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
-				cmtDef.getText().replaceAll(WILDCARD_REGEX, mut.getHumanFormat()),
-				highlight,
-				mut
-			));
+			Mutation<VirusT> matchedMut = muts.get(condComment.getMutationGenePosition());
+			if (matchedMut != null) {
+				mut = matchedMut.intersectsWith(condComment.getMutationAAs().chars()
+						.mapToObj(e -> (char) e)
+						.collect(Collectors.toList())
+						);
+				List<String> highlight = new ArrayList<>();
+				highlight.add(mut.getHumanFormat());
+				results.add(new BoundComment<>(
+						condComment.getStrain(), condComment.getName(),
+						condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
+						cmtDef.getText().replaceAll(WILDCARD_REGEX, mut.getHumanFormat()),
+						highlight,
+						mut
+					));
+			}
+
 		}
 		results.sort((a, b) -> a.getBoundMutation().compareTo(b.getBoundMutation())); 
 		return results;
