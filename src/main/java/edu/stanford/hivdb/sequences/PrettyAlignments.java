@@ -33,22 +33,26 @@ import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class PrettyAlignments<VirusT extends Virus<VirusT>> {
-	private transient Gene<VirusT> gene;
+	private transient Gene<VirusT> targetGene;
 	private transient List<AlignedGeneSeq<VirusT>> alignedGeneSeqs = new ArrayList<>();
 	private Map<String, Map<Integer, String>> sequenceAllPosAAs = new LinkedHashMap<>();
 
 	/**
 	 * This receives a list of alignedGeneSeqs for a single gene
+	 * 
+	 * TODO: by providing targetGene, this class need to apply StrainModifier to each of the pretty alignment results 
+	 * 
+	 * @param targetGene
 	 * @param alignedGeneSeqs
 	 */
-	public PrettyAlignments (Gene<VirusT> gene, List<AlignedGeneSeq<VirusT>> alignedGeneSeqs) {
-		this.gene = gene;
+	public PrettyAlignments (Gene<VirusT> targetGene, List<AlignedGeneSeq<VirusT>> alignedGeneSeqs) {
+		this.targetGene = targetGene;
 		this.alignedGeneSeqs = alignedGeneSeqs;
 		createSequencePosAAsMap();
 	}
 
 	public int getFirstAA() { return 1; }
-	public int getLastAA() { return gene.getAASize(); }
+	public int getLastAA() { return targetGene.getAASize(); }
 	public Map<String, Map<Integer, String>> getSequenceAllPosAAs() {
 		return sequenceAllPosAAs;
 	}
@@ -65,7 +69,7 @@ public class PrettyAlignments<VirusT extends Virus<VirusT>> {
 		int lastAA = getLastAA();
 
 		List<String> consRow = new ArrayList<>();
-		String cons = gene.getRefSequence();
+		String cons = targetGene.getRefSequence();
 		consRow.add("Consensus");
 
 		for (int pos=firstAA; pos <= lastAA; pos ++) {

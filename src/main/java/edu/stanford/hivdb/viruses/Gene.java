@@ -25,36 +25,32 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.gson.reflect.TypeToken;
 
 import edu.stanford.hivdb.drugs.DrugClass;
-import edu.stanford.hivdb.mutations.CodonModifier;
+import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.mutations.GenePosition;
 import edu.stanford.hivdb.mutations.MutationType;
+import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.Json;
 
 public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<VirusT>> {
-
-	public static final Character WILDCARD = '.';
-	public static final Pattern TRIM_WILDCARD_PATTERN = Pattern.compile("(^\\.+|\\.+$)");
 
 	private final String name;
 	private final Integer ordinal;
 	private final String strain;
 	private final String abstractGene;
 	private final String refSequence;
-	private final List<CodonModifier<VirusT>> codonModifiers;
+	private final Map<String, String> strainModifiers;
 	private final List<String> mutationTypes;
 	private final Integer nucaminoMinNumOfAA;
 
 	private transient VirusT virusInstance;
-	private transient boolean codonModifiersAttached;
+	private transient Map<String, StrainModifier> strainModifierMap;
 	private transient Set<MutationType<VirusT>> mutationTypeObjs;
 	private transient Set<DrugClass<VirusT>> drugClasses;
 
@@ -76,7 +72,7 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	private Gene(
 		String name, Integer ordinal, String strain, String abstractGene,
 		String refSequence, List<String> mutationTypes,
-		List<CodonModifier<VirusT>> codonModifiers,
+		Map<String, String> strainModifiers,
 		Integer nucaminoMinNumOfAA) {
 		this.name = name;
 		this.ordinal = ordinal;
@@ -84,7 +80,7 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		this.abstractGene = abstractGene;
 		this.refSequence = refSequence;
 		this.mutationTypes = mutationTypes;
-		this.codonModifiers = codonModifiers;
+		this.strainModifiers = strainModifiers;
 		this.nucaminoMinNumOfAA = nucaminoMinNumOfAA;
 	}
 	
@@ -134,18 +130,34 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		return abstractGene;
 	}
 	
-	public List<CodonModifier<VirusT>> getTargetCodonModifiers(Strain<VirusT> targetStrain) {
-		if (!codonModifiersAttached) {
-			codonModifiers
-			.stream()
-			.forEach(cm -> cm.setVirusInstance(virusInstance));
-			codonModifiersAttached = true;
+	public StrainModifier getTargetStrainModifier(Strain<?> targetStrain) {
+		return getTargetStrainModifier(targetStrain.getName());
+		
+	}
+	
+	public StrainModifier getTargetStrainModifier(String targetStrainText) {
+		if (strainModifierMap == null) {
+			Map<String, StrainModifier> strainModifierMap = (
+				strainModifiers
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(
+					e -> e.getKey(),
+					e -> new StrainModifier(e.getKey(), e.getValue())
+				))
+			);
+			strainModifierMap.put(
+				this.strain,
+				new StrainModifier(
+					this.strain,
+					String.format("%dM", this.getAASize())
+				)
+			);
+			this.strainModifierMap = Collections.unmodifiableMap(strainModifierMap);
 		}
-		return (
-			codonModifiers
-			.stream()
-			.filter(cm -> cm.getTargetStrain() == targetStrain)
-			.collect(Collectors.toList())
+		return AssertUtils.notNull(
+			strainModifierMap.get(targetStrainText),
+			"Strain modifier for target strain %s is not defined", targetStrainText
 		);
 	}
 
@@ -177,151 +189,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 			this.mutationTypeObjs = Collections.unmodifiableSet(mutationTypeObjs);
 		}
 		return mutationTypeObjs;
-	}
-
-	/**
-	 * Apply codon modifiers for amino acid sequence
-	 *
-	 * The refSequence Positions between strains of same "Virus" can be
-	 * varied. For example, for RT and IN of HIV-2 virus, there are
-	 * deletions and insertions at non-DRM positions comparing to HXB
-	 * reference.
-	 * 
-	 * This function allows to "re-fit" the sequences from one strain
-	 * into another strain's numbering system. For example, ROD/EHO to
-	 * HXB2, in order to make the sequence be compatible with HIV-1
-	 * dedicated data structure.
-	 *
-	 * @param aaseq
-	 * @param firstAA
-	 * @param lastAA
-	 * @param targetStrain
-	 * @return String of adjusted AA alignment in full gene length
-	 */
-	public String applyCodonModifiersForAASeq(
-		String aaseq, int firstAA, int lastAA, Strain<VirusT> targetStrain
-	) {
-		int numPrefixAAs = firstAA - 1;
-		int numSuffixAAs = this.refSequence.length() - aaseq.length() - numPrefixAAs;
-		aaseq =
-			StringUtils.repeat(WILDCARD, numPrefixAAs) +
-			aaseq +
-			StringUtils.repeat(WILDCARD, numSuffixAAs);
-		if (codonModifiers.size() == 0) {
-			return aaseq;
-		}
-		List<CodonModifier<VirusT>> targetCodonModifiers = getTargetCodonModifiers(targetStrain);
-		if (targetCodonModifiers.size() == 0) {
-			return aaseq;
-		}
-		for (CodonModifier<VirusT> cm : targetCodonModifiers) {
-			int pos = cm.getPosition();
-			Integer insertAfter = cm.getInsertAfter();
-			Integer deleteAfter = cm.getDeleteAfter();
-			if (insertAfter != null) {
-				if (insertAfter <= 0) {
-					throw new RuntimeException(String.format(
-						"unable to add %s AA(s) to aaseq", insertAfter
-					));
-				}
-				// refSequence deletion, add AA(s) to aaseq
-				aaseq =
-					aaseq.substring(0, pos) +
-					StringUtils.repeat(WILDCARD, insertAfter) +
-					aaseq.substring(pos);
-			}
-			else {
-				// refSequence insertion, delete AA(s) from aaseq
-				if (deleteAfter > 0) {
-					aaseq =
-						aaseq.substring(0, pos) +
-						aaseq.substring(pos + deleteAfter);
-
-				}
-				else if (deleteAfter == 0) {
-					// delete anything after
-					aaseq = aaseq.substring(0, pos);
-				}
-				else {
-					throw new RuntimeException(String.format(
-						"unable to remove %s AA(s) from aaseq", deleteAfter
-					));
-				}
-			}
-		}
-		return aaseq;
-	}
-
-	/**
-	 * Apply codon modifiers for nucleotide sequence
-	 *
-	 * The refSequence Positions between strains of same "Virus" can be
-	 * varied. For example, for RT and IN of HIV-2 virus, there are
-	 * deletions and insertions at non-DRM positions comparing to HXB
-	 * reference.
-	 * 
-	 * This function allows to "re-fit" the sequences from one strain
-	 * into another strain's numbering system. For example, ROD/EHO to
-	 * HXB2, in order to make the sequence be compatible with HIV-1
-	 * dedicated data structure.
-	 *
-	 * @param naseq
-	 * @param firstAA
-	 * @param lastAA
-	 * @param targetStrain
-	 * @return String of adjusted NA alignment in full gene length
-	 */
-	public String applyCodonModifiersForNASeq(
-		String naseq, int firstAA, int lastAA, Strain<VirusT> targetStrain
-	) {
-		int numPrefixNAs = (firstAA - 1) * 3;
-		int numSuffixNAs = getNASize() - naseq.length() - numPrefixNAs;
-		naseq =
-			StringUtils.repeat(WILDCARD, numPrefixNAs) +
-			naseq +
-			StringUtils.repeat(WILDCARD, numSuffixNAs);
-		if (codonModifiers.size() == 0) {
-			return naseq;
-		}
-		List<CodonModifier<VirusT>> targetCodonModifiers = getTargetCodonModifiers(targetStrain);
-		if (targetCodonModifiers.size() == 0) {
-			return naseq;
-		}
-		for (CodonModifier<VirusT> cm : targetCodonModifiers) {
-			int pos = cm.getPosition();
-			Integer insertAfter = cm.getInsertAfter();
-			Integer deleteAfter = cm.getDeleteAfter();
-			if (insertAfter != null) {
-				if (insertAfter <= 0) {
-					throw new RuntimeException(String.format(
-						"unable to add %s codon(s) to naseq", insertAfter
-					));
-				}
-				// refSequence deletion, add codon(s) to naseq
-				naseq =
-					naseq.substring(0, pos * 3) +
-					StringUtils.repeat(WILDCARD, 3 * insertAfter) +
-					naseq.substring(pos * 3);
-			}
-			else {
-				// refSequence insertion, delete codon(s) from naseq
-				if (deleteAfter > 0) {
-					naseq =
-						naseq.substring(0, pos * 3) +
-						naseq.substring((pos + deleteAfter) * 3);
-				}
-				else if (deleteAfter == 0) {
-					// delete anything after
-					naseq = naseq.substring(0, pos * 3);
-				}
-				else {
-					throw new RuntimeException(String.format(
-						"unable to remove %s codon(s) from naseq", deleteAfter
-					));
-				}
-			}
-		}
-		return naseq;
 	}
 
 	public Collection<GenePosition<VirusT>> getGenePositionsBetween(int startPos, int endPos) {

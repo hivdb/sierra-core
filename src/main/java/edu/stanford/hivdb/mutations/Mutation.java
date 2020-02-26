@@ -467,4 +467,5 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public String getHumanFormatWithGene();
 	
 	public Collection<BoundComment<VirusT>> getComments();
+	
 }

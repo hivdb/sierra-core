@@ -32,4 +32,5 @@ public class AlignedSite {
 	public int getPosAA() { return posAA; }
 	public int getPosNA() { return posNA; }
 	public int getLengthNA() { return lengthNA; }
+	
 }

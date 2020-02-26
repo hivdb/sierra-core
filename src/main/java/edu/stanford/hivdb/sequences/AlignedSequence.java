@@ -30,6 +30,7 @@ import edu.stanford.hivdb.genotypes.BoundGenotype;
 import edu.stanford.hivdb.genotypes.GenotypeResult;
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.MutationSet;
+import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.utilities.ValidationResult;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
@@ -98,6 +99,11 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 	public AlignedGeneSeq<VirusT> getAlignedGeneSequence(Gene<VirusT> gene) {
 		return alignedGeneSequenceMap.get(gene);
 	}
+	
+	public AlignedGeneSeq<VirusT> getAlignedGeneSequence(String abstractGene) {
+		Gene<VirusT> gene = strain.getGene(abstractGene);
+		return alignedGeneSequenceMap.get(gene);
+	}
 
 	public List<AlignedGeneSeq<VirusT>> getAlignedGeneSequences() {
 		return Collections.unmodifiableList(
@@ -133,28 +139,31 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return concatenatedSequence;
 	}
 	
-	private String concatAlignments(boolean trimResult, Strain<VirusT> targetStrain) {
+	@SuppressWarnings("unchecked")
+	private <T extends Virus<T>> String concatAlignments(boolean trimResult, Strain<T> targetStrain) {
 		String geneSeqNAs;
 		AlignedGeneSeq<VirusT> geneSeq;
 		StringBuilder concatSeq = new StringBuilder();
 		if (targetStrain == null) {
-			targetStrain = strain;
+			targetStrain = (Strain<T>) strain;
 		}
+		String targetStrainText = targetStrain.getName();
 
-		for (Gene<VirusT> targetGene: targetStrain.getGenes()) {
-			Gene<VirusT> selfGene = strain.getGene(targetGene.getAbstractGene());
-			geneSeq = alignedGeneSequenceMap.get(selfGene);
+		for (Gene<VirusT> srcGene : strain.getGenes()) {
+			Gene<T> targetGene = targetStrain.getGene(srcGene.getAbstractGene());
+			geneSeq = alignedGeneSequenceMap.get(srcGene);
 			if (geneSeq == null) {
-				concatSeq.append(StringUtils.repeat(Gene.WILDCARD, targetGene.getNASize()));
+				concatSeq.append(StringUtils.repeat(StrainModifier.WILDCARD, targetGene.getNASize()));
 				continue;
 			}
+			StrainModifier strainModifier = srcGene.getTargetStrainModifier(targetStrainText);
 			geneSeqNAs = geneSeq.getAlignedNAs();
-			geneSeqNAs = selfGene.applyCodonModifiersForNASeq(
-				geneSeqNAs, geneSeq.getFirstAA(), geneSeq.getLastAA(), targetStrain);
+			geneSeqNAs = strainModifier.modifyNASeq(
+				srcGene, geneSeqNAs, geneSeq.getFirstAA(), geneSeq.getLastAA());
 			concatSeq.append(geneSeqNAs);
 		}
 		if (trimResult) {
-			Matcher matcher = Gene.TRIM_WILDCARD_PATTERN.matcher(concatSeq.toString());
+			Matcher matcher = StrainModifier.TRIM_WILDCARD_PATTERN.matcher(concatSeq.toString());
 			return matcher.replaceAll("");
 		} else {
 			return concatSeq.toString();

@@ -52,6 +52,7 @@ import edu.stanford.hivdb.seqreads.SequenceReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsValidator;
 import edu.stanford.hivdb.sequences.AlignedSequence;
 import edu.stanford.hivdb.sequences.SequenceValidator;
+import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.ValidationResult;
 
 public interface Virus<VirusT extends Virus<VirusT>> {
@@ -80,12 +81,13 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Collection<Strain<VirusT>> getStrains();
 
 	public default Strain<VirusT> getStrain(String name) {
-		for (Strain<VirusT> s : getStrains()) {
-			if (s.getName().equals(name)) {
-				return s;
-			}
-		}
-		throw new NullPointerException(String.format("strain \"%s\" not found", name));
+		return AssertUtils.notNull(
+			getStrains()
+			.stream()
+			.filter(s -> s.getName().equals(name))
+			.findFirst().get(),
+			"Strain \"%s\" not found", name
+		);
 	}
 
 	public Collection<Gene<VirusT>> getGenes(Strain<VirusT> strain);
@@ -260,22 +262,24 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	}
 
 	public default DrugResistanceAlgorithm<VirusT> getDrugResistAlgorithm(String name) {
-		return (
+		return AssertUtils.notNull(
 			getDrugResistAlgorithms()
 			.stream()
 			.filter(dra -> dra.getName().equals(name))
 			.findFirst()
-			.get()
+			.get(),
+			"Unable to locate algorithm %s", name
 		);
 	}
 
 	public default DrugResistanceAlgorithm<VirusT> getDrugResistAlgorithm(String family, String version) {
-		return (
+		return AssertUtils.notNull(
 			getDrugResistAlgorithms()
 			.stream()
 			.filter(dra -> dra.getFamily().equals(family) && dra.getVersion().equals(version))
 			.findFirst()
-			.get()
+			.get(),
+			"Unable to locate algorithm %s_%s", family, version
 		);
 	}
 

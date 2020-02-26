@@ -33,6 +33,7 @@ import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
+import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.utilities.PrettyPairwise;
 import edu.stanford.hivdb.viruses.Gene;
@@ -60,8 +61,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final boolean sequenceReversed;
 	private transient Sequence reversedSeq;
 	private transient List<AlignedSite> alignedSites;
-	protected transient boolean codonAlignerTouched = false;
-	protected transient boolean codon69Touched = false;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
 
 	// Variables assigned by NucAminoAligner and changed by the methods in this class
@@ -144,6 +143,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.frameShifts = Collections.unmodifiableList(frameShifts);
 		mutationListString = getMutationListString();
 	}
+	
 
 	@Override
 	public Gene<VirusT> getGene() { return gene; }
@@ -205,11 +205,15 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	}
 	
 	public String getAdjustedAlignedNAs() {
-		return gene.applyCodonModifiersForNASeq(getAlignedNAs(), firstAA, lastAA, gene.getVirusInstance().getMainStrain());
+		String targetStrain = gene.getVirusInstance().getMainStrain().getName();
+		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+		return strainModifier.modifyNASeq(gene, getAlignedNAs(), firstAA, lastAA);
 	}
 
 	public String getAdjustedAlignedAAs() {
-		return gene.applyCodonModifiersForAASeq(getAlignedAAs(), firstAA, lastAA, gene.getVirusInstance().getMainStrain());
+		String targetStrain = gene.getVirusInstance().getMainStrain().getName();
+		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+		return strainModifier.modifyAASeq(gene, getAlignedAAs(), firstAA, lastAA);
 	}
 
 	public int getFirstNA() { return firstNA; }
