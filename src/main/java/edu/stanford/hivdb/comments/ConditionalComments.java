@@ -134,6 +134,11 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 						.mapToObj(e -> (char) e)
 						.collect(Collectors.toList())
 						);
+				if (mut == null) {
+					throw new IllegalArgumentException(String.format(
+							"Mutation %s is not match with comment definition %s.",
+							matchedMut.getASIFormat(), commentName));
+				}
 				List<String> highlight = new ArrayList<>();
 				highlight.add(mut.getHumanFormat());
 				results.add(new BoundComment<>(
