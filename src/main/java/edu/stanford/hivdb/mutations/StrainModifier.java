@@ -199,22 +199,22 @@ public class StrainModifier {
 		int tgtPos = posMod.getTargetPos();
 		List<Mutation<VirusT>> targetMutations = new ArrayList<>();
 
-		if (srcMutation instanceof ConsensusMutation) {
+		if (srcMutation instanceof CodonMutation) {
 			String aas = srcMutation.getAAs();
 			String triplet = srcMutation.getTriplet();
 			String insertedNAs = srcMutation.getInsertedNAs();
-			int maxDisplayAAs = ((ConsensusMutation<VirusS>) srcMutation).getMaxDisplayAAs();
+			int maxDisplayAAs = ((CodonMutation<VirusS>) srcMutation).getMaxDisplayAAs();
 			switch(posMod.getFlag()) {
 				case M:
-					targetMutations.add(new ConsensusMutation<>(
+					targetMutations.add(new CodonMutation<>(
 						targetGene, tgtPos, aas, triplet, insertedNAs, maxDisplayAAs));
 					break;
 				case I:
-					targetMutations.add(new ConsensusMutation<>(
+					targetMutations.add(new CodonMutation<>(
 						targetGene, tgtPos, aas, triplet, insertedNAs, maxDisplayAAs));
 					int insSize = posMod.getSize();
 					for (int i = 0; i < insSize; i ++) {
-						targetMutations.add(new ConsensusMutation<>(
+						targetMutations.add(new CodonMutation<>(
 						targetGene, tgtPos + i + 1, "-", "---", "", maxDisplayAAs));
 					}
 					break;
@@ -224,7 +224,7 @@ public class StrainModifier {
 					if (lastTgtMut.getPosition() == tgtPos) {
 						insertedNAs = lastTgtMut.getInsertedNAs() + triplet + insertedNAs;
 						aas = lastTgtMut.getAAs() + '_' + CodonUtils.simpleTranslate(insertedNAs);
-						targetMutations.set(lastTgtMutIdx, new ConsensusMutation<>(
+						targetMutations.set(lastTgtMutIdx, new CodonMutation<>(
 							targetGene, tgtPos, aas, lastTgtMut.getTriplet(), insertedNAs, maxDisplayAAs
 						));
 					}

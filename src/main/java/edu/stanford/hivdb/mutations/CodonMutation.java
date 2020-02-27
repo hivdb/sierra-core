@@ -27,7 +27,7 @@ import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<VirusT> {
+public class CodonMutation<VirusT extends Virus<VirusT>> extends AAMutation<VirusT> {
 
 	private final String aas;
 	private final String triplet;
@@ -41,7 +41,7 @@ public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<
 		return aas.toCharArray();
 	}
 
-	public static <VirusT extends Virus<VirusT>> ConsensusMutation<VirusT> fromNucAminoMutation(Gene<VirusT> gene, int aaStart, Map<?, ?> mut) {
+	public static <VirusT extends Virus<VirusT>> CodonMutation<VirusT> fromNucAminoMutation(Gene<VirusT> gene, int aaStart, Map<?, ?> mut) {
 		int pos = ((Double) mut.get("Position")).intValue() - aaStart + 1;
 
 		String codon = "";
@@ -64,7 +64,7 @@ public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<
 				aas.append(CodonUtils.simpleTranslate(insertedCodon));
 			}
 		}
-		return new ConsensusMutation<>(gene, pos, aas.toString(), codon, insertedCodon);
+		return new CodonMutation<>(gene, pos, aas.toString(), codon, insertedCodon);
 	}
 	
 	/**
@@ -76,7 +76,7 @@ public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<
 	 * @param insertedNAs
 	 * @param maxDisplayAAs
 	 */
-	public ConsensusMutation(
+	public CodonMutation(
 		Gene<VirusT> gene, int position, String aas,
 		String triplet, String insertedNAs,
 		int maxDisplayAAs
@@ -95,7 +95,7 @@ public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<
 	 * @param triplet
 	 * @param insertedNAs
 	 */
-	public ConsensusMutation(
+	public CodonMutation(
 		Gene<VirusT> gene, int position, String aas,
 		String triplet, String insertedNAs
 	) {
@@ -105,15 +105,15 @@ public class ConsensusMutation<VirusT extends Virus<VirusT>> extends AAMutation<
 		);
 	}
 
-	public ConsensusMutation(Gene<VirusT> gene, int position, String aas, String triplet) {
+	public CodonMutation(Gene<VirusT> gene, int position, String aas, String triplet) {
 		this(gene, position, aas, triplet, "");
 	}
 
-	public ConsensusMutation(Gene<VirusT> gene, int position, String aas) {
+	public CodonMutation(Gene<VirusT> gene, int position, String aas) {
 		this(gene, position, aas, "", "");
 	}
 
-	public ConsensusMutation(Gene<VirusT> gene, int position, Character aa) {
+	public CodonMutation(Gene<VirusT> gene, int position, Character aa) {
 		this(gene, position, "" + aa, "", "");
 	}
 

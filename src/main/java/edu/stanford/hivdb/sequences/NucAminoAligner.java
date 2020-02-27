@@ -50,7 +50,7 @@ import com.amazonaws.services.lambda.model.InvokeResult;
 import com.google.gson.reflect.TypeToken;
 
 import edu.stanford.hivdb.mutations.Mutation;
-import edu.stanford.hivdb.mutations.ConsensusMutation;
+import edu.stanford.hivdb.mutations.CodonMutation;
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.utilities.FastaUtils;
 import edu.stanford.hivdb.utilities.Json;
@@ -398,7 +398,7 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 				int posAA = ((Double) m.get("Position")).intValue();
 				return posAA >= aaStart && posAA <= aaEnd;
 			})
-			.map(m -> ConsensusMutation.fromNucAminoMutation(gene, aaStart, m))
+			.map(m -> CodonMutation.fromNucAminoMutation(gene, aaStart, m))
 			.collect(Collectors.toList());
 
 		List<?> polFrameShifts = (List<?>) report.get("FrameShifts");
