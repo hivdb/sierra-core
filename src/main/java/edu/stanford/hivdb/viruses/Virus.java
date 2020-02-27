@@ -227,8 +227,11 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
-
 	public default Map<Gene<VirusT>, Map<String, Integer[]>> getNumPatientsForAAPercents(Strain<VirusT> strain) {
+		return defaultGetNumPatientsForAAPercents(strain);
+	}
+
+	public default Map<Gene<VirusT>, Map<String, Integer[]>> defaultGetNumPatientsForAAPercents(Strain<VirusT> strain) {
 		List<String> mainSubtypes = getMainSubtypes(strain);
 		Map<Gene<VirusT>, Map<String, Integer[]>> aaPcntsNumPatients = new LinkedHashMap<>();
 		String[] treatments = new String[] {"naive", "art"};
@@ -300,8 +303,12 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.get()
 		);
 	}
-
+	
 	public default List<MutationPrevalence<VirusT>> getMutationPrevalence(GenePosition<VirusT> genePos) {
+		return defaultGetMutationPrevalence(genePos);
+	}
+
+	public default List<MutationPrevalence<VirusT>> defaultGetMutationPrevalence(GenePosition<VirusT> genePos) {
 		Strain<VirusT> strain = genePos.getStrain();
 		List<String> mainSubtypes = getMainSubtypes(strain);
 		List<MutationPrevalence<VirusT>> mutPrevs = new ArrayList<>();
