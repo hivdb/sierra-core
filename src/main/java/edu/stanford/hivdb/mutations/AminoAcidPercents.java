@@ -56,9 +56,10 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 	/**
 	 * AminoAcidPercents initializer
 	 *
-	 * @param resourceName
-	 * @param virusInstance
-	 * @param strain
+	 * @param resourceName	Amino acid percent file name
+	 * @param virusInstance Virus instance
+	 * @param strain		Virus strain
+	 *
 	 */
 	public AminoAcidPercents(String resourceName, VirusT virusInstance, Strain<VirusT> strain) {
 
@@ -148,10 +149,10 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 	 * Returns the highest amino acid prevalence associated with each of
 	 * the AA in a mixture.
 	 *
-	 * @param gene
-	 * @param pos
-	 * @param cons consensus at the position
-	 * @param mixture
+	 * @param gene	Gene
+	 * @param pos	Position
+	 * cons 	consensus at the position
+	 * @param mixture Mixture
 	 *
 	 * @return Double highest amino acid prevalence
 	 */
@@ -175,9 +176,10 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 	/**
 	 * Returns true if the given mutation contains any unusual AA
 	 *
-	 * @param gene
-	 * @param pos
-	 * @param aas
+	 * @param gene	Gene
+	 * @param pos 	Position
+	 * @param aas	Amino acids
+	 * 
 	 * @return true if contains unusual AA
 	 */
 	public Boolean containsUnusualAA(Gene<VirusT> gene, int pos, String aas) {

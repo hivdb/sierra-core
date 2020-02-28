@@ -162,8 +162,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 	/**
 	 * Receives a sequence and aligns it to each HIV gene by NucAmino.
 	 *
-	 * @param sequence
-	 * @return an AlignedSequence object
+	 * @param sequence	Sequence waiting to be aligned.
+	 * @return 			an AlignedSequence object
 	 */
 	public AlignedSequence<VirusT> align(Sequence sequence) {
 		List<Sequence> seqs = new ArrayList<>();
@@ -178,8 +178,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 	/**
 	 * Receives set of sequences and aligns them to each HIV gene in parallel by NucAmino.
 	 *
-	 * @param sequences
-	 * @return list of AlignedSequence objects
+	 * @param sequences		Sequence list waiting to be aligned
+	 * @return 				list of AlignedSequence objects
 	 */
 	public List<AlignedSequence<VirusT>> parallelAlign(Collection<Sequence> sequences) {
 		return parallelAlign(sequences, false);

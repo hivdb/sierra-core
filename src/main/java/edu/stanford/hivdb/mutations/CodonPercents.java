@@ -55,7 +55,9 @@ public class CodonPercents<VirusT extends Virus<VirusT>> {
 	/**
 	 * CodonPercents initializer
 	 *
-	 * @param resourceName
+	 * @param resourceName	Codon percent resource file name
+	 * @param virusInstance Virus instance
+	 * @param strain		Virus strain
 	 */
 	public CodonPercents(String resourceName, VirusT virusInstance, Strain<VirusT> strain) {
 
@@ -156,9 +158,9 @@ public class CodonPercents<VirusT extends Virus<VirusT>> {
 	 * Returns the highest codon prevalence associated with each of
 	 * the codon in a mixture.
 	 *
-	 * @param gene
-	 * @param pos
-	 * @param codonMixture
+	 * @param gene			Gene
+	 * @param pos			Position
+	 * @param codonMixture	Mixture codon list
 	 *
 	 * @return Double highest amino acid prevalence
 	 */

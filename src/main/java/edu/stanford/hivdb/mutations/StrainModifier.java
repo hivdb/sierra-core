@@ -252,11 +252,11 @@ public class StrainModifier {
 	 * into another strain's numbering system using predefined CIGAR
 	 * string associated with given targetStrain.
 	 *
-	 * @param srcGene
-	 * @param aaseq
-	 * @param firstAA
-	 * @param lastAA
-	 * @return String of adjusted AA alignment in full gene length
+	 * @param srcGene	Reference Gene
+	 * @param aaseq		Amino Acid Sequence 
+	 * @param firstAA	First modify AA position
+	 * @param lastAA	Last modify AA position
+	 * @return 			String of adjusted AA alignment in full gene length
 	 */
 	public String modifyAASeq(
 		Gene<?> srcGene, String aaseq, int firstAA, int lastAA
@@ -294,11 +294,11 @@ public class StrainModifier {
 	 * into another strain's numbering system using predefined CIGAR
 	 * string associated with given targetStrain.
 	 *
-	 * @param srcGene
-	 * @param naseq
-	 * @param firstAA
-	 * @param lastAA
-	 * @return String of adjusted AA alignment in full gene length
+	 * @param srcGene	Reference Gene
+	 * @param naseq		Nucleic Acid Sequence 
+	 * @param firstAA	First modify AA position
+	 * @param lastAA	Last modify AA position
+	 * @return 			String of adjusted AA alignment in full gene length
 	 */
 	public String modifyNASeq(
 		Gene<?> srcGene, String naseq, int firstAA, int lastAA

@@ -47,8 +47,8 @@ public class SeqUtils {
 	 * Notes we don't include BDHVN here since they are unusual
 	 * and normally indicate sequencing quality problems.
 	 *
-	 * @param nucleotideSeq
-	 * @return double
+	 * @param nucleotideSeq	Nucleic acid sequence
+	 * @return				Percentage of mixture
 	 */
 	public static double mixturePcnt(String nucleotideSeq) {
 		if (nucleotideSeq.isEmpty()) {

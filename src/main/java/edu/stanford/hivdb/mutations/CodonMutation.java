@@ -71,12 +71,12 @@ public class CodonMutation<VirusT extends Virus<VirusT>> extends AAMutation<Viru
 	
 	/**
 	 *
-	 * @param gene
-	 * @param pos
-	 * @param aas
-	 * @param triplet
-	 * @param insertedNAs
-	 * @param maxDisplayAAs
+	 * @param gene			Gene
+	 * @param position		Position
+	 * @param aas			Amino acid sequence
+	 * @param triplet		Codon triplet
+	 * @param insertedNAs	Insertion nucleic acid sequence
+	 * @param maxDisplayAAs	Maximum displayed amino acid
 	 */
 	public CodonMutation(
 		Gene<VirusT> gene, int position, String aas,
@@ -91,11 +91,11 @@ public class CodonMutation<VirusT extends Virus<VirusT>> extends AAMutation<Viru
 	
 	/**
 	 *
-	 * @param gene
-	 * @param pos
-	 * @param aas
-	 * @param triplet
-	 * @param insertedNAs
+	 * @param gene			Gene
+	 * @param position		Position
+	 * @param aas			Amino acid sequence
+	 * @param triplet		Codon triplet
+	 * @param insertedNAs	Insertion nucleic acid sequence
 	 */
 	public CodonMutation(
 		Gene<VirusT> gene, int position, String aas,

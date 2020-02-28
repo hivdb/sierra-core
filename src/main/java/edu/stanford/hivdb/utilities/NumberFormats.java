@@ -27,11 +27,14 @@ public class NumberFormats {
 	/**
 	 * Formats the number of decimal places in a Double according to a set of rules
 	 * that we use frequently:
-	 * >=10: decimal = 0
-	 * 1.0 to 9.9: one decimal place
-	 * <1.0: one significant figure.</li>
-	 * @param number
-	 * @return
+	 * <ul>
+	 * 	<li>&gt;=10: decimal = 0</li>
+	 * 	<li>1.0 to 9.9: one decimal place</li>
+	 * 	<li>&lt;1.0: one significant figure.</li>
+	 * </ul>
+	 * 
+	 * @param number 	Real number
+	 * @return 			formatted output
 	 */
 	public static final String prettyDecimalAsString(double number) {
 		final String fmt;

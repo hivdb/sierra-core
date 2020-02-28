@@ -86,9 +86,9 @@ public class AsiResult<VirusT extends Virus<VirusT>> implements WithGene<VirusT>
 	 * evaluatedGene is an object that contains all of the results obtained by applying
 	 *   the asiGene rules to the submitted mutations
 	 *
-	 * @param submittedGene
-	 * @param mutations
-	 * @param algorithm
+	 * @param submittedGene	Submitted gene
+	 * @param mutations		Mutations
+	 * @param algorithm		Drug resistance algorithm
 	 */
 	public AsiResult (
 		final edu.stanford.hivdb.viruses.Gene<VirusT> submittedGene,
@@ -121,8 +121,9 @@ public class AsiResult<VirusT extends Virus<VirusT>> implements WithGene<VirusT>
 	}
 
 	/**
-	 * @param drug
-	 * @return
+	 * @param drug Drug
+	 * 
+	 * @return Drug level	
 	 */
 	public final int getDrugLevel(Drug<VirusT> drug) {
 		if (!drugLevel.containsKey(drug)) {
@@ -185,10 +186,10 @@ public class AsiResult<VirusT extends Virus<VirusT>> implements WithGene<VirusT>
 
 	/**
 	 * Data structure:
-	 *   DrugClass => Drug => totalScore (obtained from adding up the individual and combination scores
+	 *   DrugClass =&gt; Drug =&gt; totalScore (obtained from adding up the individual and combination scores
 	 *   for each mutation in a sequence
 	 *
-	 * @return Map: DrugClass => Drug => totalScore
+	 * @return Map: DrugClass =%gt; Drug =&gt; totalScore
 	 */
 	public final Map<DrugClass<VirusT>, Map<Drug<VirusT>, Double>> getDrugClassTotalDrugScores() {
 		return groupingByDrugClass(totalDrugScores);
@@ -234,7 +235,8 @@ public class AsiResult<VirusT extends Virus<VirusT>> implements WithGene<VirusT>
 
 	/**
 	 * This data map only has entries for Drugs with scored Mutations
-	 * @return
+	 * 
+	 * @return Drug class with corresponding drugs, mutations, and scores.
 	 */
 	public final Map<DrugClass<VirusT>, Map<Drug<VirusT>, Map<Mutation<VirusT>, Double>>> getDrugClassDrugMutScores() {
 		return groupingByDrugClass(drugMutScores);
@@ -242,7 +244,8 @@ public class AsiResult<VirusT extends Virus<VirusT>> implements WithGene<VirusT>
 
 	/**
 	 * This data map only has entries for Drugs with scored Mutation Combinations
-	 * @return
+	 * 
+	 * @return Drug class with corresponding drugs, mutation combinations, and scores.
 	 */
 	public final Map<DrugClass<VirusT>, Map<Drug<VirusT>, Map<MutationSet<VirusT>, Double>>> getDrugClassDrugComboMutScores() {
 		return groupingByDrugClass(drugComboMutScores);

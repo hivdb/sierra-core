@@ -36,8 +36,10 @@ public class MutationMapUtils {
 	public enum SortOrder {ASC, DESC};
 
 	/**
-	 * @param unsortedMap
-	 * @return sorted map
+	 * @param <T>			Object type
+	 * @param unsortedMap	unsorted Objects with doubles
+	 * @param sortOrder		Sort order
+	 * @return 				sorted map
 	 */
 	public static<T> Map<T, Double> sortByComparator(Map<T, Double> unsortedMap, SortOrder sortOrder) {
 		List<Map.Entry<T, Double>> list = new LinkedList<Map.Entry<T, Double>>(unsortedMap.entrySet());
@@ -63,8 +65,9 @@ public class MutationMapUtils {
 
 	/**
 	 *
-	 * @param map
-	 * @return a map in which the value is an integer rather than a double
+	 * @param <VirusT>	Virus subtype
+	 * @param map		Mutations with scores
+	 * @return 			a map in which the value is an integer rather than a double
 	 */
 	public static <VirusT extends Virus<VirusT>> Map<Mutation<VirusT>, Integer> convertMutScoresToInts(Map<Mutation<VirusT>, Double> map) {
 		Map<Mutation<VirusT>, Integer> newMutScores = new HashMap<>();
@@ -77,6 +80,10 @@ public class MutationMapUtils {
 
 	/**
 	 * Used only by getScoredMuts in Algorithm comparison
+	 * 
+	 * @param <VirusT> 	Virus subtype
+	 * @param map		Mutations with scores
+	 * @return			Formatted strint for print
 	 */
 	public static <VirusT extends Virus<VirusT>> String printMutScoresAsInts(Map<Mutation<VirusT>, Double> map) {
 		StringBuffer output = new StringBuffer();

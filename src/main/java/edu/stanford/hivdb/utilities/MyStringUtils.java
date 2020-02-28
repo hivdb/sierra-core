@@ -31,8 +31,9 @@ public class MyStringUtils {
 
 	/**
 	 * Returns true if two strings share one or more characters
-	 * @param aas1, aas2
-	 * @return boolean
+	 * @param aas1 	String waiting to be compare
+	 * @param aas2 	String waiting to be compare
+	 * @return		Has shared characters or not
 	 */
 	public static boolean hasSharedChar(String aas1, String aas2) {
 		for (char aa1 : aas1.toCharArray()) {
@@ -49,10 +50,10 @@ public class MyStringUtils {
 	 * Returns alphabetically sorted string of input.
 	 *
 	 * Example:
-	 *   "gfedcba" => "abcdefg"
+	 *   "gfedcba" =&gt; "abcdefg"
 	 *
-	 * @param input
-	 * @return string
+	 * @param input	String waiting to be sorted
+	 * @return		Alphabetically sorted string
 	 */
 	public static String sortAlphabetically(String input) {
 		char[] chars = input.toCharArray();

@@ -81,7 +81,7 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 
 	/** get original distance
 	 *
-	 * @return distance (double, < 1.0)
+	 * @return distance (double, &lt; 1.0)
 	 */
 	public Double getDistance() {
 		return distance;

@@ -189,7 +189,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 	/**
 	 * Get Extended map
 	 * 
-	 * @return Map<String, Object>
+	 * @return Map&lt;String, Object&gt;
 	 */
 	public Map<String, Object> extMap() {
 		Map<String, Object> result = new LinkedHashMap<>();

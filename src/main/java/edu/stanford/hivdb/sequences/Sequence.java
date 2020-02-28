@@ -65,8 +65,8 @@ public class Sequence {
 	/**
 	 * Initializes a sequence with given header and sequence string.
 	 *
-	 * @param header
-	 * @param sequenceText
+	 * @param header		Sequence header
+	 * @param sequenceText	Sequence
 	 */
 	public Sequence(String header, String sequenceText) {
 		this.header = header;
@@ -80,8 +80,8 @@ public class Sequence {
 	 * IMPORTANT: This function is only designed for unit tests. Use it in
 	 * production will significant reduce the performance and stability.
 	 * 
-	 * @param accession
-	 * @return a Sequence object
+	 * @param accession		Genbank accession number			
+	 * @return 				a Sequence object
 	 */
 	public static Sequence fromGenbank(String accession) {
 		List<String> accessions = Arrays.asList(accession);
@@ -93,7 +93,7 @@ public class Sequence {
 	/**
 	 * Initializes a Sequence object from a jFASTA element
 	 *
-	 * @param el
+	 * @param el	Fasta element
 	 */
 	public Sequence(final FASTAElement el) {
 		this(el.getHeader(), el.getSequence());

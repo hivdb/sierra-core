@@ -57,18 +57,21 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * Merges with another Mutation object and returns the merged mutation.
 	 *
-	 * @param another
+	 * @param another Mutation
+	 * 
 	 * @return A new merged Mutation object
+	 * 
 	 * @throws IllegalArgumentException if another is null or the gene/position didn't match.
 	 */
 	@Deprecated
 	public Mutation<VirusT> mergesWith(Mutation<VirusT> another);
 
 	/**
-	 * Merges with another Collection<Character> of
+	 * Merges with another Collection&lt;Character&gt; of
 	 * AAs and returns the merged mutation.
 	 *
-	 * @param otherAAChars
+	 * @param otherAAChars Amino acid characters
+	 * 
 	 * @return A new merged Mutation object
 	 */
 	public Mutation<VirusT> mergesWith(Collection<Character> otherAAChars);
@@ -77,18 +80,21 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * Subtracts by another Mutation object and returns the result mutation.
 	 *
-	 * @param another
+	 * @param another Mutation
+	 * 
 	 * @return A new Mutation object
+	 * 
 	 * @throws IllegalArgumentException if another is null or the gene/position didn't match.
 	 */
 	@Deprecated
 	public Mutation<VirusT> subtractsBy(Mutation<VirusT> another);
 
 	/**
-	 * Subtracts by another Collection<Character> of
+	 * Subtracts by another Collection&lt;Character&gt; of
 	 * AAs and returns the result mutation.
 	 *
-	 * @param otherAAChars
+	 * @param otherAAChars Amino acid characters
+	 * 
 	 * @return A new Mutation object
 	 */
 	public Mutation<VirusT> subtractsBy(Collection<Character> otherAAChars);
@@ -96,18 +102,21 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * Intersects with another Mutation object and returns the result mutation.
 	 *
-	 * @param another
+	 * @param another Mutation
+	 * 
 	 * @return A new merged Mutation object
+	 * 
 	 * @throws IllegalArgumentException if another is null or the gene/position didn't match.
 	 */
 	@Deprecated
 	public Mutation<VirusT> intersectsWith(Mutation<VirusT> another);
 
 	/**
-	 * Intersects with another Collection<Character> of
+	 * Intersects with another Collection&lt;Character&gt; of
 	 * AAs and returns the result mutation.
 	 *
-	 * @param otherAAChars
+	 * @param otherAAChars Amino acid characters	
+	 * 
 	 * @return A new merged Mutation object
 	 */
 	public Mutation<VirusT> intersectsWith(Collection<Character> otherAAChars);
@@ -180,7 +189,7 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * Gets the position number of this mutation.
 	 *
-	 * @return An integer >= 1
+	 * @return An integer &gt;= 1
 	 */
 	public int getPosition();
 
@@ -205,7 +214,7 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * - "-" represents a deletion;
 	 * - "*" represents a stop codon.
 	 *
-	 * @return A Set<Character> of amino acids/insertion/deletion/stop codons
+	 * @return A Set&lt;Character&gt; of amino acids/insertion/deletion/stop codons
 	 */
 	public Set<Character> getDisplayAAChars();
 
@@ -223,14 +232,14 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * - "-" represents a deletion;
 	 * - "*" represents a stop codon.
 	 *
-	 * @return A Set<Character> of amino acids/insertion/deletion/stop codons
+	 * @return A Set&lt;Character&gt; of amino acids/insertion/deletion/stop codons
 	 */
 	public Set<Character> getAAChars();
 
 	/**
 	 * Gets a set of single amino acid mutations.
 	 *
-	 * @return A Set<Mutation>
+	 * @return A Set&lt;Mutation&gt;
 	 */
 	public Set<Mutation<VirusT>> split();
 
@@ -351,7 +360,7 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * Gets all prevalence result of this mutation position.
 	 * 
-	 * @return A list of MutationPrevalence<VirusT> object
+	 * @return A list of MutationPrevalence&lt;VirusT&gt; object
 	 */
 	public List<MutationPrevalence<VirusT>> getPrevalences();
 
@@ -420,7 +429,8 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 *
 	 * Reference and stop codon are not be responsible for a match.
 	 *
-	 * @param queryMut
+	 * @param queryMut Mutation
+	 * 
 	 * @return true if the Mutation and queryMut share at least one non-reference amino acid
 	 */
 	public boolean containsSharedAA(Mutation<VirusT> queryMut);
@@ -430,8 +440,9 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 *
 	 * Reference and stop codon are not be responsible for a match.
 	 *
-	 * @param queryMut
-	 * @param ignoreRefOrStops
+	 * @param queryAAChars		Amino acid Characters set		
+	 * @param ignoreRefOrStops  Ignore reference amino acid and stop codon
+	 * 
 	 * @return true if the Mutation and queryMut share at least one amino acid
 	 */
 	public boolean containsSharedAA(Set<Character> queryAAChars, boolean ignoreRefOrStops);
@@ -439,13 +450,16 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	/**
 	 * The ASI format consists of an optional reference aa and a position followed by one or more
 	 * upper case amino acids. Insertions are represented by 'i', deletions by 'd', and stops by 'Z;
+	 * 
+	 * @return ASI format
 	 */
 	public String getASIFormat();
 
 	/**
 	 * In HIVDB_Rules, insertions are denoted by '#' and deletions by '~'
 	 * This differs from Insertion, _, and i and from Deletion, '-', and d
-	 * @returns HIVDBformat
+	 * 
+	 * @return HIVDBformat
 	 */
 	public String getHIVDBFormat();
 
@@ -456,6 +470,8 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * If there is a mixture that contains the reference aa, move the ref to
 	 * the beginning of the mixture.
 	 * Report the reference before the position (i.e. M184V)
+	 * 
+	 * @return Human formatted mutation
 	 */
 	public String getHumanFormat();
 
@@ -463,6 +479,8 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 
 	/**
 	 * Similar to getHumanFormat() except that the preceding reference is removed.
+	 * 
+	 * @return Human format mutation presentation without reference 
 	 */
 	public String getHumanFormatWithoutLeadingRef();
 

@@ -45,7 +45,7 @@ import edu.stanford.hivdb.viruses.WithGene;
 
 
 /**
- * Result object of data from {@link edu.stanford.hivdb.alignment.NucAminoAligner}.
+ * Result object of data from {@link edu.stanford.hivdb.sequences.NucAminoAligner}.
  *
  */
 public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<VirusT> {
@@ -84,17 +84,18 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 
 	/**
 	 *
-	 * @param sequence
-	 * @param gene
-	 * @param firstAA
-	 * @param lastAA
-	 * @param firstNA
-	 * @param lastNA
-	 * @param alignedSites
-	 * @param mutations
-	 * @param frameShifts
-	 * @param leftTrimmed
-	 * @param rightTrimmed
+	 * @param sequence			Aligned gene sequence
+	 * @param gene				Gene related to this sequenc
+	 * @param firstAA			First amino acid position
+	 * @param lastAA			Last amino acid position
+	 * @param firstNA			First nucleic acid position
+	 * @param lastNA			Last nucleic acid position
+	 * @param alignedSites		Aligned sequence sites
+	 * @param mutations			Mutations
+	 * @param frameShifts		List&lt;FrameShift&gt;
+	 * @param leftTrimmed		Number of string trimed from left side
+	 * @param rightTrimmed		Number of string trimed from right side
+	 * @param sequenceReversed	If sequence should be reversed
 	 */
 	public AlignedGeneSeq(
 			Sequence sequence, Gene<VirusT> gene,

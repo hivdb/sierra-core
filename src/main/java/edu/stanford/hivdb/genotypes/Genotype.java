@@ -189,8 +189,8 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 	 * sequence and the reference. Returns false when distance
 	 * is too high for this genotype.
 	 *
-	 * @param distance
-	 * @return Boolean
+	 * @param distance	Distance between submitted sequence and reference sequence.
+	 * @return			Is distance less than upper limit
 	 */
 	public Boolean checkDistance(double distance) {
 		return distance < distanceUpperLimit;

@@ -257,9 +257,9 @@ public class CodonUtils {
 	 *
 	 * This method assumes that nas and aas are always valid (length%3=0).
 	 *
-	 * @param allNAs
-	 * @param allAAs
-	 * @return Control string
+	 * @param allNAs	Nucleic Acid Sequence
+	 * @param allAAs	Amino Acid Sequence
+	 * @return 			Control string
 	 */
 	public static String generateControlString(String allNAs, String allAAs) {
 		Iterable<String> nasList = Splitter.fixedLength(3).split(allNAs);
@@ -353,8 +353,8 @@ public class CodonUtils {
 	 * Translates a string of nucleotides into a string of amino acids. Nucleotide triplets that
 	 * encode more than one amino acid are translated to an "X"
 	 * TODO: Should this throw an exception?
-	 * @param nas
-	 * @return aas
+	 * @param nas	Nucleic Acid Sequence
+	 * @return		Translated Amino Acid Sequence
 	 */
 	public static String simpleTranslate(String nas) {
 		return simpleTranslate(nas, null, null);
@@ -364,10 +364,10 @@ public class CodonUtils {
 	 * Translate a string of nucleotides into a string of amino acids. Nucleotide triplets that
 	 * encode more than one amino acid are translated to an "X". If `consAAs` is specified, the
 	 * wild type amino acid will be removed if the position has two or more amino acids.
-	 * @param nas
-	 * @param firstAA
-	 * @param consAAs
-	 * @return string
+	 * @param nas		Nucleic Acid Sequence being translated, length should be 3 times multiply
+	 * @param firstAA	First Amino Acid position for translation
+	 * @param consAAs	Consensus Amino Acid Sequence
+	 * @return			Translated Amino Acid Sequence
 	 */
 	public static String simpleTranslate(String nas, Integer firstAA, String consAAs) {
 		StringBuilder allAAs = new StringBuilder();

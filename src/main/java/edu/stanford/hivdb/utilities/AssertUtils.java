@@ -24,10 +24,13 @@ public class AssertUtils {
 	/**
 	 * Assert if input value is null
 	 * 
-	 * @param <T>
-	 * @param value
-	 * @param msg
-	 * @return
+	 * @param <T>	Java Object Type
+	 * @param value	Any Java Object
+	 * @param msg	Assertion error message
+	 * @param args	Arguments for formatting message string, using String.format
+	 * @return		value is not null
+	 * 
+	 * @throws IllegalArgumentException value is null
 	 */
 	public static <T> T notNull(T value, String msg, Object... args) {
 		if (value == null) {

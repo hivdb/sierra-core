@@ -37,8 +37,10 @@ public class MutationFileReader {
 	 * Each mutation consists of a gene, position, and one or more amino acids.
 	 *   There is no consensus amino acid preceding the position
 	 *
-	 * @param fileInputStream
-	 * @return List<Mutation>
+	 * @param <VirusT>			Virus subclass
+	 * @param fileInputStream	File input
+	 * @param virusIns			Virus instance
+	 * @return 					List&lt;Mutation&gt;
 	 */
 	public static <VirusT extends Virus<VirusT>> List<MutationSet<VirusT>> readMutationLists(InputStream fileInputStream, VirusT virusIns) {
 		List<MutationSet<VirusT>> fileMuts = new ArrayList<>();

@@ -41,8 +41,8 @@ package edu.stanford.hivdb.drugresistance.algorithm;
  *   to true or false or conditions that evaluate to scores. The Rega algorithm has examples of both.
  *
  * Data structures:
- *   drugLevels: drugName=>level
- *   drugTriggeredRules: drugName=>rule=>level
+ *   drugLevels: drugName=&gt;level
+ *   drugTriggeredRules: drugName=&gt;rule=&gt;level
  */
 @Deprecated
 public class AsiRega {

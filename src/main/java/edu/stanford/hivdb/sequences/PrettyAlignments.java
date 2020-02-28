@@ -46,8 +46,8 @@ public class PrettyAlignments<VirusT extends Virus<VirusT>> {
 	 * 
 	 * TODO: by providing targetGene, this class need to apply StrainModifier to each of the pretty alignment results 
 	 * 
-	 * @param targetGene
-	 * @param alignedGeneSeqs
+	 * @param targetGene		Target gene
+	 * @param alignedGeneSeqs	Aligned gene sequences
 	 */
 	public PrettyAlignments (Gene<VirusT> targetGene, List<AlignedGeneSeq<VirusT>> alignedGeneSeqs) {
 		this.targetGene = targetGene;

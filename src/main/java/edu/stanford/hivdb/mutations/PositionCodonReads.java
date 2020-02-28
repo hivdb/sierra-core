@@ -115,7 +115,10 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 	/**
 	 * Get Extended map
 	 * 
-	 * @return Map<String, Object>
+	 * @param mutationOnly	Only mutations
+	 * @param maxProp		Maximum proportion
+	 * @param minProp		Minimum proportion
+	 * @return 				Map&lt;String, Object&gt;
 	 */
 	public Map<String, Object> extMap(
 		boolean mutationOnly, double maxProp, double minProp

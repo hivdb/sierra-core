@@ -136,9 +136,11 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 *
 	 * All duplicated mutations are removed before returning.
 	 *
-	 * @param defaultGene
-	 * @param fomattedMuts
-	 * @return A list of Mutation objects
+	 * @param <VirusT>			A virus subtype
+	 * @param defaultGene		Gene
+	 * @param formattedMuts		Formatted mutations separated by comma or colon or space or dot
+	 * @param mutationParser	Mutation parsing function
+	 * @return 					A list of Mutation objects
 	 */
 	public static <VirusT extends Virus<VirusT>> MutationSet<VirusT> parseString(
 		Gene<VirusT> defaultGene,
@@ -285,8 +287,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 *     new MutationSet(RT, "48AELRV,36E"),
 	 *     self.mergesWith(another));
 	 *
-	 * @param another
-	 * @return A new MutationSet object contains matched mutations
+	 * @param another	Mutations
+	 * @return 			A new MutationSet object contains matched mutations
 	 */
 	public MutationSet<VirusT> mergesWith(Collection<Mutation<VirusT>> another) {
 		List<Mutation<VirusT>> newList = new ArrayList<>(this);
@@ -296,6 +298,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * Just a shortcut to mergesWith(Collection).
+	 * 
+	 * @param mutation 	Mutation
+	 * @return			Mutation set
 	 */
 	public MutationSet<VirusT> mergesWith(Mutation<VirusT> mutation) {
 		return mergesWith(new MutationSet<>(mutation));
@@ -311,8 +316,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 *     new MutationSet(RT, "48ER"),
 	 *     self.intersectsWith(another));
 	 *
-	 * @param another
-	 * @return A new MutationSet object contains matched mutations
+	 * @param another	Mutations
+	 * @return 			A new MutationSet object contains matched mutations
 	 */
 	public MutationSet<VirusT> intersectsWith(Collection<Mutation<VirusT>> another) {
 		Set<GenePosition<VirusT>> gpKeys = new HashSet<>(genePositionMap.keySet());
@@ -349,6 +354,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * Just a shortcut to intersectsWith(Collection).
+	 * 
+	 * @param mutation 	Mutation
+	 * @return			Mutationset
 	 */
 	public MutationSet<VirusT> intersectsWith(Mutation<VirusT> mutation) {
 		return intersectsWith(new MutationSet<>(mutation));
@@ -356,6 +364,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * New MutationSet with elements in this but not in another.
+	 * 
+	 * @param another	Mutations
+	 * @return			Mutation set
 	 */
 	public MutationSet<VirusT> subtractsBy(Collection<Mutation<VirusT>> another) {
 		MutationSet<VirusT> anotherSet;
@@ -420,8 +431,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Filter mutations by gene then groups the result by their primary MutType.
 	 *
-	 * @param gene
-	 * @return Map<MutType, MutationSet>
+	 * @param gene	Gene
+	 * @return 		Map&lt;MutType, MutationSet&gt;
 	 */
 	public Map<MutationType<VirusT>, MutationSet<VirusT>> groupByMutType(final Gene<VirusT> gene) {
 		Map<MutationType<VirusT>, MutationSet<VirusT>> r = filterAndGroupBy(
@@ -439,8 +450,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Filter mutations by given mutation type.
 	 *
-	 * @param mutType
-	 * @return MutationSet
+	 * @param mutType	Mutation type
+	 * @return 			MutationSet
 	 */
 	public MutationSet<VirusT> getByMutType(final MutationType<VirusT> mutType) {
 		return filterBy(mut -> mut.getPrimaryType() == mutType);
@@ -449,7 +460,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Groups mutations by their gene.
 	 *
-	 * @return Map<Gene, MutationSet>
+	 * @return Map&gt;Gene, MutationSet&gt;
 	 */
 	public Map<Gene<VirusT>, MutationSet<VirusT>> groupByGene() {
 		return groupBy(mut -> mut.getGene());
@@ -457,8 +468,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * Returns only mutations of a specific gene.
-	 * @param gene
-	 * @return A MutationSet contains all mutations of the given gene
+	 * @param gene	Gene
+	 * @return 		A MutationSet contains all mutations of the given gene
 	 */
 	public MutationSet<VirusT> getGeneMutations(Gene<VirusT> gene) {
 		return filterBy(mut -> mut.getGene() == gene);
@@ -509,7 +520,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 * When a mutation has more than one amino acid, the prevalence of the
 	 * most prevalent mutation is returned.
 	 *
-	 * @return Map<Mutation, Double> mutPrevalences
+	 * @return Map&lt;Mutation, Double&gt; mutPrevalences
 	 */
 	public Map<Mutation<VirusT>, Double> getHighestMutPrevalences() {
 		Map<Mutation<VirusT>, Double> r = new LinkedHashMap<>();
@@ -530,8 +541,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Looks up mutation types for each given mutations.
 	 *
-	 * @param geneMuts
-	 * @return Map<Mutation, List<MutationType>> Map of types for each mutation.
+	 * @param muts	Mutation set
+	 * @return 			Map&lt;Mutation, List&lt;MutationType&gt;&gt; Map of types for each mutation.
 	 */
 	public Map<Mutation<VirusT>, List<MutationType<VirusT>>> getMutationTypes(MutationSet<VirusT> muts) {
 		Map<Mutation<VirusT>, List<MutationType<VirusT>>> r = new LinkedHashMap<>();
@@ -564,8 +575,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Returns only mutations which are DRMs.
 	 * 
-	 * @param drugClass
-	 * @return A new MutationSet instance
+	 * @param drugClass Drugclass
+	 * @return 			A new MutationSet instance
 	 */
 	public MutationSet<VirusT> getDRMs(DrugClass<VirusT> drugClass) {
 		return filterBy(mut -> mut.getDRMDrugClass() == drugClass);
@@ -577,7 +588,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * Returns only mutations which are SDRMs.
-	 * @return A new MutationSet instance
+	 * 
+	 * @param drugClass	Drug class
+	 * @return			Drug class related SDRMs
 	 */
 	public MutationSet<VirusT> getSDRMs(DrugClass<VirusT> drugClass) {
 		return filterBy(mut -> mut.getSDRMDrugClass() == drugClass);
@@ -602,9 +615,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/** Returns a mutation at specified gene position.
 	 *
-	 * @param gene
-	 * @param pos
-	 * @return The matched mutation
+	 * @param gene	Gene
+	 * @param pos	Position
+	 * @return 		The matched mutation
 	 */
 	public Mutation<VirusT> get(Gene<VirusT> gene, int pos) {
 		GenePosition<VirusT> gp = new GenePosition<VirusT>(gene, pos);
@@ -633,9 +646,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/** Check if the given position is an insertion
 	 *
-	 * @param gene
-	 * @param pos
-	 * @return Boolean
+	 * @param gene		Gene
+	 * @param pos		Position
+	 * @return Boolean	Has Insertion at this position
 	 */
 	public boolean hasInsertionAt(Gene<VirusT> gene, int pos) {
 		Mutation<VirusT> mut = get(gene, pos);
@@ -644,9 +657,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/** Check if the given position is a deletion
 	 *
-	 * @param gene
-	 * @param pos
-	 * @return Boolean
+	 * @param gene		Gene
+	 * @param pos		Position
+	 * @return Boolean	Has deletion at this position
 	 */
 	public boolean hasDeletionAt(Gene<VirusT> gene, int pos) {
 		Mutation<VirusT> mut = get(gene, pos);
@@ -656,8 +669,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Returns true if contains any mutation that its AAs shared with mutRef.
 	 *
-	 * @param anotherMut
-	 * @return boolean
+	 * @param anotherMut	Another mutation
+	 * @return				Has shared amino acid mutation
 	 */
 	public boolean hasSharedAAMutation(Mutation<VirusT> anotherMut) {
 		return hasSharedAAMutation(anotherMut, true);
@@ -666,9 +679,9 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	/**
 	 * Returns true if contains any mutation that its AAs shared with mutRef.
 	 *
-	 * @param anotherMut
-	 * @param ignoreRefOrStops
-	 * @return boolean
+	 * @param anotherMut		Another Mutation
+	 * @param ignoreRefOrStops	Ignore reference mutation or stop mutation
+	 * @return					Has shared Amino acid mutation
 	 */
 	public boolean hasSharedAAMutation(Mutation<VirusT> anotherMut, boolean ignoreRefOrStops) {
 		GenePosition<VirusT> gp = anotherMut.getGenePosition();

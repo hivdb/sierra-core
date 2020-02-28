@@ -94,8 +94,8 @@ public class FastaUtils {
 	 * IMPORTANT: This function is only designed for unit tests. Use it in
 	 * production will significant reduce the performance and stability.
 	 *
-	 * @param accessions
-	 * @return List<Sequence>
+	 * @param accessions	Genbank accession id
+	 * @return 				List&lt;Sequence&gt;
 	 */
 	public static List<Sequence> fetchGenbank(Collection<String> accessions) {
 		if (fetchGenbankLastRun - System.currentTimeMillis() < 1000) {
@@ -133,9 +133,9 @@ public class FastaUtils {
 	 * Reads in a file with FASTA sequences. Create a list of Sequences
 	 * each containing a string of NAs and a header.
 	 * The NAs can be on multiple lines. Each line (absent whitespace) is added to
-	 *  the sequence until '>' is encountered
-	 * @param filePath
-	 * @return List<Sequence>
+	 *  the sequence until '&gt;' is encountered
+	 * @param filePath	File path
+	 * @return 			List&lt;Sequence&gt;
 	 */
 	public static List<Sequence> readFile(String filePath) {
 		final File file = new File(filePath);
@@ -151,9 +151,10 @@ public class FastaUtils {
 	 * Reads in a input stream with FASTA sequences. Create a list of Sequences
 	 * each containing a string of NAs and a header.
 	 * The NAs can be on multiple lines. Each line (absent whitespace) is added to
-	 * the sequence until '>' is encountered
-	 * @param filePath
-	 * @return List<Sequence>
+	 * the sequence until '&gt;' is encountered
+	 * 
+	 * @param stream	File input stream
+	 * @return 			List&lt;Sequence&gt;
 	 */
 	public static List<Sequence> readStream(InputStream stream) {
 		final List<Sequence> sequences = new ArrayList<>();

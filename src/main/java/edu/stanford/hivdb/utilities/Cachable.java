@@ -73,6 +73,8 @@ public class Cachable {
 	 *
 	 * If this method is called with a system property
 	 * "hivdb.forceUpdateCache", all specified cachable classes will be updated
+	 * 
+	 * @param args	Command line arguments
 	 */
 	public static final void main(String[] args) {
 		String cachedClasses = System.getProperty(CACHABLE_PROPERTY);
@@ -116,8 +118,7 @@ public class Cachable {
 
 	/**
 	 * This method should be called in class initializer (static block).
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
+	 * 
 	 */
 	public void loadStatic() {
 		if (forceUpdate || !loadStaticCache()) {

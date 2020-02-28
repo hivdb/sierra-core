@@ -30,6 +30,9 @@ public class AAUtils {
 	 * Normalize the input AAs.
 	 *
 	 * The code explains the normalization rules.
+	 * 
+	 * @param aas	Amino acid sequence
+	 * @return		Formatted sequence
 	 */
 	public static String normalizeAAs(String aas) {
 		if (aas == null) return null;
