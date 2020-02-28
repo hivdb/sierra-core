@@ -18,6 +18,11 @@
     along with Sierra.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/**
+ * @version 3.0
+ * 
+ */
+
 package edu.stanford.hivdb.viruses;
 
 import java.util.ArrayList;
