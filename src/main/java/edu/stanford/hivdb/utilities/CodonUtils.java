@@ -1,6 +1,8 @@
 /*
 
-    Copyright (C) 2019 Stanford HIVDB team
+    Copyright (C) 2019-2020 Stanford HIVDB team
+
+    This file is part of Sierra.
 
     Sierra is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with Sierra.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 package edu.stanford.hivdb.utilities;
