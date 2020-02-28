@@ -103,7 +103,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	public AAMutation(Gene<VirusT> gene, int position, Set<Character> aaChars, int maxDisplayAAs) {
 		if (position > gene.getAASize()) {
-			throw new IllegalArgumentException("Length is out of bounds for this gene.");
+			throw new IllegalArgumentException(String.format(
+				"Position is out of bounds for %s: %d (1-%d).", gene, position, gene.getAASize()
+			));
 		}
 		this.gene = gene;
 		this.aaChars = normalizeAAChars(aaChars);

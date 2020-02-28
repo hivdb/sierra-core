@@ -27,13 +27,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.sequences.AlignedSite;
 import edu.stanford.hivdb.utilities.AssertUtils;
-import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
@@ -195,73 +193,36 @@ public class StrainModifier {
 	}
 	
 	private <VirusS extends Virus<VirusS>, VirusT extends Virus<VirusT>>
-	List<Mutation<VirusT>> modifyMutation(Mutation<VirusS> srcMutation, Gene<VirusT> targetGene, PosModifier posMod) {
+	List<Mutation<VirusT>> modifyMutation(
+		Mutation<VirusS> srcMutation, Gene<VirusT> targetGene, PosModifier posMod
+	) {
 		int tgtPos = posMod.getTargetPos();
 		List<Mutation<VirusT>> targetMutations = new ArrayList<>();
 
-		if (srcMutation instanceof CodonMutation) {
-			String aas = srcMutation.getAAs();
-			String triplet = srcMutation.getTriplet();
-			String insertedNAs = srcMutation.getInsertedNAs();
-			int maxDisplayAAs = ((CodonMutation<VirusS>) srcMutation).getMaxDisplayAAs();
-			switch(posMod.getFlag()) {
-				case M:
-					targetMutations.add(new CodonMutation<>(
-						targetGene, tgtPos, aas, triplet, insertedNAs, maxDisplayAAs));
-					break;
-				case I:
-					targetMutations.add(new CodonMutation<>(
-						targetGene, tgtPos, aas, triplet, insertedNAs, maxDisplayAAs));
-					int insSize = posMod.getSize();
-					for (int i = 0; i < insSize; i ++) {
-						targetMutations.add(new CodonMutation<>(
-						targetGene, tgtPos + i + 1, "-", "---", "", maxDisplayAAs));
-					}
-					break;
-				case D:
-					int lastTgtMutIdx = targetMutations.size() - 1;
-					Mutation<VirusT> lastTgtMut = targetMutations.get(lastTgtMutIdx);
-					if (lastTgtMut.getPosition() == tgtPos) {
-						insertedNAs = lastTgtMut.getInsertedNAs() + triplet + insertedNAs;
-						aas = lastTgtMut.getAAs() + '_' + CodonUtils.simpleTranslate(insertedNAs);
-						targetMutations.set(lastTgtMutIdx, new CodonMutation<>(
-							targetGene, tgtPos, aas, lastTgtMut.getTriplet(), insertedNAs, maxDisplayAAs
-						));
-					}
-					break;
-			}
-
-		}
-		else if (srcMutation instanceof MultiCodonsMutation) {
-			throw new NotImplementedException("Modifying MultiCodonsMutation is not yet supported");
-		}
-		else { // default to AAMutation
-			Set<Character> aas = srcMutation.getAAChars();
-			switch(posMod.getFlag()) {
-				case M:
-					targetMutations.add(new AAMutation<>(targetGene, tgtPos, aas));
-					break;
-				case I:
-					targetMutations.add(new AAMutation<>(targetGene, tgtPos, aas));
-					int insSize = posMod.getSize();
-					for (int i = 0; i < insSize; i ++) {
-						targetMutations.add(new AAMutation<>(targetGene, tgtPos + i + 1, '-'));
-					}
-					break;
-				case D:
-					int lastTgtMutIdx = targetMutations.size() - 1;
-					Mutation<VirusT> lastTgtMut = targetMutations.get(lastTgtMutIdx);
-					if (lastTgtMut.getPosition() == tgtPos) {
-						targetMutations.set(lastTgtMutIdx, new AAMutation<>(targetGene, tgtPos, '_'));
-					}
-					break;
-			}
+		Set<Character> aas = srcMutation.getAAChars();
+		switch(posMod.getFlag()) {
+			case M:
+				targetMutations.add(new AAMutation<>(targetGene, tgtPos, aas));
+				break;
+			case I:
+				targetMutations.add(new AAMutation<>(targetGene, tgtPos, aas));
+				int insSize = posMod.getSize();
+				for (int i = 0; i < insSize; i ++) {
+					int curTgtPos = tgtPos + i + 1;
+					targetMutations.add(new AAMutation<>(targetGene, curTgtPos, '-'));
+				}
+				break;
+			case D:
+				// nothing need to be done
+				break;
 		}
 		return targetMutations;
 	}
 
 	public <VirusS extends Virus<VirusS>, VirusT extends Virus<VirusT>>
-	MutationSet<VirusT> modifyMutationSet(Gene<VirusS> srcGene, Gene<VirusT> targetGene, MutationSet<VirusS> srcMutations) {
+	MutationSet<VirusT> modifyMutationSet(
+		Gene<VirusS> srcGene, Gene<VirusT> targetGene, MutationSet<VirusS> srcMutations
+	) {
 		AssertUtils.notNull(srcGene, "Argument srcGene should not be null");
 		AssertUtils.notNull(targetGene, "Argument targetGene should not be null");
 		AssertUtils.notNull(srcMutations, "Argument srcMutations should not be null");

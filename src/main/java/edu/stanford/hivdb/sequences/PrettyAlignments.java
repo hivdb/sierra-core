@@ -27,9 +27,11 @@ import java.util.stream.Collectors;
 
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
+import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.sequences.AlignedGeneSeq;
 import edu.stanford.hivdb.utilities.TSV;
 import edu.stanford.hivdb.viruses.Gene;
+import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class PrettyAlignments<VirusT extends Virus<VirusT>> {
@@ -101,12 +103,15 @@ public class PrettyAlignments<VirusT extends Virus<VirusT>> {
 	private void createSequencePosAAsMap() {
 		int firstAA = getFirstAA();
 		int lastAA = getLastAA();
+		Strain<VirusT> targetStrain = targetGene.getStrain();
 		for (AlignedGeneSeq<VirusT> alignedGeneSeq : alignedGeneSeqs) {
 			String seqName = alignedGeneSeq.getSequence().getHeader();
 			int seqFirstPos = alignedGeneSeq.getFirstAA();
 			int seqLastPos = alignedGeneSeq.getLastAA();
 			Gene<VirusT> gene = alignedGeneSeq.getGene();
-			MutationSet<VirusT> mutations = alignedGeneSeq.getMutations();
+			StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+			MutationSet<VirusT> mutations = strainModifier.modifyMutationSet(
+				gene, targetGene, alignedGeneSeq.getMutations());
 			sequenceAllPosAAs.put(seqName, new HashMap<Integer, String>());
 
 			for (int pos=firstAA; pos<=lastAA; pos++) {
