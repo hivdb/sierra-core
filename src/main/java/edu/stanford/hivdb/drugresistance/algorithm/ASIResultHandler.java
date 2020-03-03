@@ -110,12 +110,14 @@ public class ASIResultHandler {
 				if (totalScore <= highestTotalScore) {
 					continue;
 				}
-				isTriggered = true;
+				Collection<?> scoredItemObjs = evalCond.getEvaluator().getScoredItems();
+				if (scoredItemObjs.size() > 0) {
+					isTriggered = true;
+					highestTotalScore = totalScore;
+					ruleStatement = tmpRuleStatement;
+				}
 
-				highestTotalScore = totalScore;
-				ruleStatement = tmpRuleStatement;
-
-				for (Object scoredItemObj : evalCond.getEvaluator().getScoredItems()) {
+				for (Object scoredItemObj : scoredItemObjs) {
 					ScoredItem scoredItem = (ScoredItem) scoredItemObj;
 
 					Set<?> muts = scoredItem.getMutations();

@@ -240,7 +240,7 @@ public class ASIDrugSusc<VirusT extends Virus<VirusT>> implements Comparable<ASI
 
 	@Override
 	public String toString() {
-		return String.format("%s (%s): %s", drug, algorithm.getName(), sir);
+		return String.format("%s (%s): %s, %s, %.1f", drug, algorithm.getName(), sir, levelText, score);
 	}
 	
 	@Override
