@@ -17,29 +17,32 @@
     You should have received a copy of the GNU General Public License
     along with Sierra.  If not, see <https://www.gnu.org/licenses/>.
 */
-package edu.stanford.hivdb.drugs;
+package edu.stanford.hivdb.drugresistance.algorithm;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.fstrf.stanfordAsiInterpreter.resistance.ASIParsingException;
 import org.fstrf.stanfordAsiInterpreter.resistance.xml.XmlAsiTransformer;
 
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
+public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> implements Comparable<DrugResistanceAlgorithm<VirusT>>, Serializable {
 	
+	private static final long serialVersionUID = -6177916093946091256L;
 	final private String name;
 	final private String family;
 	final private String version;
 	final private String publishDate;
-	final private String xmlText;
+	final private transient String xmlText;
 	final private transient String originalLevelText;
 	final private transient String originalLevelSIR;
 	final private transient Map<String, org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene> geneMap;
@@ -132,8 +135,8 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 		return originalLevelText;
 	}
 	
-	public String getOriginalLevelSIR() {
-		return originalLevelSIR;
+	public SIREnum getOriginalLevelSIR() {
+		return SIREnum.valueOf(originalLevelSIR);
 	}
 	
 	public org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene getASIGene(Gene<VirusT> gene) {
@@ -157,5 +160,21 @@ public class DrugResistanceAlgorithm<VirusT extends Virus<VirusT>> {
 	public String toString() {
 		return getName();
 	}
+
+	@Override
+	public int compareTo(DrugResistanceAlgorithm<VirusT> other) {
+		return new CompareToBuilder()
+			.append(family, other.family)
+			.append(version, other.version)
+			.append(publishDate, other.publishDate)
+			.toComparison();
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) { return true; }
+		// require singleton
+		return false;
+    }
 
 }

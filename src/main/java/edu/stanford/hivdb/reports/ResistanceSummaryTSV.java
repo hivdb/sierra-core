@@ -30,9 +30,9 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 
 import edu.stanford.hivdb.drugresistance.GeneDR;
+import edu.stanford.hivdb.drugresistance.algorithm.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.drugs.Drug;
 import edu.stanford.hivdb.drugs.DrugClass;
-import edu.stanford.hivdb.drugs.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
@@ -153,8 +153,8 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 
 		for (DrugClass<VirusT> drugClass : geneDR.getGene().getDrugClasses()) {
 			for (Drug<VirusT> drug : drugClass.getDrugs()) {
-				int score = geneDR.getTotalDrugScore(drug).intValue();
-				int level = geneDR.getDrugLevel(drug);
+				int score = geneDR.getDrugSusc(drug).getScore().intValue();
+				int level = geneDR.getDrugSusc(drug).getLevel();
 				results.put(
 					String.format("%s Score", drug.getDisplayAbbr()),
 					Integer.toString(score));
@@ -168,7 +168,7 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 				}
 				results.put(
 					mtype.getFullName(drugClass),
-					geneDR.getMutationsByType(mtype).join()
+					geneDR.getMutations(mtype).join()
 				);
 			}
 		}

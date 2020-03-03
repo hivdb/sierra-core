@@ -26,18 +26,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.fstrf.stanfordAsiInterpreter.resistance.definition.CommentDefinition;
-import org.fstrf.stanfordAsiInterpreter.resistance.definition.Definition;
-import org.fstrf.stanfordAsiInterpreter.resistance.evaluate.EvaluatedDrugLevelCondition;
 import org.fstrf.stanfordAsiInterpreter.resistance.evaluate.EvaluatedResultCommentRule;
 
 import com.google.common.primitives.Chars;
 import com.google.gson.reflect.TypeToken;
 
-import edu.stanford.hivdb.drugs.Drug;
+import edu.stanford.hivdb.drugresistance.algorithm.ASIResultHandler;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.GenePosition;
@@ -46,11 +42,11 @@ import edu.stanford.hivdb.utilities.Json;
 
 public class ConditionalComments<VirusT extends Virus<VirusT>> {
 
-	private static final String WILDCARD_REGEX = "\\$listMutsIn\\{.+?\\}";
-
 	private final Map<String, ConditionalComment<VirusT>> condCommentMap;
 	private final VirusT virusInstance;
 	private final transient Map<GenePosition<VirusT>, List<ConditionalComment<VirusT>>> condCommentsByGenePos;
+
+	private static final String WILDCARD_REGEX = "\\$listMutsIn\\{.+?\\}";
 	
 	@SuppressWarnings("unchecked")
 	public ConditionalComments(String jsonRaw, VirusT virusIns) {
@@ -76,6 +72,12 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.groupingBy(ConditionalComment::getMutationGenePosition))
 		);
 	}
+	
+	public static String getCommentWildcardRegex() {
+		return WILDCARD_REGEX;
+	}
+	
+	public ConditionalComment<VirusT> get(String name) { return condCommentMap.get(name); }
 	
 	private static <VirusT extends Virus<VirusT>> BoundComment<VirusT> findMutationComment(
 			Mutation<VirusT> mutation, ConditionalComment<VirusT> cc) {
@@ -115,83 +117,17 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 		return comments;
 	}
 
+	@Deprecated
 	public List<BoundComment<VirusT>> fromAsiMutationComments(
 		Collection<?> defs, MutationSet<VirusT> muts
 	) {
-		List<BoundComment<VirusT>> results = new ArrayList<>();
-		for (Object def : defs) {
-			CommentDefinition cmtDef = (CommentDefinition) def;
-			String commentName = cmtDef.getId();
-			ConditionalComment<VirusT> condComment = condCommentMap.get(commentName);
-			Mutation<VirusT> mut;
-			if (condComment.getConditionType() != ConditionType.MUTATION) {
-				throw new RuntimeException(
-						String.format("Invalid comment name: %s", commentName)
-					);
-			}
-			
-			Mutation<VirusT> matchedMut = muts.get(condComment.getMutationGenePosition());
-			if (matchedMut != null) {
-				mut = matchedMut.intersectsWith(condComment.getMutationAAs().chars()
-						.mapToObj(e -> (char) e)
-						.collect(Collectors.toList())
-						);
-				if (mut == null) {
-					throw new IllegalArgumentException(String.format(
-							"Mutation %s is not match with comment definition %s.",
-							matchedMut.getASIFormat(), commentName));
-				}
-				List<String> highlight = new ArrayList<>();
-				highlight.add(mut.getHumanFormat());
-				results.add(new BoundComment<>(
-						condComment.getStrain(), condComment.getName(),
-						condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
-						cmtDef.getText().replaceAll(WILDCARD_REGEX, mut.getHumanFormat()),
-						highlight,
-						mut
-					));
-			}
-
-		}
-		results.sort((a, b) -> a.getBoundMutation().compareTo(b.getBoundMutation())); 
-		return results;
+		return ASIResultHandler.extractMutationComments(virusInstance, defs, muts);
 	}
 	
+	@Deprecated
 	public List<BoundComment<VirusT>> fromAsiDrugLevelComments(
 		Collection<EvaluatedResultCommentRule> resultComments
 	) {
-		List<BoundComment<VirusT>> results = new ArrayList<>();
-		for (EvaluatedResultCommentRule resultComment : resultComments) {
-			if (!resultComment.getResult()) {
-				continue;
-			}
-			List<Drug<VirusT>> drugs = new ArrayList<>();
-			for (
-				EvaluatedDrugLevelCondition cond :
-				resultComment.getEvaluatedDrugLevelConditions()
-			) {
-				String drugName = cond.getDrug();
-				drugs.add(virusInstance.getDrug(drugName));
-			}
-			for (Definition def : resultComment.getDefinitions()) {
-				CommentDefinition cmtDef = (CommentDefinition) def;
-				String commentName = cmtDef.getId();
-				ConditionalComment<VirusT> condComment = condCommentMap.get(commentName);
-				Set<String> highlights = drugs.stream()
-					.map(d -> d.getDisplayAbbr())
-					.collect(Collectors.toSet());
-				highlights.addAll(
-					drugs.stream()
-					.map(d -> d.name())
-					.collect(Collectors.toSet())
-				);
-				results.add(new BoundComment<>(
-					condComment.getStrain(), condComment.getName(),
-					condComment.getDrugClass(), CommentType.Dosage,
-					cmtDef.getText(), highlights, null
-				));
-			}
-		}
-		return results;
+		return ASIResultHandler.extractDrugLevelComments(virusInstance, resultComments);
 	}
 }

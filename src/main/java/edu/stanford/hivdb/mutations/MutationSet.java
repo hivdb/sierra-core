@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -434,10 +435,13 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 * @param gene	Gene
 	 * @return 		Map&lt;MutType, MutationSet&gt;
 	 */
-	public Map<MutationType<VirusT>, MutationSet<VirusT>> groupByMutType(final Gene<VirusT> gene) {
-		Map<MutationType<VirusT>, MutationSet<VirusT>> r = filterAndGroupBy(
-			mut -> mut.getGene() == gene,
-			mut -> mut.getPrimaryType());
+	public SortedMap<MutationType<VirusT>, MutationSet<VirusT>> groupByMutType(final Gene<VirusT> gene) {
+		SortedMap<MutationType<VirusT>, MutationSet<VirusT>> r = new TreeMap<>(
+			filterAndGroupBy(
+				mut -> mut.getGene() == gene,
+				mut -> mut.getPrimaryType()
+			)
+		);
 		Set<MutationType<VirusT>> mutTypes = gene.getMutationTypes();
 		if (r.size() < mutTypes.size()) {
 			for (MutationType<VirusT> mt : mutTypes) {

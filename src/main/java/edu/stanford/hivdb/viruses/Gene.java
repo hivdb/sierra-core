@@ -94,6 +94,33 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		return name;
 	}
 	
+	/**
+	 * Get corresponding gene in main strain.
+	 * 
+	 * For example, for HIV2 virus, the main strain is HIV2A.
+	 * Therefore for HIV2BRT, the main strain is HIV2ART. 
+	 * 
+	 * @return gene
+	 */
+	public Gene<VirusT> getMainStrainGene() {
+		Strain<VirusT> mainStrain = virusInstance.getMainStrain();
+		return getTargetStrainGene(mainStrain);
+	}
+	
+	public Gene<VirusT> getTargetStrainGene(String targetStrainName) {
+		Strain<VirusT> targetStrain = virusInstance.getStrain(targetStrainName);
+		return getTargetStrainGene(targetStrain);
+	}
+
+	public Gene<VirusT> getTargetStrainGene(Strain<VirusT> targetStrain) {
+		if (getStrain() == targetStrain) {
+			return this;
+		}
+		else {
+			return targetStrain.getGene(getAbstractGene());
+		}
+	}
+	
 	@Deprecated
 	public int getLength() {
 		// deprecated, use getAASize instead
@@ -132,9 +159,19 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		return abstractGene;
 	}
 	
+	/**
+	 * Get StrainModifier where targetStrain=mainStrain
+	 */
+	public StrainModifier getMainStrainModifier() {
+		return getTargetStrainModifier(virusInstance.getMainStrain());
+	}
+
+	public StrainModifier getTargetStrainModifier(Gene<?> targetGene) {
+		return getTargetStrainModifier(targetGene.getStrain().getName());
+	}
+	
 	public StrainModifier getTargetStrainModifier(Strain<?> targetStrain) {
 		return getTargetStrainModifier(targetStrain.getName());
-		
 	}
 	
 	public StrainModifier getTargetStrainModifier(String targetStrainText) {

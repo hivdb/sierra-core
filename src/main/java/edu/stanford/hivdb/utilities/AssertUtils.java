@@ -19,6 +19,9 @@
 */
 package edu.stanford.hivdb.utilities;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public class AssertUtils {
 	
 	/**
@@ -33,15 +36,38 @@ public class AssertUtils {
 	 * @throws IllegalArgumentException value is null
 	 */
 	public static <T> T notNull(T value, String msg, Object... args) {
-		if (value == null) {
-			throw new IllegalArgumentException(String.format(msg, args));
-		}
+		isTrue(value != null, msg, args);
 		return value;
 	}
 	
 	public static void isTrue(Boolean value, String msg, Object... args) {
 		if (!value) {
 			throw new IllegalArgumentException(String.format(msg, args));
+		}
+	}
+
+	public static <T extends RuntimeException> void
+	isTrue(Boolean value, Class<T> exceptionClass, String msg, Object... args) {
+		if (!value) {
+			T exception;
+			try {
+				Constructor<T> exceptionConstructor = exceptionClass.getConstructor(String.class);
+				exception = exceptionConstructor.newInstance(String.format(msg, args));
+			} catch (
+				NoSuchMethodException     |
+				SecurityException         |
+				InstantiationException    |
+				IllegalAccessException    |
+				IllegalArgumentException  |
+				InvocationTargetException e) {
+				throw new IllegalArgumentException(
+					String.format(
+						"Unable to call the constructor(String) of %s",
+						exceptionClass.getName()
+					), e
+				);
+			}
+			throw exception;
 		}
 	}
 	

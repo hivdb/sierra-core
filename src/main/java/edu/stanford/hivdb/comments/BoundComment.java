@@ -37,7 +37,7 @@ public class BoundComment<VirusT extends Virus<VirusT>> implements WithGene<Viru
 	final private Collection<String> highlightText;
 	final private Mutation<VirusT> mutation;
 
-	protected BoundComment(
+	public BoundComment(
 			Strain<VirusT> strain, String commentName,
 			DrugClass<VirusT> drugClass, CommentType commentType,
 			String comment, Collection<String> highlightText,
