@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -139,10 +140,21 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 	}
 
 	public AminoAcidPercent<VirusT> get(GenePosition<VirusT> genePos, char aa) {
-		return (
-			aminoAcidPcntMap
-			.getOrDefault(genePos, Collections.emptyMap())
-			.get(aa));
+		Map<Character, AminoAcidPercent<VirusT>> posAAPcnts = aminoAcidPcntMap
+			.getOrDefault(genePos, Collections.emptyMap());
+		if (posAAPcnts.isEmpty()) {
+			return null;
+		}
+		AminoAcidPercent<VirusT> aaPcnt = posAAPcnts.get(aa);
+		if (aaPcnt != null) {
+			return aaPcnt;
+		}
+		else {
+			int total = Lists.newArrayList(posAAPcnts.values()).get(0).getTotal();
+			return new AminoAcidPercent<>(
+				genePos.getGene(), genePos.getPosition(),
+				aa, .0, 0, total, "PCNT", true);
+		}
 	}
 
 	/**
