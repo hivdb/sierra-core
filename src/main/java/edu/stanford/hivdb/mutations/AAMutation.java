@@ -253,12 +253,17 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	@Override
 	public final Set<Mutation<VirusT>> split() {
 		Set<Mutation<VirusT>> r = new TreeSet<>();
-		for (char aa : getAAChars()) {
-			if (aa == getRefChar()) {
-				// ignore reference
-				continue;
+		if (isUnsequenced()) {
+			r.add(this);
+		}
+		else {
+			for (char aa : getAAChars()) {
+				if (aa == getRefChar()) {
+					// ignore reference
+					continue;
+				}
+				r.add(new AAMutation<>(gene, position, Sets.newHashSet(aa), DEFAULT_MAX_DISPLAY_AAS));
 			}
-			r.add(new AAMutation<>(gene, position, Sets.newHashSet(aa), DEFAULT_MAX_DISPLAY_AAS));
 		}
 		return r;
 	}
@@ -270,10 +275,14 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public String getInsertedNAs() { return ""; }
 
 	@Override
-	public final boolean isInsertion() { return getAAChars().contains('_'); }
+	public final boolean isInsertion() {
+		return getAAChars().contains('_');
+		}
 
 	@Override
-	public final boolean isDeletion() { return getAAChars().contains('-'); }
+	public final boolean isDeletion() {
+		return getAAChars().contains('-');
+	}
 
 	@Override
 	public final boolean isIndel() {
@@ -283,6 +292,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public final boolean isMixture() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		Set<Character> myAAChars = getAAChars();
 		return myAAChars.size() > 1 || myAAChars.contains('X');
 	}
@@ -291,7 +303,12 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public final boolean hasReference () { return getAAChars().contains(getRefChar()); }
 
 	@Override
-	public final boolean hasStop() { return getAAChars().contains('*'); }
+	public final boolean hasStop() {
+		if (isUnsequenced()) {
+			return false;
+		}
+		return getAAChars().contains('*');
+	}
 
 	@Override
 	public boolean hasBDHVN() {
@@ -429,6 +446,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public final boolean isDRM() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isDRM == null) {
 			isDRM = existsInMutationSets(
 				gene.getVirusInstance()
@@ -451,6 +471,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	
 	@Override
 	public final boolean isTSM() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isTSM == null) {
 			isTSM = existsInMutationSets(
 				gene.getVirusInstance()
@@ -478,6 +501,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isUnusual() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isUnusual == null) {
 			Set<Character> myAAChars = getAAChars();
 			if (myAAChars.contains('X')) {
@@ -498,6 +524,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isSDRM() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isSDRM == null) {
 			isSDRM = existsInMutationSets(
 				gene.getVirusInstance()
@@ -520,6 +549,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isApobecMutation() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isApobecMutation == null) {
 			isApobecMutation = (
 				gene.getVirusInstance()
@@ -532,6 +564,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isApobecDRM() {
+		if (isUnsequenced()) {
+			return false;
+		}
 		if (isApobecDRM == null) {
 			isApobecDRM = (
 				gene.getVirusInstance()
@@ -638,6 +673,11 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	@Override
 	public final String getHumanFormatWithGene() {
 		return String.format("%s_%s", gene.getName(), getHumanFormat());
+	}
+
+	@Override
+	public final String getHumanFormatWithAbstractGene() {
+		return String.format("%s_%s", gene.getAbstractGene(), getHumanFormat());
 	}
 
 	@Override

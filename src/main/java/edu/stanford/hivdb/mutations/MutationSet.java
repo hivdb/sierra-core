@@ -404,6 +404,14 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 			.collect(Collectors.toList())
 		);
 	}
+	
+	public Long countIf(Predicate<Mutation<VirusT>> predicate) {
+		return this
+			.getSplitted()
+			.stream()
+			.filter(predicate)
+			.count();
+	}
 
 	public <T> Map<T, MutationSet<VirusT>> filterAndGroupBy(
 			Predicate<Mutation<VirusT>> predicate, Function<Mutation<VirusT>, T> function) {
@@ -500,7 +508,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 * @return A new MutationSet instance
 	 */
 	public MutationSet<VirusT> getStopCodons() {
-		return filterBy(mut -> mut.hasStop());
+		return filterBy(Mutation::hasStop);
 	}
 
 	/**

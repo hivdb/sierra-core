@@ -485,6 +485,7 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public String getHumanFormatWithoutLeadingRef();
 
 	public String getHumanFormatWithGene();
+	public String getHumanFormatWithAbstractGene();
 	
 	public Collection<BoundComment<VirusT>> getComments();
 	
