@@ -108,6 +108,7 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 	}
 
 	public GeneDR(Gene<VirusT> gene, MutationSet<VirusT> mutations, DrugResistanceAlgorithm<VirusT> algorithm) {
+		mutations = mutations.filterBy(mut -> !mut.isUnsequenced());
 		this.gene = gene;
 		this.mutations = mutations;
 		this.algorithm = algorithm;

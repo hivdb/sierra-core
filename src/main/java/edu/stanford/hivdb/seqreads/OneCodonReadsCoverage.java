@@ -71,7 +71,8 @@ public class OneCodonReadsCoverage<VirusT extends Virus<VirusT>> {
 	public Map<String, Object> extMap() {
 		Map<String, Object> result = new LinkedHashMap<>();
 		Map<String, Object> geneMap = new LinkedHashMap<>();
-		geneMap.put("name", gene.getName());
+		geneMap.put("name", gene.getAbstractGene());
+		geneMap.put("nameWithStrain", gene.getName());
 		result.put("gene", geneMap);
 		result.put("position", position);
 		result.put("totalReads", totalReads);

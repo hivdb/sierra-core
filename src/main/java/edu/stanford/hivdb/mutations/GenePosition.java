@@ -179,6 +179,11 @@ public class GenePosition<VirusT extends Virus<VirusT>> implements Comparable<Ge
 		return cmp;
 	}
 
+	
+	public String toStringWithAbstractGene() {
+		return String.format("%s:%d", getAbstractGene(), getPosition());
+	}
+	
 	@Override
 	public String toString() {
 		return String.format("%s:%d", getGene(), getPosition());
