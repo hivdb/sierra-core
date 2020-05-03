@@ -37,8 +37,8 @@ public class AAUtils {
 	public static String normalizeAAs(String aas) {
 		if (aas == null) return null;
 
-		aas = aas.replaceAll("^([dD]elet(e|ion)|d(el)?|~)$", "-")
-			     .replaceAll("^([iI]nsert(ion)?|i(ns)?$|#)$", "_")
+		aas = aas.replaceAll("^[dD]elet(e|ion)|d(el)?|~", "-")
+			     .replaceAll("^[iI]nsert(ion)?|i(ns)?|#", "_")
 			     .replaceAll("[.Z]", "*");
 
 		if (aas.length() > 1 && !aas.contains("_")) {
