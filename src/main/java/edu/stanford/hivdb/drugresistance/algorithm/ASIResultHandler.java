@@ -123,7 +123,7 @@ public class ASIResultHandler {
 					Set<?> muts = scoredItem.getMutations();
 					MutationSet<T> mutations = MutationSet.parseString(
 						srcGene, muts.stream()
-						.map(m -> (String) m)
+						.map(m -> "__ASI__" + ((String) m))
 						.collect(Collectors.toSet()))
 						.displayAmbiguities();
 					// use modifyMutationSet to convert all ASI-compat mutations back
