@@ -220,6 +220,20 @@ public class StrainModifier {
 		}
 		return targetMutations;
 	}
+	
+	public <VirusS extends Virus<VirusS>, VirusT extends Virus<VirusT>>
+	GenePosition<VirusT> modifyGenePosition(
+		GenePosition<VirusS> srcGPos, Gene<VirusT> targetGene
+	) {
+		AssertUtils.isTrue(
+				srcGPos.getAbstractGene().equals(targetGene.getAbstractGene()),
+				"Arguments srcGPos is '%s', however targetGene is '%s'",
+				srcGPos.getAbstractGene(), targetGene.getAbstractGene());
+		Map<Integer, PosModifier> posModifiers = getPosModifiers();
+		PosModifier posMod = posModifiers.get(srcGPos.getPosition());
+		int tgtPos = posMod.getTargetPos();
+		return new GenePosition<>(targetGene, tgtPos);
+	}
 
 	public <VirusS extends Virus<VirusS>, VirusT extends Virus<VirusT>>
 	MutationSet<VirusT> modifyMutationSet(

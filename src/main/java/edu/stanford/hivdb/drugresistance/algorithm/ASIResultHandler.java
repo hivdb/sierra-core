@@ -50,6 +50,7 @@ import edu.stanford.hivdb.comments.ConditionType;
 import edu.stanford.hivdb.comments.ConditionalComment;
 import edu.stanford.hivdb.comments.ConditionalComments;
 import edu.stanford.hivdb.drugs.Drug;
+import edu.stanford.hivdb.mutations.GenePosition;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.StrainModifier;
@@ -239,6 +240,16 @@ public class ASIResultHandler {
 		T virusIns, Collection<?> defs, MutationSet<T> muts
 	) {
 		ConditionalComments<T> condComments = virusIns.getConditionalComments();
+		Map<GenePosition<T>, Mutation<T>> mutMap = new HashMap<>();
+		for (Mutation<T> mut : muts) {
+			Gene<T> mutGene = mut.getGene();
+			StrainModifier strainModifier = mutGene.getMainStrainModifier();
+			Gene<T> targetGene = mutGene.getMainStrainGene();
+			mutMap.put(
+				strainModifier.modifyGenePosition(mut.getGenePosition(), targetGene),
+				mut
+			);
+		}
 		
 		List<BoundComment<T>> results = new ArrayList<>();
 		for (Object def : defs) {
@@ -252,7 +263,7 @@ public class ASIResultHandler {
 				);
 			}
 			
-			Mutation<T> matchedMut = muts.get(condComment.getMutationGenePosition());
+			Mutation<T> matchedMut = mutMap.get(condComment.getMutationGenePosition());
 			if (matchedMut != null) {
 				mut = matchedMut.intersectsWith(condComment.getMutationAAs().chars()
 						.mapToObj(e -> (char) e)

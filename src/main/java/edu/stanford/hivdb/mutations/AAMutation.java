@@ -335,6 +335,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public final MutationType<VirusT> getPrimaryType() {
+		if (isUnsequenced()) {
+			return gene.getVirusInstance().getOtherMutationType();
+		}
 		return getTypes().get(0);
 	}
 
@@ -629,6 +632,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replace('-', 'd')
 			.replaceAll("[X*]", "Z")
 		);
+		if (isUnsequenced()) {
+			fmtAAs = "X";
+		}
 		return String.format("%s%d%s", getRefChar(), position, fmtAAs);
 	}
 
@@ -640,6 +646,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replace('_', '#')
 			.replace('-', '~')
 		);
+		if (isUnsequenced()) {
+			fmtAAs = "X";
+		}
 		return String.format("%d%s", position, fmtAAs);
 	}
 
@@ -651,6 +660,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replaceAll("^_$", "Insertion")
 			.replaceAll("^-$", "Deletion")
 		);
+		if (isUnsequenced()) {
+			fmtAAs = "X";
+		}
 		return String.format("%s%d%s", getRefChar(), position, fmtAAs);
 	}
 
@@ -662,6 +674,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replaceAll("^_$", "i")
 			.replaceAll("^-$", "d")
 		);
+		if (isUnsequenced()) {
+			fmtAAs = "X";
+		}
 		return String.format("%s%d%s", getRefChar(), position, fmtAAs);
 	}
 
