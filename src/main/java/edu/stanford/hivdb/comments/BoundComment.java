@@ -56,6 +56,7 @@ public class BoundComment<VirusT extends Virus<VirusT>> implements WithGene<Viru
 	public String getText() { return comment; }
 	public Collection<String> getHighlightText() { return highlightText; }
 	public Mutation<VirusT> getBoundMutation() { return mutation; }
+	public String getTriggeredAAs() { return mutation.getDisplayAAs(); }
 
 	@Override
 	public Gene<VirusT> getGene() { return strain.getGene(drugClass.getAbstractGene()); }
