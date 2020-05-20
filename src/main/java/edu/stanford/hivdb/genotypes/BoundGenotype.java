@@ -24,8 +24,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.CharMatcher;
+
 import edu.stanford.hivdb.genotypes.Genotype;
 import edu.stanford.hivdb.genotypes.Genotype.RegionalGenotype;
+import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class BoundGenotype<VirusT extends Virus<VirusT>> {
@@ -49,9 +52,10 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
 		this.discordanceList = discordanceList;
+		int numWildcards = CharMatcher.is(StrainModifier.WILDCARD).countIn(sequence);
 		this.distance = (
 				(double) discordanceList.size() /
-				(lastNA - firstNA + 1));
+				(lastNA - firstNA + 1 - numWildcards));
 		this.virusInstance = virusIns;
 	}
 
