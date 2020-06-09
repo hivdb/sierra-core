@@ -21,6 +21,7 @@
 package edu.stanford.hivdb.sequences;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -72,8 +73,6 @@ import edu.stanford.hivdb.viruses.Virus;
  *
  */
 public class NucAminoAligner<VirusT extends Virus<VirusT>> {
-	private final Map<Gene<VirusT>, Integer[]> GENE_AA_RANGE;
-	private final Map<Gene<VirusT>, Integer> MIN_NUM_OF_SITES_PER_GENE;
 	private final int MIN_MATCH_PCNT = 60;
 	private final int SEQUENCE_SHRINKAGE_WINDOW = 15;
 	private final int SEQUENCE_SHRINKAGE_CUTOFF_PCNT = 30;
@@ -98,6 +97,12 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 
 		public boolean isSuppressible() { return suppressible; }
 	}
+
+	private static String getJoinedNucaminoGenes(Strain<?> strain) {
+		return strain.getNucaminoGeneMap()
+			.keySet().stream()
+			.collect(Collectors.joining(","));
+	}
 	
 	@SuppressWarnings("unchecked")
 	public static <VirusT extends Virus<VirusT>> NucAminoAligner<VirusT> getInstance(VirusT virusIns) {
@@ -117,15 +122,15 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 		}
 		Map<Strain<VirusT>, String[]> nucaminoCommands = new HashMap<>();
 		for (Strain<VirusT> strain : virusIns.getStrains()) {
+			File profileFile = strain.makeNucaminoProfileFile();
 			nucaminoCommands.put(
 				strain,
 				new String[] {
 					/* Command */
 					executable,	 	// path to nucamino binary
-					"align", 		// sub-command: use built-in alignment profile
-					strain.getNucaminoProfile(),	// specify built-in profile choice
-					strain.getNucaminoGene(),		// specify gene to align against
-
+					"align-with",	// sub-command: use custom alignment profile
+					profileFile.getAbsolutePath(),	// specify profile path
+					getJoinedNucaminoGenes(strain),	// specify gene to align against
 					/* Flags */
 					"-q", 			// quiet mode
 					"-f", "json", 	// return output format as json
@@ -135,30 +140,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 		
 		NUCAMINO_LOCAL_COMMANDS = Collections.unmodifiableMap(nucaminoCommands);
 	
-		/* initialize GENE_AA_RANGE */
-		Map<Gene<VirusT>, Integer[]> geneAARange = new HashMap<>();
-		for (Strain<VirusT> strain : virusIns.getStrains()) {
-			int geneOffset = strain.getNucaminoGeneOffset();
-			for (Gene<VirusT> gene : strain.getGenes()) {
-				geneAARange.put(gene, new Integer[] {
-					geneOffset + 1,
-					geneOffset + gene.getAASize()
-				});
-				geneOffset += gene.getAASize();
-			}
-		}
-		GENE_AA_RANGE = Collections.unmodifiableMap(geneAARange);
-
-		/* initialize minNumOfSitesPerGene */
-		Map<Gene<VirusT>, Integer> minNumOfSitesPerGene = new HashMap<>();
-		for (Strain<VirusT> strain : virusIns.getStrains()) {
-			for (Gene<VirusT> gene : strain.getGenes()) {
-				minNumOfSitesPerGene.put(gene, gene.getNucaminoMinNumOfAA());
-			}
-		}
-		MIN_NUM_OF_SITES_PER_GENE = Collections.unmodifiableMap(minNumOfSitesPerGene);
 	}
-
+	
 	/**
 	 * Receives a sequence and aligns it to each HIV gene by NucAmino.
 	 *
@@ -244,8 +227,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 		for (List<Sequence> partialSet : partialSets) {
 			for (Strain<VirusT> strain : virusInstance.getStrains()) {
 				Map<String, String> payload = new HashMap<>();
-				payload.put("profile", strain.getNucaminoProfile());
-				payload.put("genes", "pol");
+				payload.put("profile_yaml", strain.makeNucaminoProfileString());
+				payload.put("genes", getJoinedNucaminoGenes(strain));
 				payload.put("fasta", FastaUtils.writeString(partialSet));
 				String payloadText = Json.dumps(payload);
 				AWSLambda client = AWSLambdaClientBuilder.standard().build();
@@ -357,16 +340,11 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 	private AlignedGeneSeq<VirusT> geneSeqFromReport(
 			Sequence sequence, Gene<VirusT> gene, Map<?, ?> report,
 			boolean sequenceReversed) {
-		Integer[] aaRange = GENE_AA_RANGE.get(gene);
-		int aaStart = aaRange[0];
-		int aaEnd = aaRange[1];
 		int geneLength = gene.getAASize();
-		int polFirstAA = ((Double) report.get("FirstAA")).intValue();
-		int polLastAA = ((Double) report.get("LastAA")).intValue();
-		int firstAA = Math.max(polFirstAA - aaStart + 1, 1);
-		int lastAA = Math.min(polLastAA - aaStart + 1, geneLength);
+		int firstAA = Math.max(1, ((Double) report.get("FirstAA")).intValue());
+		int lastAA = Math.max(geneLength, ((Double) report.get("LastAA")).intValue());
 		int aaSize = Math.max(0, lastAA - firstAA + 1);
-		final int minNumOfSites = MIN_NUM_OF_SITES_PER_GENE.get(gene);
+		final int minNumOfSites = gene.getNucaminoMinNumOfAA();
 		if (aaSize < minNumOfSites) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s was discarded " +
@@ -378,12 +356,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 		List<?> polAlignedSites = (List<?>) report.get("AlignedSites");
 		List<AlignedSite> alignedSites = polAlignedSites.stream()
 			.map(m -> (Map<?, ?>) m)
-			.filter(m -> {
-				int posAA = ((Double) m.get("PosAA")).intValue();
-				return posAA >= aaStart && posAA <= aaEnd;
-			})
 			.map(m -> new AlignedSite(
-				((Double) m.get("PosAA")).intValue() - aaStart + 1,
+				((Double) m.get("PosAA")).intValue(),
 				((Double) m.get("PosNA")).intValue(),
 				((Double) m.get("LengthNA")).intValue()
 			))
@@ -396,21 +370,13 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 		List<?> polMutations = (List<?>) report.get("Mutations");
 		List<Mutation<VirusT>> mutations = polMutations.stream()
 			.map(m -> (Map<?, ?>) m)
-			.filter(m -> {
-				int posAA = ((Double) m.get("Position")).intValue();
-				return posAA >= aaStart && posAA <= aaEnd;
-			})
-			.map(m -> CodonMutation.fromNucAminoMutation(gene, aaStart, m))
+			.map(m -> CodonMutation.fromNucAminoMutation(gene, 1, m))
 			.collect(Collectors.toList());
 
 		List<?> polFrameShifts = (List<?>) report.get("FrameShifts");
 		List<FrameShift<VirusT>> frameShifts = polFrameShifts.stream()
 			.map(fs -> (Map<?, ?>) fs)
-			.filter(fs -> {
-				int posAA = ((Double) fs.get("Position")).intValue();
-				return posAA >= aaStart && posAA <= aaEnd;
-			})
-			.map(fs -> FrameShift.fromNucAminoFrameShift(gene, aaStart, fs))
+			.map(fs -> FrameShift.fromNucAminoFrameShift(gene, 1, fs))
 			.collect(Collectors.toList());
 
 		int[] trimDels = trimGaps(sequence, firstAA, lastAA, mutations, frameShifts);
@@ -600,25 +566,33 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 
 		Map<?, ?> jsonObj = Json.loads(
 			jsonString, new TypeToken<Map<?, ?>>(){}.getType());
-		List<?> alignmentResults = (List<?>) jsonObj.get("POL");
+		int numAlignments = 0;
+		for (Object alnResults : jsonObj.values()) {
+			numAlignments = Math.max(numAlignments, ((List<?>) alnResults).size());
+		}
 		List<AlignedSequence<VirusT>> alignedSequences = new ArrayList<>();
 		Map<String, Sequence> sequenceMap = sequences.stream()
 			.collect(Collectors.toMap(seq -> seq.getHeader(), seq -> seq));
-		for (Object _result : alignmentResults) {
-			Map<?, ?> result = (Map<?, ?>) _result;
-			// TODO: should we use hash key to prevent name conflict?
-			String name = (String) result.get("Name");
-			Sequence sequence = sequenceMap.get(name);
-			Map<?, ?> report = (Map<?, ?>) result.get("Report");
+		Map<String, Gene<VirusT>> nucaminoGeneMap = strain.getNucaminoGeneMap();
+		for (int idx = 0; idx < numAlignments; idx ++) {
+			Sequence sequence = null;
 			Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs = new TreeMap<>();
 			Map<Gene<VirusT>, String> discardedGenes = new LinkedHashMap<>();
-			String error = (String) result.get("Error");
-			if (!error.isEmpty()) {
-				errors.putIfAbsent(sequence, new TreeMap<>());
-				errors.get(sequence).putIfAbsent(strain, new StringBuilder());
-				errors.get(sequence).get(strain).append(error);
-			} else {
-				for (Gene<VirusT> gene : strain.getGenes()) {
+
+			for (Map.Entry<String, Gene<VirusT>> entry : nucaminoGeneMap.entrySet()) {
+				String geneText = entry.getKey();
+				Gene<VirusT> gene = entry.getValue();
+				Map<?, ?> result = ((Map<?, ?>) ((List<?>) jsonObj.get(geneText)).get(idx));
+				// TODO: should we use hash key to prevent name conflict?
+				String name = (String) result.get("Name");
+				sequence = sequenceMap.get(name);
+				Map<?, ?> report = (Map<?, ?>) result.get("Report");
+				String error = (String) result.get("Error");
+				if (!error.isEmpty()) {
+					errors.putIfAbsent(sequence, new TreeMap<>());
+					errors.get(sequence).putIfAbsent(strain, new StringBuilder());
+					errors.get(sequence).get(strain).append(error);
+				} else {
 					try {
 						alignedGeneSeqs.put(gene, geneSeqFromReport(sequence, gene, report, sequenceReversed));
 					} catch (MisAlignedException e) {
@@ -627,11 +601,16 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 						}
 					}
 				}
-				if (alignedGeneSeqs.isEmpty()) {
-					errors.putIfAbsent(sequence, new TreeMap<>());
-					errors.get(sequence).putIfAbsent(strain, new StringBuilder());
-					errors.get(sequence).get(strain).append("No aligned results were found.");
-				}
+			}
+			
+			if (sequence == null) {
+				throw new RuntimeException("Nucamino returns malformed results.");
+			}
+			
+			if (alignedGeneSeqs.isEmpty()) {
+				errors.putIfAbsent(sequence, new TreeMap<>());
+				errors.get(sequence).putIfAbsent(strain, new StringBuilder());
+				errors.get(sequence).get(strain).append("No aligned results were found.");
 			}
 			alignedSequences.add(
 				new AlignedSequence<>(
@@ -639,6 +618,7 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> {
 					discardedGenes, sequenceReversed)
 			);
 		}
+		
 		return alignedSequences;
 
 		// AlignmentExtension extResult = new AlignmentExtension(

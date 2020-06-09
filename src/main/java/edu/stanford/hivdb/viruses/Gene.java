@@ -63,6 +63,7 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		for (Gene<VirusT> gene : geneList) {
 			gene.virusInstance = virusIns;
 			genes.put(gene.getName(), gene);
+			genes.put(gene.getName().toUpperCase(), gene);
 		}
 		return Collections.unmodifiableMap(genes);
 	}

@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.StrainModifier;
-import edu.stanford.hivdb.sequences.AlignedGeneSeq;
 import edu.stanford.hivdb.utilities.TSV;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
