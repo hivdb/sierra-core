@@ -305,6 +305,8 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
+	
+	public DrugResistanceAlgorithm<VirusT> getDefaultDrugResistAlgorithm();
 
 	public default DrugResistanceAlgorithm<VirusT> getLatestDrugResistAlgorithm(String family) {
 		return (
