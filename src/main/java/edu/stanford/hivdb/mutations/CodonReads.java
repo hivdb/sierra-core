@@ -149,7 +149,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		if (aaPcnt == null) {
 			AminoAcidPercent<?> aaPcntObj = (
 				gene.getVirusInstance()
-				.getAminoAcidPercents(gene.getStrain(), "all", "all")
+				.getMainAminoAcidPercents(gene.getStrain())
 				.get(gene, position, getAminoAcid())
 			);
 			if (aaPcntObj == null) {

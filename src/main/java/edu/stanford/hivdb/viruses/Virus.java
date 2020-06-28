@@ -211,6 +211,8 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public MutationSet<VirusT> getApobecDRMs();
 
 	public AminoAcidPercents<VirusT> getAminoAcidPercents(Strain<VirusT> strain, String treatment, String subtype);
+	
+	public AminoAcidPercents<VirusT> getMainAminoAcidPercents(Strain<VirusT> strain);
 
 	public CodonPercents<VirusT> getCodonPercents(Strain<VirusT> strain, String treatment, String subtype);
 
