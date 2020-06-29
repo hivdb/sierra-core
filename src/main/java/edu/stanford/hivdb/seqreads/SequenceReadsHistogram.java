@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.mutations.CodonReads;
@@ -203,6 +204,19 @@ public class SequenceReadsHistogram<VirusT extends Virus<VirusT>> {
 			default:  // case Codon:
 				return getSites(cr -> !cr.isUnusualByCodon());
 		}
+	}
+	
+	public List<HistogramBin> getUsualSites(String treatment, String subtype) {
+		switch (aggregatesBy) {
+			case Position:
+				return getSites(cr -> !cr.isUnusual(treatment, subtype));
+			case AminoAcid:
+				return getSites(cr -> !cr.isUnusual(treatment, subtype));
+			default:  // case Codon:
+				throw new NotImplementedException("Unsupport aggregate by codon");
+				// return getSites(cr -> !cr.isUnusualByCodon());
+		}
+		
 	}
 	
 	public List<HistogramBin> getUnusualSites() {

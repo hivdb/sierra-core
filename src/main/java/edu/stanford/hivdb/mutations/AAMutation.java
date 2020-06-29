@@ -22,6 +22,7 @@ package edu.stanford.hivdb.mutations;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	protected transient Boolean isTSM;
 	protected transient Boolean isApobecMutation;
 	protected transient Boolean isApobecDRM;
-	protected transient Boolean isUnusual;
+	protected transient Map<AminoAcidPercents<VirusT>, Boolean> isUnusuals = new HashMap<>();
 	protected transient Double highestMutPrevalence;
 	protected transient DrugClass<VirusT> drmDrugClass;
 	protected transient DrugClass<VirusT> sdrmDrugClass;
@@ -516,25 +517,41 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isUnusual() {
+		return isUnusual(getMainAAPcnts());
+	}
+	
+	@Override
+	public boolean isUnusual(AminoAcidPercents<VirusT> aaPcnts) {
 		if (isUnsequenced()) {
 			return false;
 		}
-		if (isUnusual == null) {
+		if (!isUnusuals.containsKey(aaPcnts)) {
+			Boolean isUnusual;
 			Set<Character> myAAChars = getAAChars();
 			if (myAAChars.contains('X')) {
 				isUnusual = true;
 			}
 			else {
 				isUnusual = (
-					getMainAAPcnts()
+					aaPcnts
 					.containsUnusualAA(
 						gene, position,
 						StringUtils.join(myAAChars.toArray())
 					)
 				);
 			}
+			isUnusuals.put(aaPcnts, isUnusual);
 		}
-		return isUnusual;
+		return isUnusuals.get(aaPcnts);
+	}
+	
+	@Override
+	public boolean isUnusual(String treatment, String subtype) {
+		AminoAcidPercents<VirusT> aaPcnts = (
+			gene.getVirusInstance()
+			.getAminoAcidPercents(gene.getStrain(), treatment, subtype)
+		);
+		return isUnusual(aaPcnts);
 	}
 
 	@Override

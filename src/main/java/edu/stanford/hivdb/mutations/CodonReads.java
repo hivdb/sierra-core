@@ -182,6 +182,10 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		return isReference() ? false : getMutation().isUnusual();
 	}
 	
+	public boolean isUnusual(String treatment, String subtype) {
+		return isReference() ? false : getMutation().isUnusual(treatment, subtype);
+	}
+	
 	public boolean isUnusualByCodon() {
 		return getCodonPercent() < 0.0001;
 	}

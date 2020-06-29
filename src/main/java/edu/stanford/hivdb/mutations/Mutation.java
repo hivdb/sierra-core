@@ -307,7 +307,24 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * @return true if the mutation is considered unusual
 	 */
 	public boolean isUnusual();
+	
+	/**
+	 * Checks if the mutation is considered unusual
+	 *  
+	 * @param aaPcnts
+	 * @return true if the mutation is considered unusual
+	 */
+	public boolean isUnusual(AminoAcidPercents<VirusT> aaPcnts);
 
+	/**
+	 * Checks if the mutation is considered unusual
+	 *  
+	 * @param treatment
+	 * @param subtype
+	 * @return true if the mutation is considered unusual
+	 */
+	public boolean isUnusual(String treatment, String subtype);
+	
 	/**
 	 * Checks if the mutation is an SDRM mutation
 	 *
