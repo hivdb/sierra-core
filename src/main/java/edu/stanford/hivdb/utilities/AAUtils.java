@@ -27,6 +27,28 @@ public class AAUtils {
 	private AAUtils() {}
 
 	/**
+	 * Normalize the input AA.
+	 *
+	 * The code explains the normalization rules.
+	 * 
+	 * @param aa	Amino acid sequence
+	 * @return		Formatted sequence
+	 */
+	public static Character normalizeAA(Character aa) {
+		if (aa == null) return null;
+		if (aa.equals('d') || aa.equals('~')) {
+			aa = '-';
+		}
+		else if (aa.equals('i') || aa.equals('_')) {
+			aa = '_';
+		}
+		else if (aa.equals('Z') || aa.equals('.')) {
+			aa = '*';
+		}
+		return aa;
+	}
+
+	/**
 	 * Normalize the input AAs.
 	 *
 	 * The code explains the normalization rules.

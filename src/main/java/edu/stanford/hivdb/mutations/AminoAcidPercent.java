@@ -20,6 +20,7 @@
 
 package edu.stanford.hivdb.mutations;
 
+import edu.stanford.hivdb.utilities.AAUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
@@ -41,7 +42,7 @@ public class AminoAcidPercent<VirusT extends Virus<VirusT>> implements WithGene<
 	) {
 		this.gene = gene;
 		this.position = position;
-		this.aa = aa;
+		this.aa = AAUtils.normalizeAA(aa);
 		this.percent = percent;
 		this.count = count;
 		this.total = total;
