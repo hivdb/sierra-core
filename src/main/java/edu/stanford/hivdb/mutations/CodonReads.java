@@ -127,7 +127,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 			try {
 				codonPcnt = (
 					gene.getVirusInstance()
-					.getCodonPercents(gene.getStrain(), "all", "all")
+					.getMainCodonPercents(gene.getStrain())
 					.get(gene, position, cleanedCodon)
 				);
 				if (codonPcnt == null) {
