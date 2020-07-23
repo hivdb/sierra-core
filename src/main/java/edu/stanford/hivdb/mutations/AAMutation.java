@@ -632,7 +632,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replace('-', 'd')
 			.replaceAll("[X*]", "Z")
 		);
-		if (isUnsequenced()) {
+		if (isUnsequenced() || fmtAAs.length() > maxDisplayAAs) {
 			fmtAAs = "X";
 		}
 		return String.format("%s%d%s", getRefChar(), position, fmtAAs);
@@ -646,7 +646,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replace('_', '#')
 			.replace('-', '~')
 		);
-		if (isUnsequenced()) {
+		if (isUnsequenced() || fmtAAs.length() > maxDisplayAAs) {
 			fmtAAs = "X";
 		}
 		return String.format("%d%s", position, fmtAAs);
