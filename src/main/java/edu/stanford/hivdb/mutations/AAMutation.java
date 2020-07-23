@@ -321,6 +321,12 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		Set<Character> myAAChars = getAAChars();
 		return hasBDHVN() || myAAChars.size() > maxDisplayAAs || myAAChars.contains('X');
 	}
+	
+	@Override
+	public boolean isAmbiguousWithoutBDHVN() {
+		Set<Character> myAAChars = getAAChars();
+		return myAAChars.size() > maxDisplayAAs || myAAChars.contains('X');
+	}
 
 	@Override
 	public String getAAsWithRefFirst() {
@@ -452,6 +458,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		if (isUnsequenced()) {
 			return false;
 		}
+		if (isAmbiguousWithoutBDHVN()) {
+			return false;
+		}
 		if (isDRM == null) {
 			isDRM = existsInMutationSets(
 				gene.getVirusInstance()
@@ -475,6 +484,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	@Override
 	public final boolean isTSM() {
 		if (isUnsequenced()) {
+			return false;
+		}
+		if (isAmbiguousWithoutBDHVN()) {
 			return false;
 		}
 		if (isTSM == null) {
@@ -528,6 +540,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	@Override
 	public boolean isSDRM() {
 		if (isUnsequenced()) {
+			return false;
+		}
+		if (isAmbiguousWithoutBDHVN()) {
 			return false;
 		}
 		if (isSDRM == null) {

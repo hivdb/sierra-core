@@ -111,6 +111,7 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 		mutations = new MutationSet<>(
 			mutations.stream()
 			.filter(mut -> !mut.isUnsequenced())
+			.filter(mut -> !mut.isAmbiguousWithoutBDHVN())
 			.collect(Collectors.toList())
 		);
 		this.gene = gene;

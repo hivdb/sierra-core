@@ -337,6 +337,13 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public boolean isAmbiguous();
 
 	/**
+	 * Checks if the mutation is highly ambiguous without BDHVN
+	 *
+	 * @return true if the mutation is highly ambiguous without BDHVN
+	 */
+	public boolean isAmbiguousWithoutBDHVN();
+	
+	/**
 	 * Checks if the mutation is considered APOBEC-mediated (non-DRM)
 	 *
 	 * @return true if the mutation is considered APOBEC-mediated
