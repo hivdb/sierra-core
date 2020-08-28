@@ -136,10 +136,13 @@ public class ASIResultHandler {
 					mutations = mutations.mergesWith(prevMuts);
      
 					gpMutations.put(gpKey, mutations);
-					gpPartialScores.put(
-						gpKey,
-						gpPartialScores.getOrDefault(gpKey, .0) + scoredItem.getScore()
-					);
+					Double newScore = scoredItem.getScore();
+					if (Math.abs(newScore) > 1e-5) {
+						gpPartialScores.put(
+							gpKey,
+							Math.max(gpPartialScores.getOrDefault(gpKey, Double.NEGATIVE_INFINITY), newScore)
+						);
+					}
 				}
 				
 			}
