@@ -126,7 +126,7 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 			}
 			profile.put("ReferenceSequences", refSeqs);
 			// TODO: support PositionalIndelScores
-			nucaminoProfileString = Json.dumpsUgly(profile);;
+			nucaminoProfileString = Json.dumpsUgly(profile);
 		}
 		return nucaminoProfileString;
 	}

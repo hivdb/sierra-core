@@ -59,7 +59,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final int lastNA;
 	private final int leftTrimmed;
 	private final int rightTrimmed;
-	private float matchPcnt;
+	private Double matchPcnt;
 	private final boolean sequenceReversed;
 	private transient Sequence reversedSeq;
 	private transient List<AlignedSite> alignedSites;
@@ -113,7 +113,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.lastAA = lastAA;
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
-		this.matchPcnt = -1;
+		this.matchPcnt = -1.;
 		this.sequenceReversed = sequenceReversed;
 		if (sequenceReversed) {
 			reversedSeq = sequence.reverseCompliment();
@@ -246,7 +246,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		
 	}
 
-	public float getMatchPcnt() {
+	public Double getMatchPcnt() {
 		if (matchPcnt == -1) {
 			int numNAs = lastNA - firstNA + 1;
 			for (Mutation<VirusT> mut : mutations) {
@@ -264,7 +264,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 					numNAs += fs.getSize();
 				}
 			}
-			matchPcnt = 100 - 100 * (float) getNumDiscordantNAs() / (float) numNAs;
+			matchPcnt = 100 - 100 * Double.valueOf(getNumDiscordantNAs()) / Double.valueOf(numNAs);
 		}
 		return matchPcnt;
 	}
