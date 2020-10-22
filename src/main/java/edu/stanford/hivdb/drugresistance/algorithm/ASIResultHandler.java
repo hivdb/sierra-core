@@ -275,7 +275,7 @@ public class ASIResultHandler {
 				if (mut == null) {
 					throw new IllegalArgumentException(String.format(
 							"Mutation %s is not match with comment definition %s.",
-							matchedMut.getASIFormat(), commentName));
+							matchedMut.getHumanFormat(), commentName));
 				}
 				List<String> highlight = new ArrayList<>();
 				highlight.add(mut.getHumanFormat());

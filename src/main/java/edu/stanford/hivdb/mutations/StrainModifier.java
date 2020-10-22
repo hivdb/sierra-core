@@ -162,17 +162,17 @@ public class StrainModifier {
 			int srcPos = site.getPosAA();
 			PosModifier posMod = posModifiers.get(srcPos);
 			int tgtPos = posMod.getTargetPos();
-			int posNA = site.getPosNA();
+			List<Integer> posNAs = site.getPosNAs();
 			int lenNA = site.getLengthNA();
 			switch(posMod.getFlag()) {
 				case M:
-					targetAlignedSites.add(new AlignedSite(tgtPos, posNA, lenNA));
+					targetAlignedSites.add(new AlignedSite(tgtPos, posNAs, lenNA));
 					break;
 				case I:
-					targetAlignedSites.add(new AlignedSite(tgtPos, posNA, lenNA));
+					targetAlignedSites.add(new AlignedSite(tgtPos, posNAs, lenNA));
 					int insSize = posMod.getSize();
 					for (int i = 0; i < insSize; i ++) {
-						targetAlignedSites.add(new AlignedSite(tgtPos + i + 1, posNA, 0));
+						targetAlignedSites.add(new AlignedSite(tgtPos + i + 1, posNAs, 0));
 					}
 					break;
 				case D:
@@ -185,7 +185,7 @@ public class StrainModifier {
 					);
 					lastTgtSite = new AlignedSite(
 						lastTgtSite.getPosAA(),
-						lastTgtSite.getPosNA(),
+						lastTgtSite.getPosNAs(),
 						lastTgtSite.getLengthNA() + 3);
 					targetAlignedSites.set(lastTgtSiteIdx, lastTgtSite);
 					break;

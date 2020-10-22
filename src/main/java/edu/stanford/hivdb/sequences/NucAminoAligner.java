@@ -44,7 +44,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
@@ -52,9 +51,6 @@ import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.google.gson.reflect.TypeToken;
 
-import edu.stanford.hivdb.mutations.Mutation;
-import edu.stanford.hivdb.mutations.CodonMutation;
-import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.utilities.FastaUtils;
 import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.Gene;
@@ -73,32 +69,20 @@ import edu.stanford.hivdb.viruses.Virus;
  *
  */
 public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<VirusT> {
-	private final int MIN_MATCH_PCNT = 60;
-	private final int SEQUENCE_SHRINKAGE_WINDOW = 15;
-	private final int SEQUENCE_SHRINKAGE_CUTOFF_PCNT = 30;
+	private final double MIN_MATCH_PCNT = 60;
+	private final double SEQUENCE_SHRINKAGE_WINDOW = 15;
+	private final double SEQUENCE_SHRINKAGE_CUTOFF_PCNT = 30;
 	private final Executor executor = Executors.newFixedThreadPool(20);
 	private final Map<Strain<VirusT>, String[]> NUCAMINO_LOCAL_COMMANDS;
 	
 	private final VirusT virusInstance;
 
-	private final static Map<String, NucAminoAligner<?>> singletons = new HashMap<>(); 
-	
 	private static String getJoinedNucaminoGenes(Strain<?> strain) {
 		return strain.getNucaminoGeneMap()
 			.keySet().stream()
 			.collect(Collectors.joining(","));
 	}
 	
-	@SuppressWarnings("unchecked")
-	private static <VirusT extends Virus<VirusT>> NucAminoAligner<VirusT> getInstance(VirusT virusIns) {
-		// TODO: delete this one eventually
-		String className = virusIns.getClass().getName();
-		if (!singletons.containsKey(className)) {
-			singletons.put(className, new NucAminoAligner<>(virusIns));
-		}
-		return (NucAminoAligner<VirusT>) singletons.get(className);
-	}
-
 	protected NucAminoAligner(VirusT virusIns) {
 		this.virusInstance = virusIns;
 		String executable = System.getenv("NUCAMINO_PROGRAM");
@@ -128,34 +112,9 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 	
 	}
 	
-	/**
-	 * Receives a sequence and aligns it to each gene by NucAmino.
-	 *
-	 * @param sequence	Sequence waiting to be aligned.
-	 * @return 			an AlignedSequence object
-	 */
 	@Override
-	public AlignedSequence<VirusT> align(Sequence sequence) {
-		List<Sequence> seqs = new ArrayList<>();
-		seqs.add(sequence);
-		List<AlignedSequence<VirusT>> result = parallelAlign(seqs);
-		if (result.isEmpty()) {
-			return null;
-		}
-		return result.get(0);
-	}
-
-	/**
-	 * Receives set of sequences and aligns them to each gene in parallel by NucAmino.
-	 *
-	 * @param sequences		Sequence list waiting to be aligned
-	 * @return 				list of AlignedSequence objects
-	 */
-	@Override
-	public List<AlignedSequence<VirusT>> parallelAlign(Collection<Sequence> sequences) {
-		return parallelAlign(sequences, false);
-	}
-
+	public VirusT getVirusInstance() { return virusInstance; }
+	
 	/**
 	 * Uses locally installed NucAmino to align HIV sequences.
 	 *  
@@ -255,47 +214,19 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 		return results;
 	}
 	
-	private Map<Sequence, AlignedSequence<VirusT>> selectBestAlignments(
-		List<AlignedSequence<VirusT>> newAlignments,
-		Map<Sequence, AlignedSequence<VirusT>> knownAlignments
+	@Override
+	public Map<Sequence, AlignedSequence<VirusT>> commandParallelAlign(
+		Collection<Sequence> sequences,
+		boolean reversingSequence,
+		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors
 	) {
-		for (AlignedSequence<VirusT> alignedSeq : newAlignments) {
-			Sequence inputSeq = alignedSeq.getInputSequence();
-			if (knownAlignments.containsKey(inputSeq)) {
-				if (alignedSeq.isEmpty()) {
-					// no overwrite
-					continue;
-				}
-				AlignedSequence<VirusT> knownAlignedSeq = knownAlignments.get(inputSeq);
-				// if (knownAlignedSeq.getAvailableGenes().size() < alignedSeq.getAvailableGenes().size()) {
-				// 	knownAlignments.put(inputSeq, alignedSeq);
-				// }
-				if (knownAlignedSeq.getNumMatchedNAs() < alignedSeq.getNumMatchedNAs()) {
-					knownAlignments.put(inputSeq, alignedSeq);
-				}
-			}
-			else {
-				knownAlignments.put(inputSeq, alignedSeq);
-			}
-		}
-		return knownAlignments;
-	}
-
-	private List<AlignedSequence<VirusT>> parallelAlign(Collection<Sequence> sequences, boolean reversingSequence) {
-		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors = new LinkedHashMap<>();
-		Collection<Sequence> preparedSeqs = sequences;
-		if (reversingSequence) {
-			preparedSeqs = preparedSeqs.stream()
-				.map(s -> s.reverseCompliment())
-				.collect(Collectors.toList());
-		}
 		Map<Strain<VirusT>, List<String>> jsonStrings;
 		
 		String awsFunc = System.getenv("NUCAMINO_AWS_LAMBDA");
 		if (awsFunc == null || awsFunc.equals("")) {
-			jsonStrings = localNucamino(preparedSeqs);
+			jsonStrings = localNucamino(sequences);
 		} else {
-			jsonStrings = awsNucamino(preparedSeqs, awsFunc);
+			jsonStrings = awsNucamino(sequences, awsFunc);
 		}
 		
 		Map<Sequence, AlignedSequence<VirusT>> results = new LinkedHashMap<>();
@@ -308,239 +239,9 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 				results = selectBestAlignments(alignedSeqs, results);
 			}
 		}
-		if (!reversingSequence && !errors.isEmpty()) {
-			// a second run for reverse complement
-
-			int numStrains = virusInstance.getStrains().size();
-			List<Sequence> errorSeqs = errors
-				.entrySet().stream()
-				.filter(e -> e.getValue().size() == numStrains)
-				.map(e -> e.getKey())
-				.collect(Collectors.toList());
-			if (!errorSeqs.isEmpty()) {
-				List<AlignedSequence<VirusT>> reversedResults = parallelAlign(errorSeqs, true);
-				results = selectBestAlignments(reversedResults, results);
-			}
-		}
-		return Lists.newArrayList(results.values());
+		return results;
 	}
-
-	private AlignedGeneSeq<VirusT> geneSeqFromReport(
-			Sequence sequence, Gene<VirusT> gene, Map<?, ?> report,
-			boolean sequenceReversed) {
-		int geneLength = gene.getAASize();
-		int firstAA = Math.max(1, ((Double) report.get("FirstAA")).intValue());
-		int lastAA = Math.max(geneLength, ((Double) report.get("LastAA")).intValue());
-		int aaSize = Math.max(0, lastAA - firstAA + 1);
-		final int minNumOfSites = gene.getNucaminoMinNumOfAA();
-		if (aaSize < minNumOfSites) {
-			throw new MisAlignedException(String.format(
-				"Alignment of gene %s was discarded " +
-				"since the length of alignment was too short (< %d).",
-				gene, minNumOfSites
-			), aaSize == 0);
-		}
-
-		List<?> polAlignedSites = (List<?>) report.get("AlignedSites");
-		List<AlignedSite> alignedSites = polAlignedSites.stream()
-			.map(m -> (Map<?, ?>) m)
-			.map(m -> new AlignedSite(
-				((Double) m.get("PosAA")).intValue(),
-				((Double) m.get("PosNA")).intValue(),
-				((Double) m.get("LengthNA")).intValue()
-			))
-			.collect(Collectors.toList());
-
-		int firstNA = alignedSites.get(0).getPosNA();
-		AlignedSite lastSite = alignedSites.get(alignedSites.size() - 1);
-		int lastNA = lastSite.getPosNA() - 1 + lastSite.getLengthNA();
-
-		List<?> polMutations = (List<?>) report.get("Mutations");
-		List<Mutation<VirusT>> mutations = polMutations.stream()
-			.map(m -> (Map<?, ?>) m)
-			.map(m -> CodonMutation.fromNucAminoMutation(gene, 1, m))
-			.collect(Collectors.toList());
-
-		List<?> polFrameShifts = (List<?>) report.get("FrameShifts");
-		List<FrameShift<VirusT>> frameShifts = polFrameShifts.stream()
-			.map(fs -> (Map<?, ?>) fs)
-			.map(fs -> FrameShift.fromNucAminoFrameShift(gene, 1, fs))
-			.collect(Collectors.toList());
-
-		int[] trimDels = trimGaps(sequence, firstAA, lastAA, mutations, frameShifts);
-		int trimDelsLeft = trimDels[0];
-		int trimDelsRight = trimDels[1];
-
-		AlignedGeneSeq<VirusT> geneSeq = new AlignedGeneSeq<>(
-			sequence, gene,
-			firstAA + trimDelsLeft,
-			lastAA - trimDelsRight,
-			firstNA + trimDelsLeft * 3,
-			lastNA - trimDelsRight * 3,
-			alignedSites, mutations, frameShifts, 0, 0, sequenceReversed);
-		if (geneSeq.getMatchPcnt() < MIN_MATCH_PCNT) {
-			throw new MisAlignedException(String.format(
-				"Alignment of gene %s was discarded " +
-				"since the discordance rate was too high (%.1f%% > %d%%).",
-				gene, 100 - geneSeq.getMatchPcnt(), 100 - MIN_MATCH_PCNT
-			), false);
-		}
-
-		int[] trimUUs = trimLowQualities(
-			sequence,
-			geneSeq.getFirstAA(),
-			geneSeq.getLastAA(),
-			geneSeq.getMutations(),
-			geneSeq.getFrameShifts());
-		int trimUUsLeft = trimUUs[0];
-		int trimUUsRight = trimUUs[1];
-		if (trimUUsLeft > 0 || trimUUsRight > 0) {
-			geneSeq = new AlignedGeneSeq<>(
-				sequence, gene,
-				geneSeq.getFirstAA() + trimUUsLeft,
-				geneSeq.getLastAA() - trimUUsRight,
-				geneSeq.getFirstNA() + trimUUsLeft * 3,
-				geneSeq.getLastNA() - trimUUsRight * 3,
-				geneSeq.getAlignedSites(),
-				geneSeq.getMutations(),
-				geneSeq.getFrameShifts(), trimUUsLeft, trimUUsRight, sequenceReversed);
-		}
-
-		if (geneSeq.getSize() < minNumOfSites) {
-			throw new MisAlignedException(String.format(
-				"Alignment of gene %s was discarded " +
-				"since the length of alignment (%d) was too short (< %d).",
-				gene, aaSize, minNumOfSites
-			), false);
-		}
-
-		return geneSeq;
-	}
-
-	/**
-	 * Remove only deletion/NNNs from the beginning and the end of alignment
-	 *
-	 * @param sequence
-	 * @param firstAA
-	 * @param lastAA
-	 * @param mutations
-	 * @param frameShifts
-	 * @return
-	 */
-	private int[] trimGaps(
-		Sequence sequence, int firstAA, int lastAA,
-		Collection<Mutation<VirusT>> mutations,
-		Collection<FrameShift<VirusT>> frameShifts
-	) {
-		int trimLeft = 0;
-		int trimRight = 0;
-		int proteinSize = lastAA - firstAA + 1;
-		List<Boolean> gapSites = new ArrayList<>(Collections.nCopies(proteinSize, false));
-		for (Mutation<VirusT> mut : mutations) {
-			int idx = mut.getPosition() - firstAA;
-			if (mut.isDeletion() || mut.isUnsequenced()) {
-				gapSites.set(idx, true);
-			}
-		}
-		// remove initial deletions
-		for (int idx=0; idx < proteinSize; idx ++) {
-			if (!gapSites.get(idx)) {
-				if (idx > trimLeft) {
-					trimLeft = idx;
-				}
-				break;
-			}
-		}
-		// remove trailing deletions
-		for (int idx=proteinSize-1; idx > -1; idx --) {
-			if (!gapSites.get(idx)) {
-				if (proteinSize - idx - 1 > trimRight) {
-					trimRight = proteinSize - idx - 1;
-				}
-				break;
-			}
-		}
-		return new int[]{trimLeft, trimRight};
-	}
-
-	/**
-	 *  Input sequence may contain non-POL NAs in the beginning and the end, e.g. AF442565, KF134931.
-	 *
-	 * Following code did two things:
-	 *
-	 *   1. Remove large (length > SEQUENCE_TRIM_SITES_CUTOFF) low quality pieces from gene sequence
-	 *   2. Keep small (length <= SEQUENCE_TRIM_SITES_CUTOFF) low quality pieces from gene sequence
-	 *
-	 * A site is considered "low quality" if it:
-	 *   - is unusual mutation;
-	 *   - has "X" in aas; or
-	 *   - has stop codon
-	 */
-	private int[] trimLowQualities(
-		Sequence sequence, int firstAA, int lastAA,
-		Collection<Mutation<VirusT>> mutations,
-		Collection<FrameShift<VirusT>> frameShifts
-	) {
-		int badPcnt;
-		int trimLeft = 0;
-		int trimRight = 0;
-		int problemSites = 0;
-		int sinceLastBadQuality = 0;
-		int proteinSize = lastAA - firstAA + 1;
-		List<Integer> candidates = new ArrayList<>();
-		List<Boolean> invalidSites = new ArrayList<>(Collections.nCopies(proteinSize, false));
-		for (Mutation<VirusT> mut : mutations) {
-			int idx = mut.getPosition() - firstAA;
-			if (!mut.isUnsequenced() && (
-					mut.isUnusual()
-					|| mut.getDisplayAAs().equals("X") || mut.isApobecMutation() || mut.hasStop())) {
-				invalidSites.set(idx, true);
-			}
-		}
-		for (FrameShift<VirusT> fs : frameShifts) {
-			int idx = fs.getPosition() - firstAA;
-			invalidSites.set(idx,  true);
-		}
-		// forward scan for trimming left
-		for (int idx=0; idx < proteinSize; idx ++) {
-			if (sinceLastBadQuality > SEQUENCE_SHRINKAGE_WINDOW) {
-				break;
-			} else if (invalidSites.get(idx)) {
-				problemSites ++;
-				trimLeft = idx + 1;
-				badPcnt = trimLeft > 0 ? problemSites * 100 / trimLeft : 0;
-				if (badPcnt > SEQUENCE_SHRINKAGE_CUTOFF_PCNT) {
-					candidates.add(trimLeft);
-				}
-				sinceLastBadQuality = 0;
-			} else {
-				sinceLastBadQuality ++;
-			}
-		}
-		trimLeft = candidates.size() > 0 ? candidates.get(candidates.size() - 1) : 0;
-		candidates.clear();
-		// backward scan for trimming right
-		problemSites = 0;
-		sinceLastBadQuality = 0;
-		for (int idx=proteinSize-1; idx > -1; idx --) {
-			if (sinceLastBadQuality > SEQUENCE_SHRINKAGE_WINDOW) {
-				break;
-			} else if (invalidSites.get(idx)) {
-				problemSites ++;
-				trimRight = proteinSize - idx;
-				badPcnt = trimRight > 0 ? problemSites * 100 / trimRight : 0;
-				if (badPcnt > SEQUENCE_SHRINKAGE_CUTOFF_PCNT) {
-					candidates.add(trimRight);
-				}
-				sinceLastBadQuality = 0;
-			} else {
-				sinceLastBadQuality ++;
-			}
-		}
-		trimRight = candidates.size() > 0 ? candidates.get(candidates.size() - 1) : 0;
-		return new int[]{trimLeft, trimRight};
-	}
-
+	
 	/**
 	 * Process the JSON output of NucAmino
 	 * @param sequences - input unaligned sequences
@@ -581,8 +282,24 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 					errors.get(sequence).putIfAbsent(strain, new StringBuilder());
 					errors.get(sequence).get(strain).append(error);
 				} else {
+					Map<Gene<VirusT>, Double> minMatchPcnt = new HashMap<>();
+					minMatchPcnt.put(gene, MIN_MATCH_PCNT);
+					Map<Gene<VirusT>, Double> seqShrinkWindow = new HashMap<>();
+					seqShrinkWindow.put(gene, SEQUENCE_SHRINKAGE_WINDOW);
+					Map<Gene<VirusT>, Double> seqShrinkCutoff = new HashMap<>();
+					seqShrinkWindow.put(gene, SEQUENCE_SHRINKAGE_CUTOFF_PCNT);
 					try {
-						alignedGeneSeqs.put(gene, geneSeqFromReport(sequence, gene, report, sequenceReversed));
+						alignedGeneSeqs.put(
+							gene,
+							geneSeqFromReport(
+								sequence,
+								gene,
+								report,
+								sequenceReversed,
+								minMatchPcnt,
+								seqShrinkWindow,
+								seqShrinkCutoff
+							));
 					} catch (MisAlignedException e) {
 						if (!e.isSuppressible()) {
 							discardedGenes.put(gene, e.getMessage());

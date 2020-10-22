@@ -80,8 +80,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private String mutationListString;
 
 	private transient Map<MutationType<VirusT>, MutationSet<VirusT>> mutationsGroupingByMutType;
-
-
+	
 	/**
 	 *
 	 * @param sequence			Aligned gene sequence
@@ -184,16 +183,15 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			}
 
 			for (AlignedSite site : alignedSites) {
-				int posNA = site.getPosNA();
-				int lengthNA = site.getLengthNA();
+				List<Integer> posNAs = site.getPosNAs();
 				StringBuilder codon = new StringBuilder();
-				if (lengthNA > 0) {
-					codon.append(
-						naSeq.substring(posNA - 1, posNA - 1 + Math.min(lengthNA, 3))
-					);
-				}
-				if (lengthNA < 3) {
-					codon.append(StringUtils.repeat('-', 3 - lengthNA));
+				for (Integer posNA : posNAs) {
+					if (posNA == null) {
+						codon.append('-');
+					}
+					else {
+						codon.append(naSeq.charAt(posNA - 1));
+					}
 				}
 				alignedNAs.append(codon);
 			}
