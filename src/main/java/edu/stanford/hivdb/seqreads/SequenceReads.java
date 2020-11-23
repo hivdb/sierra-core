@@ -49,7 +49,7 @@ import edu.stanford.hivdb.viruses.Virus;
 public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT> {
 
 	private final static int HXB2_PR_FIRST_NA = 2253;
-	private final static double MIN_PREVALENCE_FOR_SUBTYPING = 0.05;
+	private final static double MIN_PREVALENCE_FOR_SUBTYPING = 0.2;
 	private final Strain<VirusT> strain;
 	private final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads;
 	private final List<OneCodonReadsCoverage<VirusT>> codonReadsCoverage;
