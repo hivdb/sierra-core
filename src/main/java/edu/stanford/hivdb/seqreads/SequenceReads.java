@@ -63,6 +63,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	private Double minPrevalence;
 	private Long minReadDepth;
 	private transient DescriptiveStatistics readDepthStats;
+	private transient DescriptiveStatistics readDepthStatsDRP;
 	private transient List<ValidationResult> validationResults;
 	
 	public static <VirusT extends Virus<VirusT>> SequenceReads<VirusT> fromCodonReadsTable(
@@ -183,6 +184,27 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		return readDepthStats;
 	}
 	
+	public DescriptiveStatistics getReadDepthStatsDRP() {
+		if (readDepthStatsDRP == null) {
+			Optional<DoubleStream> readDepthStream = allGeneSequenceReads.values().stream()
+				.map(gsr -> gsr.getAllPositionCodonReads())
+				.map(pcrs -> (
+					pcrs.stream()
+					.filter(pcr -> pcr.getGenePositon().isDrugResistancePosition())
+					.mapToDouble(pcr -> pcr.getTotalReads()))
+				)
+				.reduce((a, b) -> Streams.concat(a, b));
+			if (readDepthStream.isPresent()) {
+				double[] readDepthArray = readDepthStream.get().toArray();
+				readDepthStatsDRP = new DescriptiveStatistics(readDepthArray);
+			}
+			else {
+				readDepthStatsDRP = new DescriptiveStatistics(new double[] {0, 0, 0});
+			}
+		}
+		return readDepthStatsDRP;
+	}
+
 	public List<GeneSequenceReads<VirusT>> getAllGeneSequenceReads() {
 		return new ArrayList<>(allGeneSequenceReads.values());
 	}
