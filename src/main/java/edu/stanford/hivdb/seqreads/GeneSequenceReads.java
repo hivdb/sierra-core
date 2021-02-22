@@ -48,15 +48,18 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	private final int lastAA;
 	private final List<PositionCodonReads<VirusT>> posCodonReads;
 	private final double minPrevalence;
+	private final long minCodonCount;
 	private MutationSet<VirusT> mutations;
 	private transient DescriptiveStatistics readDepthStats;
 
 	public GeneSequenceReads(
 			final Gene<VirusT> gene,
 			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence) {
+			final double minPrevalence,
+			final long minCodonCount) {
 		this.gene = gene;
 		this.minPrevalence = minPrevalence;
+		this.minCodonCount = minCodonCount;
 		this.firstAA = Math.max(1, (int) posCodonReads.get(0).getPosition());
 		this.lastAA = Math.min(gene.getAASize(), (int) posCodonReads.get(posCodonReads.size() - 1).getPosition());
 		this.posCodonReads = Collections.unmodifiableList(
@@ -80,8 +83,9 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 */
 	protected GeneSequenceReads(
 			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence) {
-		this(posCodonReads.get(0).getGene(), posCodonReads, minPrevalence);
+			final double minPrevalence,
+			final long minCodonCount) {
+		this(posCodonReads.get(0).getGene(), posCodonReads, minPrevalence, minCodonCount);
 	}
 
 	public Gene<VirusT> getGene() { return gene; }
@@ -91,8 +95,8 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	public int getNumPositions() { return posCodonReads.size(); }
 	public List<PositionCodonReads<VirusT>> getAllPositionCodonReads() { return posCodonReads; }
 
-	public MutationSet<VirusT> getMutations(final double minPrevalence) {
-		if (minPrevalence != this.minPrevalence || mutations == null) {
+	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonCount) {
+		if (minPrevalence != this.minPrevalence || minCodonCount != this.minCodonCount || mutations == null) {
 			List<Mutation<VirusT>> myMutations = new ArrayList<>();
 			long prevPos = firstAA - 1;
 			for (PositionCodonReads<VirusT> pcr : posCodonReads) {
@@ -105,12 +109,12 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 				}
 				prevPos = curPos;
 				Mutation<VirusT> mut = MultiCodonsMutation
-					.fromPositionCodonReads(pcr, minPrevalence);
+					.fromPositionCodonReads(pcr, minPrevalence, minCodonCount);
 				if (mut != null) {
 					myMutations.add(mut);
 				}
 			}
-			if (minPrevalence == this.minPrevalence) {
+			if (minPrevalence == this.minPrevalence && minCodonCount == this.minCodonCount) {
 				mutations = new MutationSet<>(myMutations);
 			}
 			else {
@@ -177,7 +181,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	}
 
 	public MutationSet<VirusT> getMutations() {
-		return getMutations(this.minPrevalence);
+		return getMutations(this.minPrevalence, this.minCodonCount);
 	}
 
 	/** Returns consensus sequence aligned to subtype B reference.
@@ -188,7 +192,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * @return the aligned consensus sequence
 	 */
 	public String getAlignedNAs(boolean autoComplete) {
-		return getAlignedNAs(minPrevalence, autoComplete);
+		return getAlignedNAs(minPrevalence, minCodonCount, autoComplete);
 	}
 
 	/** Returns consensus sequence aligned to subtype B reference.
@@ -200,7 +204,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * wildcard "." to incomplete sequence
 	 * @return the aligned consensus sequence
 	 */
-	public String getAlignedNAs(double threshold, boolean autoComplete) {
+	public String getAlignedNAs(double pcntThreshold, long countThreshold, boolean autoComplete) {
 		StringBuilder seq = new StringBuilder();
 		if (autoComplete) {
 			seq.append(StringUtils.repeat("...", firstAA - 1));
@@ -212,7 +216,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 				seq.append(StringUtils.repeat("...", (int) (curPos - prevPos - 1)));
 			}
 			prevPos = curPos;
-			seq.append(pcr.getCodonConsensus(threshold));
+			seq.append(pcr.getCodonConsensus(pcntThreshold, countThreshold));
 		}
 		if (autoComplete) {
 			seq.append(StringUtils.repeat("...", gene.getAASize() - lastAA));
