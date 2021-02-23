@@ -392,7 +392,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public int compareTo(Mutation<VirusT> mut) {
 		int cmp = gene.compareTo(mut.getGene());
 		if (cmp == 0) {
-			cmp = new Integer(position).compareTo(mut.getPosition());
+			cmp = Integer.valueOf(position).compareTo(mut.getPosition());
 		}
 		if (cmp == 0) {
 			cmp = getAAs().compareTo(mut.getAAs());
