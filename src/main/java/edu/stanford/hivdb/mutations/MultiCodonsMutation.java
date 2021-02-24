@@ -92,12 +92,12 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	}
 
 	public static <VirusT extends Virus<VirusT>> MultiCodonsMutation<VirusT> fromPositionCodonReads(
-		PositionCodonReads<VirusT> posCodonReads, double minPrevalence
+		PositionCodonReads<VirusT> posCodonReads, double minPrevalence, long minCodonCount
 	) {
 		Gene<VirusT> gene = posCodonReads.getGene();
 		int position = (int) posCodonReads.getPosition();
 		long totalCount = posCodonReads.getTotalReads();
-		long minReads = Math.round(totalCount * minPrevalence + 0.5);
+		long minReads = Math.max(Math.round(totalCount * minPrevalence + 0.5), minCodonCount);
 		Set<Character> aaCharSet = getAACharSet(posCodonReads, minReads);
 		char ref = gene.getRefChar(position);
 		if (aaCharSet.isEmpty() ||

@@ -145,14 +145,14 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.frameShifts = Collections.unmodifiableList(frameShifts);
 		mutationListString = getMutationListString();
 	}
-	
+
 
 	@Override
 	public Gene<VirusT> getGene() { return gene; }
-	
+
 	@Override
 	public Strain<VirusT> getStrain() {return gene.getStrain(); }
-	
+
 	@Override
 	public String getAbstractGene() { return gene.getAbstractGene(); }
 
@@ -204,9 +204,14 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return CodonUtils.simpleTranslate(
 			this.getAlignedNAs(), firstAA, gene.getRefSequence());
 	}
-	
+
 	public String getAdjustedAlignedNAs() {
 		String targetStrain = gene.getVirusInstance().getMainStrain().getName();
+		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+		return strainModifier.modifyNASeq(gene, getAlignedNAs(), firstAA, lastAA);
+	}
+
+	public String getAdjustedAlignedNAs(String targetStrain) {
 		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
 		return strainModifier.modifyNASeq(gene, getAlignedNAs(), firstAA, lastAA);
 	}
@@ -217,11 +222,16 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return strainModifier.modifyAASeq(gene, getAlignedAAs(), firstAA, lastAA);
 	}
 
+	public String getAdjustedAlignedAAs(String targetStrain) {
+		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+		return strainModifier.modifyAASeq(gene, getAlignedAAs(), firstAA, lastAA);
+	}
+
 	public int getFirstNA() { return firstNA; }
 	public int getLastNA() { return lastNA; }
 	public int getFirstAA() { return firstAA;}  // Need
 	public int getLastAA() { return lastAA; } // Need
-	
+
 	protected int getNumDiscordantNAs() {
 		int numDiscordantNAs = 0;
 		for (Mutation<VirusT> mut : mutations) {
@@ -241,7 +251,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			}
 		}
 		return numDiscordantNAs;
-		
+
 	}
 
 	public Double getMatchPcnt() {
