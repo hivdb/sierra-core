@@ -145,7 +145,8 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				Iterable<List<Sequence>> partialSets = Iterables.partition(sequences, 100);
 				for (List<Sequence> partialSet : partialSets) {
 					try {
-						Process proc = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
+						
+						Process proc = Runtime.getRuntime().exec(cmd.stream().toArray(String[]::new));
 						OutputStream stdin = proc.getOutputStream();
 						FastaUtils.writeStream(partialSet, stdin);
 						String jsonString = IOUtils.toString(proc.getInputStream(), "UTF-8");
