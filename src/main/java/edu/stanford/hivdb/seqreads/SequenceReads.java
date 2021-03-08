@@ -247,7 +247,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		return concatenatedSeq;
 	}
 	
-	protected String getConcatenatedSeqForSubtyping() {
+	public String getConcatenatedSeqForSubtyping() {
 		StringBuilder concatSeq = new StringBuilder();
 		for (Gene<VirusT> gene : strain.getGenes()) {
 			GeneSequenceReads<VirusT> geneSeq = allGeneSequenceReads.get(gene);
