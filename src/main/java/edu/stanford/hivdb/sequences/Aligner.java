@@ -145,9 +145,9 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		Gene<VirusT> gene,
 		Map<?, ?> report,
 		boolean sequenceReversed,
-		Map<Gene<VirusT>, Double> minMatchPcnt,
-		Map<Gene<VirusT>, Double> seqShrinkWindow,
-		Map<Gene<VirusT>, Double> seqShrinkCutoff
+		Double minMatchPcnt,
+		Double seqShrinkWindow,
+		Double seqShrinkCutoff
 	) {
 		int geneLength = gene.getAASize();
 		int firstAA = Math.max(1, ((Double) report.get("FirstAA")).intValue());
@@ -219,14 +219,14 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			), false);
 		}
 		
-		List<?> polMutations = (List<?>) report.get("Mutations");
-		List<Mutation<VirusT>> mutations = polMutations.stream()
+		List<?> mutationReports = (List<?>) report.get("Mutations");
+		List<Mutation<VirusT>> mutations = mutationReports.stream()
 			.map(m -> (Map<?, ?>) m)
 			.map(m -> CodonMutation.fromNucAminoMutation(gene, 1, m))
 			.collect(Collectors.toList());
 
-		List<?> polFrameShifts = (List<?>) report.get("FrameShifts");
-		List<FrameShift<VirusT>> frameShifts = polFrameShifts.stream()
+		List<?> frameShiftReports = (List<?>) report.get("FrameShifts");
+		List<FrameShift<VirusT>> frameShifts = frameShiftReports.stream()
 			.map(fs -> (Map<?, ?>) fs)
 			.map(fs -> FrameShift.fromNucAminoFrameShift(gene, 1, fs))
 			.collect(Collectors.toList());
@@ -242,11 +242,11 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			firstNA + trimDelsLeft * 3,
 			lastNA - trimDelsRight * 3,
 			alignedSites, mutations, frameShifts, 0, 0, sequenceReversed);
-		if (geneSeq.getMatchPcnt() < minMatchPcnt.get(gene)) {
+		if (geneSeq.getMatchPcnt() < minMatchPcnt) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s is discarded " +
 				"since the discordance rate is too high (%.1f%% > %d%%).",
-				gene, 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt.get(gene)
+				gene, 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
 			), false);
 		}
 
@@ -353,8 +353,8 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		int lastAA,
 		Collection<Mutation<VirusT>> mutations,
 		Collection<FrameShift<VirusT>> frameShifts,
-		Map<Gene<VirusT>, Double> seqShrinkWindow,
-		Map<Gene<VirusT>, Double> seqShrinkCutoff
+		Double seqShrinkWindow,
+		Double seqShrinkCutoff
 	) {
 		int badPcnt;
 		int trimLeft = 0;
@@ -378,13 +378,13 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		}
 		// forward scan for trimming left
 		for (int idx=0; idx < proteinSize; idx ++) {
-			if (sinceLastBadQuality > seqShrinkWindow.get(gene)) {
+			if (sinceLastBadQuality > seqShrinkWindow) {
 				break;
 			} else if (invalidSites.get(idx)) {
 				problemSites ++;
 				trimLeft = idx + 1;
 				badPcnt = trimLeft > 0 ? problemSites * 100 / trimLeft : 0;
-				if (badPcnt > seqShrinkCutoff.get(gene)) {
+				if (badPcnt > seqShrinkCutoff) {
 					candidates.add(trimLeft);
 				}
 				sinceLastBadQuality = 0;
@@ -398,13 +398,13 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		problemSites = 0;
 		sinceLastBadQuality = 0;
 		for (int idx=proteinSize-1; idx > -1; idx --) {
-			if (sinceLastBadQuality > seqShrinkWindow.get(gene)) {
+			if (sinceLastBadQuality > seqShrinkWindow) {
 				break;
 			} else if (invalidSites.get(idx)) {
 				problemSites ++;
 				trimRight = proteinSize - idx;
 				badPcnt = trimRight > 0 ? problemSites * 100 / trimRight : 0;
-				if (badPcnt > seqShrinkCutoff.get(gene)) {
+				if (badPcnt > seqShrinkCutoff) {
 					candidates.add(trimRight);
 				}
 				sinceLastBadQuality = 0;

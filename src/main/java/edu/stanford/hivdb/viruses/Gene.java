@@ -141,7 +141,15 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	}
 
 	public Character getRefChar(int pos) {
-		return refSequence.charAt(pos - 1);
+		try {
+			return refSequence.charAt(pos - 1);
+		}
+		catch (StringIndexOutOfBoundsException exc) {
+			throw new RuntimeException(String.format(
+				"Position out of %s range: %d",
+				name, pos
+			));
+		}
 	}
 
 	public String getRefSequence(int pos, int length) {

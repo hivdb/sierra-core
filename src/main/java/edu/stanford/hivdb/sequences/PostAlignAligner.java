@@ -68,11 +68,15 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	// private final AlignmentConfig<VirusT> alignmentConfig;
 	
 	private final String EXECUTABLE;
-	private final Map<Gene<VirusT>, Double> MIN_MATCH_PCNT;
-	private final Map<Gene<VirusT>, Double> SEQUENCE_SHRINKAGE_WINDOW;
-	private final Map<Gene<VirusT>, Double> SEQUENCE_SHRINKAGE_CUTOFF_PCNT;
-	private final Map<Gene<VirusT>, File> REF_SEQUENCE;
-	private final Map<Gene<VirusT>, List<String>> POST_PROCESSORS;
+	private final Map<String, Double> MIN_MATCH_PCNT;
+	private final Map<String, Double> SEQUENCE_SHRINKAGE_WINDOW;
+	private final Map<String, Double> SEQUENCE_SHRINKAGE_CUTOFF_PCNT;
+	private final Map<String, File> REF_SEQUENCE;
+	private final Map<String, List<String>> POST_PROCESSORS;
+	private final Map<String, String> FROM_FRAGMENT;
+	private final Map<String, Gene<VirusT>> GENE;
+	private final Map<String, Long> REF_START;
+	private final Map<String, Long> REF_END;
 	private final Executor executor = Executors.newFixedThreadPool(4);
 	
 	protected PostAlignAligner(VirusT virusIns) {
@@ -88,10 +92,16 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 		MIN_MATCH_PCNT = Collections.unmodifiableMap(alignConfig.getConfigField("minMatchPcnt"));
 		SEQUENCE_SHRINKAGE_WINDOW = Collections.unmodifiableMap(alignConfig.getConfigField("seqShrinkageWindow"));
 		SEQUENCE_SHRINKAGE_CUTOFF_PCNT = Collections.unmodifiableMap(alignConfig.getConfigField("seqShrinkageCutoffPcnt"));
+		FROM_FRAGMENT = Collections.unmodifiableMap(alignConfig.getConfigField("fromFragment"));
+		GENE = Collections.unmodifiableMap(alignConfig.getConfigField("gene"));
+		REF_START = Collections.unmodifiableMap(alignConfig.getConfigField("refStart"));
+		REF_END = Collections.unmodifiableMap(alignConfig.getConfigField("refEnd"));
+		
 
-		Map<Gene<VirusT>, String> refSeqText = alignConfig.getConfigField("refSequence");
+		Map<String, String> refSeqText = alignConfig.getConfigField("refSequence");
 		REF_SEQUENCE = Collections.unmodifiableMap(
 			refSeqText.entrySet().stream()
+			.filter(e -> e.getValue() != null)
 			.collect(Collectors.toMap(
 				e -> e.getKey(),
 				e -> makeReferenceFASTA(e.getKey(), e.getValue())
@@ -101,12 +111,13 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 		POST_PROCESSORS = Collections.unmodifiableMap(alignConfig.getConfigField("postProcessors"));
 	}
 
-	private File makeReferenceFASTA(Gene<VirusT> gene, String refSeq) {
+
+	private File makeReferenceFASTA(String fragmentName, String refSeq) {
 		File referenceFasta;
 		try {
-			referenceFasta = File.createTempFile("postalign-ref-" + gene.getName(), ".fas");
+			referenceFasta = File.createTempFile("postalign-ref-" + fragmentName, ".fas");
 			BufferedWriter bw = new BufferedWriter(new FileWriter(referenceFasta));
-			bw.write(">Ref_" + gene.getName() + "\n" + refSeq + "\n");
+			bw.write(">Ref_" + fragmentName + "\n" + refSeq + "\n");
 			bw.close();
 			referenceFasta.setReadOnly();
 			referenceFasta.deleteOnExit();
@@ -126,11 +137,11 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	 * @param sequences
 	 * @return
 	 */
-	protected Map<Strain<VirusT>, Map<Gene<VirusT>, List<Map<String, ?>>>> execute(Collection<Sequence> sequences) {
-		Map<Gene<VirusT>, CompletableFuture<List<Map<String, ?>>>> futures = new TreeMap<>();
+	protected Map<String, List<Map<String, ?>>> execute(Collection<Sequence> sequences) {
+		Map<String, CompletableFuture<List<Map<String, ?>>>> futures = new TreeMap<>();
 		
-		for (Gene<VirusT> gene : REF_SEQUENCE.keySet()) {
-			File refSeqFile = REF_SEQUENCE.get(gene);
+		for (String refFragmentName : REF_SEQUENCE.keySet()) {
+			File refSeqFile = REF_SEQUENCE.get(refFragmentName);
 			List<String> cmd = Lists.newArrayList(
 				EXECUTABLE,
 				"-i", "-",
@@ -138,8 +149,16 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				"-f", "MINIMAP2",
 				"-r", refSeqFile.getAbsolutePath()
 			);
-			cmd.addAll(POST_PROCESSORS.get(gene));
+			cmd.addAll(POST_PROCESSORS.get(refFragmentName));
 			cmd.add("save-json");
+			for (String fragmentName : FROM_FRAGMENT.keySet()) {
+				String fromFragment = FROM_FRAGMENT.get(fragmentName);
+				if (fromFragment != null && fromFragment.equals(refFragmentName)) {
+					cmd.add(fragmentName);
+					cmd.add(REF_START.get(fragmentName).toString());
+					cmd.add(REF_END.get(fragmentName).toString());
+				}
+			}
 			CompletableFuture<List<Map<String, ?>>> future = CompletableFuture.supplyAsync(() -> {
 				List<Map<String, ?>> jsonObjs = new ArrayList<>();
 				Iterable<List<Sequence>> partialSets = Iterables.partition(sequences, 100);
@@ -164,37 +183,23 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				}
 				return jsonObjs;
 			}, executor);
-			futures.put(gene, future);
+			futures.put(refFragmentName, future);
 		}
 
 		CompletableFuture.allOf(futures.values().toArray(new CompletableFuture<?>[0])).join();
 		
-		Map<Gene<VirusT>, List<Map<String, ?>>> results = new TreeMap<>();
-		for (Gene<VirusT> gene : futures.keySet()) {
-			CompletableFuture<List<Map<String, ?>>> future = futures.get(gene);
+		Map<String, List<Map<String, ?>>> results = new TreeMap<>();
+		for (String refFragmentName : futures.keySet()) {
+			CompletableFuture<List<Map<String, ?>>> future = futures.get(refFragmentName);
 			try {
-				results.put(gene, future.get());
+				results.put(refFragmentName, future.get());
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			} catch (ExecutionException e) {
 				throw new RuntimeException(e);
 			}
 		}
-		return (
-			results
-			.entrySet()
-			.stream()
-			.collect(Collectors.toMap(
-				e -> e.getKey().getStrain(),
-				e -> {
-					Map<Gene<VirusT>, List<Map<String, ?>>> result = new TreeMap<>();
-					result.put(e.getKey(), e.getValue());
-					return result;
-				},
-				(a, b) -> {a.putAll(b); return a;},
-				TreeMap::new
-			))
-		);
+		return results;
 	}
 
 	@Override
@@ -203,14 +208,31 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 		boolean reversingSequence,
 		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors
 	) {
-		Map<Strain<VirusT>, Map<Gene<VirusT>, List<Map<String, ?>>>> allJsonObjs;
-		
-		allJsonObjs = execute(sequences);
-		
+		Map<String, List<Map<String, ?>>> allJsonObjs = execute(sequences);
 		Map<Sequence, AlignedSequence<VirusT>> results = new LinkedHashMap<>();
-		for (Strain<VirusT> strain : allJsonObjs.keySet()) {
+		Map<Strain<VirusT>, Map<Gene<VirusT>, String>> geneFragmentLookup = (
+			GENE.entrySet().stream()
+			.filter(e -> e.getValue() != null)
+			.collect(Collectors.toMap(
+				e -> e.getValue().getStrain(),
+				e -> new TreeMap<>(Map.of(e.getValue(), e.getKey())),
+				(a, b) -> {
+					b.forEach((k, v) -> a.merge(k, v, (v1, v2) -> {
+						throw new RuntimeException(String.format(
+							"Same `geneName` %s is referred in multiple fragments",
+							k.name()
+						));
+					}));
+					return a;
+				},
+				TreeMap::new
+			))
+		);
+		
+		for (Strain<VirusT> strain : geneFragmentLookup.keySet()) {
+			Map<Gene<VirusT>, String> geneLookup = geneFragmentLookup.get(strain);
 			List<AlignedSequence<VirusT>> alignedSeqs = processCommandOutput(
-				strain, sequences, allJsonObjs.get(strain),
+				strain, sequences, allJsonObjs, geneLookup,
 				reversingSequence, errors
 			);
 			results = selectBestAlignments(alignedSeqs, results);
@@ -230,7 +252,8 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	private List<AlignedSequence<VirusT>> processCommandOutput(
 			Strain<VirusT> strain,
 			Collection<Sequence> sequences,
-			Map<Gene<VirusT>, List<Map<String, ?>>> jsonObjs,
+			Map<String, List<Map<String, ?>>> jsonObjs,
+			Map<Gene<VirusT>, String> geneLookup,
 			boolean sequenceReversed,
 			Map<Sequence, Map<Strain<VirusT>,
 			StringBuilder>> errors) {
@@ -247,14 +270,25 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 			Sequence sequence = null;
 			Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs = new TreeMap<>();
 			Map<Gene<VirusT>, String> discardedGenes = new LinkedHashMap<>();
-
-			for (Gene<VirusT> gene : jsonObjs.keySet()) {
-				Map<String, ?> result = jsonObjs.get(gene).get(idx);
+			
+			for (Gene<VirusT> gene : geneLookup.keySet()) {
+				String fragmentName = geneLookup.get(gene);
+				String refFragmentName = FROM_FRAGMENT.get(fragmentName);
+				Map<String, ?> result = jsonObjs.get(refFragmentName).get(idx);
 				// TODO: should we use hash key to prevent name conflict?
 				String name = (String) result.get("Name");
 				sequence = sequenceMap.get(name);
-				Map<?, ?> report = (Map<?, ?>) result.get("Report");
-				String error = (String) result.get("Error");
+
+				Map<?, ?> geneResult = ((List<?>) result.get("GeneReports"))
+					.stream()
+					.filter(map -> (
+						((String) ((Map<?, ?>) map).get("Gene")).equals(fragmentName)
+					))
+					.map(map -> (Map<?, ?>) map)
+					.findFirst()
+					.get();
+				Map<?, ?> report = (Map<?, ?>) geneResult.get("Report");
+				String error = (String) geneResult.get("Error");
 				if (!error.isEmpty()) {
 					errors.putIfAbsent(sequence, new TreeMap<>());
 					errors.get(sequence).putIfAbsent(strain, new StringBuilder());
@@ -266,9 +300,9 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 							gene,
 							report,
 							sequenceReversed,
-							MIN_MATCH_PCNT,
-							SEQUENCE_SHRINKAGE_WINDOW,
-							SEQUENCE_SHRINKAGE_CUTOFF_PCNT
+							MIN_MATCH_PCNT.get(fragmentName),
+							SEQUENCE_SHRINKAGE_WINDOW.get(fragmentName),
+							SEQUENCE_SHRINKAGE_CUTOFF_PCNT.get(fragmentName)
 						));
 					} catch (MisAlignedException e) {
 						if (!e.isSuppressible()) {
