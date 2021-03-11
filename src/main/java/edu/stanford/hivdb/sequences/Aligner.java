@@ -422,6 +422,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 	) {
 		for (AlignedSequence<VirusT> alignedSeq : newAlignments) {
 			Sequence inputSeq = alignedSeq.getInputSequence();
+			
 			if (knownAlignments.containsKey(inputSeq)) {
 				if (alignedSeq.isEmpty()) {
 					// no overwrite
