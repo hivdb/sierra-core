@@ -89,8 +89,8 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			.collect(Collectors.toList());
 	}
 	
-	public Map<String, Double> getCodonWithPrevalence(double minPrevalence, long minCodonCount) {
-		long minReads = Math.max(Math.round(totalReads * minPrevalence + 0.5), minCodonCount);
+	public Map<String, Double> getCodonWithPrevalence(double minPrevalence, long minCodonReads) {
+		long minReads = Math.max(Math.round(totalReads * minPrevalence + 0.5), minCodonReads);
 		return allCodonReads.entrySet().stream()
 			.filter(e -> e.getValue() > minReads)
 			.collect(Collectors.toMap(
@@ -100,9 +100,9 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 				LinkedHashMap::new));
 	}
 
-	public String getCodonConsensus(double minPrevalence, long minCodonCount) {
+	public String getCodonConsensus(double minPrevalence, long minCodonReads) {
 		List<String> codons = (
-			getCodonWithPrevalence(minPrevalence, minCodonCount).keySet().stream()
+			getCodonWithPrevalence(minPrevalence, minCodonReads).keySet().stream()
 			.map(cd -> cd.substring(0, 3))
 			.collect(Collectors.toList()));
 		if (codons.isEmpty()) {

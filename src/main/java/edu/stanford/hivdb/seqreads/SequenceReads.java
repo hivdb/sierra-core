@@ -42,12 +42,12 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.WithSequenceReadsHistogram;
-import edu.stanford.hivdb.seqreads.SequenceReadsHistogramByCodonCount.WithSequenceReadsHistogramByCodonCount;
+import edu.stanford.hivdb.seqreads.SequenceReadsHistogramByCodonReads.WithSequenceReadsHistogramByCodonReads;
 import edu.stanford.hivdb.sequences.SeqUtils;
 import edu.stanford.hivdb.utilities.ValidationResult;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodonCount<VirusT> {
+public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodonReads<VirusT> {
 
 	private final static int HXB2_PR_FIRST_NA = 2253;
 	private final static double MIN_PREVALENCE_FOR_SUBTYPING = 0.2;
@@ -62,27 +62,27 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	private String concatenatedSeq;
 	private Double mixturePcnt;
 	private Double minPrevalence;
-	private Long minCodonCount;
-	private Long minReadDepth;
+	private Long minCodonReads;
+	private Long minPositionReads;
 	private transient DescriptiveStatistics readDepthStats;
 	private transient DescriptiveStatistics readDepthStatsDRP;
 	private transient List<ValidationResult> validationResults;
 	
 	public static <VirusT extends Virus<VirusT>> SequenceReads<VirusT> fromCodonReadsTable(
 			String name, Strain<VirusT> strain, List<PositionCodonReads<VirusT>> allReads,
-			Double minPrevalence, Long minCodonCount, Long minReadDepth) {
+			Double minPrevalence, Long minCodonReads, Long minPositionReads) {
 		// TODO: dynamic cutoff
 		CutoffSuggestion<VirusT> cutoffSuggestion = new CutoffSuggestion<>(allReads);
 		double finalMinPrevalence = minPrevalence >= 0 ? minPrevalence : 0; // TODO: cutoffSuggestion.getStricterLimit()
-		long finalMinCodonCount = minCodonCount >= 0 ? minCodonCount : 0;
-		long finalMinReadDepth = minReadDepth > 0 ? minReadDepth : (long) 1000;
+		long finalMinCodonReads = minCodonReads >= 0 ? minCodonReads : 0;
+		long finalMinPositionReads = minPositionReads > 0 ? minPositionReads : (long) 1000;
 		
 		// sort by genePosition first
 		allReads.sort((o1, o2) -> o1.getGenePositon().compareTo(o2.getGenePositon()));
 		
 		List<PositionCodonReads<VirusT>> filteredAllReads = allReads.stream()
-			// remove all codons with their read depth < minReadDepth
-			.filter(read -> read.getTotalReads() >= finalMinReadDepth)
+			// remove all codons with their read depth < minPositionReads
+			.filter(read -> read.getTotalReads() >= finalMinPositionReads)
 			.collect(Collectors.toList());
 		Map<Gene<VirusT>, GeneSequenceReads<VirusT>> geneSequences = filteredAllReads
 			.stream()
@@ -92,7 +92,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 					TreeMap::new,
 					Collectors.collectingAndThen(
 						Collectors.toList(),
-						list -> new GeneSequenceReads<>(list, finalMinPrevalence, finalMinCodonCount)
+						list -> new GeneSequenceReads<>(list, finalMinPrevalence, finalMinCodonReads)
 					)
 				)
 			);
@@ -101,7 +101,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 				read.getGene(),
 				read.getPosition(),
 				read.getTotalReads(),
-				read.getTotalReads() < finalMinReadDepth
+				read.getTotalReads() < finalMinPositionReads
 			))
 			.collect(Collectors.toList());
 		double proportionTrimmedPositions = 1. - (double) filteredAllReads.size() / (double) allReads.size();
@@ -112,8 +112,8 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 				strain,
 				geneSequences,
 				finalMinPrevalence,
-				finalMinCodonCount,
-				finalMinReadDepth,
+				finalMinCodonReads,
+				finalMinPositionReads,
 				cutoffSuggestion,
 				codonReadsCoverage,
 				proportionTrimmedPositions);
@@ -124,8 +124,8 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 			final Strain<VirusT> strain,
 			final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
 			final double minPrevalence,
-			final long minCodonCount,
-			final long minReadDepth,
+			final long minCodonReads,
+			final long minPositionReads,
 			final CutoffSuggestion<VirusT> cutoffSuggestion,
 			final List<OneCodonReadsCoverage<VirusT>> codonReadsCoverage,
 			final double proportionTrimmedPositions) {
@@ -133,8 +133,8 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		this.strain = strain;
 		this.allGeneSequenceReads = Collections.unmodifiableMap(allGeneSequenceReads);
 		this.minPrevalence = minPrevalence;
-		this.minCodonCount = minCodonCount;
-		this.minReadDepth = minReadDepth;
+		this.minCodonReads = minCodonReads;
+		this.minPositionReads = minPositionReads;
 		this.cutoffSuggestion = cutoffSuggestion;
 		this.codonReadsCoverage = Collections.unmodifiableList(codonReadsCoverage);
 		this.proportionTrimmedPositions = proportionTrimmedPositions;
@@ -167,9 +167,9 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 
 	public double getMinPrevalence() { return minPrevalence; }
 	
-	public double getMinCodonCount() { return minCodonCount; }
+	public double getMinCodonReads() { return minCodonReads; }
 
-	public long getMinReadDepth() { return minReadDepth; }
+	public long getMinPositionReads() { return minPositionReads; }
 	
 	public List<ValidationResult> getValidationResults() {
 		if (validationResults == null) {
@@ -288,22 +288,22 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	}
 
 	@Override
-	public SequenceReadsHistogramByCodonCount<VirusT> getHistogramByCodonCount(
-		final Long[] codonCountCutoffs,
+	public SequenceReadsHistogramByCodonReads<VirusT> getHistogramByCodonReads(
+		final Long[] codonReadsCutoffs,
 		final AggregationOption aggregatesBy
 	) {
-		return new SequenceReadsHistogramByCodonCount<>(
+		return new SequenceReadsHistogramByCodonReads<>(
 			getAllGeneSequenceReads(),
-			codonCountCutoffs,
+			codonReadsCutoffs,
 			aggregatesBy
 		);
 	}
 
 
-	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonCount) {
+	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonReads) {
 		if (!isEmpty()) {
 			return allGeneSequenceReads.values().stream()
-				.map(gs -> gs.getMutations(minPrevalence, minCodonCount))
+				.map(gs -> gs.getMutations(minPrevalence, minCodonReads))
 				.reduce((m1, m2) -> m1.mergesWith(m2))
 				.get();
 		} else {
@@ -313,7 +313,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 
 	public MutationSet<VirusT> getMutations() {
 		if (!isEmpty() && mutations == null) {
-			mutations = getMutations(this.minPrevalence, this.minCodonCount);
+			mutations = getMutations(this.minPrevalence, this.minCodonReads);
 		}
 		return mutations;
 	}
