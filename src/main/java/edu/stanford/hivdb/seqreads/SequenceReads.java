@@ -74,8 +74,8 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		// TODO: dynamic cutoff
 		CutoffSuggestion<VirusT> cutoffSuggestion = new CutoffSuggestion<>(allReads);
 		double finalMinPrevalence = minPrevalence >= 0 ? minPrevalence : 0; // TODO: cutoffSuggestion.getStricterLimit()
-		long finalMinCodonReads = minCodonReads >= 0 ? minCodonReads : 0;
-		long finalMinPositionReads = minPositionReads > 0 ? minPositionReads : (long) 1000;
+		long finalMinCodonReads = minCodonReads > 0 ? minCodonReads : 1L;
+		long finalMinPositionReads = minPositionReads > 0 ? minPositionReads : 1L;
 		
 		// sort by genePosition first
 		allReads.sort((o1, o2) -> o1.getGenePositon().compareTo(o2.getGenePositon()));
