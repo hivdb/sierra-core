@@ -151,7 +151,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 	) {
 		int geneLength = gene.getAASize();
 		int firstAA = Math.max(1, ((Double) report.get("FirstAA")).intValue());
-		int lastAA = Math.max(geneLength, ((Double) report.get("LastAA")).intValue());
+		int lastAA = Math.min(geneLength, ((Double) report.get("LastAA")).intValue());
 		int aaSize = Math.max(0, lastAA - firstAA + 1);
 		final int minNumOfSites = gene.getNucaminoMinNumOfAA();
 		if (aaSize < minNumOfSites) {
@@ -245,7 +245,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		if (geneSeq.getMatchPcnt() < minMatchPcnt) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s is discarded " +
-				"since the discordance rate is too high (%.1f%% > %d%%).",
+				"since the discordance rate is too high (%.1f%% > %.0f%%).",
 				gene, 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
 			), false);
 		}

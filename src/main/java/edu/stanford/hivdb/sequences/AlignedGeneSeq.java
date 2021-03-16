@@ -184,7 +184,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			}
 
 			for (AlignedSite site : alignedSites) {
-				List<Integer> posNAs = site.getPosNAs();
+				List<Integer> posNAs = site.getPosNAs().subList(0, 3);
 				StringBuilder codon = new StringBuilder();
 				for (Integer posNA : posNAs) {
 					if (posNA == null) {

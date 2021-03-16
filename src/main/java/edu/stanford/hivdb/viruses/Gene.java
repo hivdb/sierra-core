@@ -50,11 +50,21 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	private final Map<String, String> strainModifiers;
 	private final List<String> mutationTypes;
 	private final Integer nucaminoMinNumOfAA;
+	private final List<String> synonyms;
 
 	private transient VirusT virusInstance;
 	private transient Map<String, StrainModifier> strainModifierMap;
 	private transient Set<MutationType<VirusT>> mutationTypeObjs;
 	private transient Set<DrugClass<VirusT>> drugClasses;
+
+	public static class GenePositionOutOfBoundsException extends StringIndexOutOfBoundsException {
+		private static final long serialVersionUID = -516232082875492853L;
+
+		public GenePositionOutOfBoundsException(String msg) {
+			super(msg);
+		}
+	}
+
 
 	public static <VirusT extends Virus<VirusT>> Map<String, Gene<VirusT>> loadJson(String raw, VirusT virusIns) {
 		Map<String, Gene<VirusT>> genes = new LinkedHashMap<>();
@@ -64,6 +74,12 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 			gene.virusInstance = virusIns;
 			genes.put(gene.getName(), gene);
 			genes.put(gene.getName().toUpperCase(), gene);
+			if (gene.synonyms != null) {
+				for (String synonym : gene.synonyms) {
+					genes.put(synonym, gene);
+					genes.put(synonym.toUpperCase(), gene);
+				}
+			}
 		}
 		return Collections.unmodifiableMap(genes);
 	}
@@ -73,10 +89,16 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	}
 
 	private Gene(
-		String name, Integer ordinal, String strain, String abstractGene,
-		String refSequence, List<String> mutationTypes,
+		String name,
+		Integer ordinal, 
+		String strain,
+		String abstractGene,
+		String refSequence,
+		List<String> mutationTypes,
 		Map<String, String> strainModifiers,
-		Integer nucaminoMinNumOfAA) {
+		Integer nucaminoMinNumOfAA,
+		List<String> synonyms
+	) {
 		this.name = name;
 		this.ordinal = ordinal;
 		this.strain = strain;
@@ -85,6 +107,7 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		this.mutationTypes = mutationTypes;
 		this.strainModifiers = strainModifiers;
 		this.nucaminoMinNumOfAA = nucaminoMinNumOfAA;
+		this.synonyms = synonyms;
 	}
 	
 	public String name() {
@@ -139,13 +162,13 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	public int getNucaminoMinNumOfAA() {
 		return nucaminoMinNumOfAA;
 	}
-
+	
 	public Character getRefChar(int pos) {
 		try {
 			return refSequence.charAt(pos - 1);
 		}
 		catch (StringIndexOutOfBoundsException exc) {
-			throw new RuntimeException(String.format(
+			throw new GenePositionOutOfBoundsException(String.format(
 				"Position out of %s range: %d",
 				name, pos
 			));
