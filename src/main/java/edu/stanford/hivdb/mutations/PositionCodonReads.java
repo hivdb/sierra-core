@@ -71,7 +71,7 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 	public GenePosition<VirusT> getGenePositon() { return new GenePosition<VirusT>(gene, position); }
 	public long getTotalReads() { return totalReads; }
 	public List<CodonReads<VirusT>> getCodonReads() {
-		return getCodonReads(false, 1., .0);
+		return getCodonReads(false, 2., -1.);
 	}
 	public List<CodonReads<VirusT>> getCodonReads(
 		boolean mutationOnly,
@@ -84,7 +84,7 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			.filter(cr -> mutationOnly ? !cr.isReference() : true)
 			.filter(cr -> {
 				double prop = cr.getProportion();
-				return prop > minProportion && prop < maxProportion;
+				return prop >= minProportion && prop <= maxProportion;
 			})
 			.collect(Collectors.toList());
 	}

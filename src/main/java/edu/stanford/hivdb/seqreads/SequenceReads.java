@@ -84,6 +84,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 			// remove all codons with their read depth < minPositionReads
 			.filter(read -> read.getTotalReads() >= finalMinPositionReads)
 			.collect(Collectors.toList());
+
 		Map<Gene<VirusT>, GeneSequenceReads<VirusT>> geneSequences = filteredAllReads
 			.stream()
 			.collect(

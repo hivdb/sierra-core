@@ -23,8 +23,9 @@ package edu.stanford.hivdb.mutations;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
@@ -37,18 +38,43 @@ import edu.stanford.hivdb.viruses.Virus;
  */
 public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutation<VirusT> {
 
+	public static class AAReads {
+		private final Character aminoAcid;
+		private final Long numReads;
+		private final Double percent;
+		
+		public AAReads(char aminoAcid, long numReads, double percent) {
+			this.aminoAcid = aminoAcid;
+			this.numReads = numReads;
+			this.percent = percent;
+		}
+		
+		public Character getAminoAcid() {
+			return aminoAcid;
+		}
+		
+		public Long getNumReads() {
+			return numReads;
+		}
+		
+		public Double getPercent() {
+			return percent;
+		}
+	}
+	
 	private static final int DEFAULT_MAX_DISPLAY_AAS = 6;
 
 	private final long totalCount;
+	private final List<AAReads> allAAReads;
 	private final String compatTriplet;
 
 	public static <VirusT extends Virus<VirusT>> MultiCodonsMutation<VirusT> initUnsequenced(Gene<VirusT> gene, int position) {
-		return new MultiCodonsMutation<>(gene, position, Collections.emptySet(), 0, "NNN");
+		return new MultiCodonsMutation<>(gene, position, Collections.emptyMap(), 0, "NNN");
 	}
 
-	private static <VirusT extends Virus<VirusT>> Set<Character>
-	getAACharSet(PositionCodonReads<VirusT> posCodonReads, long minReads) {
-		Set<Character> aaCharSet = new TreeSet<>();
+	private static <VirusT extends Virus<VirusT>> Map<Character, Long>
+	getAACharReadsMap(PositionCodonReads<VirusT> posCodonReads, long minReads) {
+		Map<Character, Long> aaCharReadsMap = new TreeMap<>();
 
 		for (CodonReads<VirusT> codonReads : posCodonReads.getCodonReads()) {
 			char aa = codonReads.getAminoAcid();
@@ -60,9 +86,9 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 				// remove minor variants below min-prevalence
 				continue;
 			}
-			aaCharSet.add(aa);
+			aaCharReadsMap.put(aa, aaCharReadsMap.getOrDefault(aa, 0L) + count);
 		}
-		return aaCharSet;
+		return aaCharReadsMap;
 	}
 
 	private static <VirusT extends Virus<VirusT>> String getCompatTriplet(
@@ -98,24 +124,35 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 		int position = (int) posCodonReads.getPosition();
 		long totalCount = posCodonReads.getTotalReads();
 		long minReads = Math.max(Math.round(totalCount * minPrevalence + 0.5), minCodonReads);
-		Set<Character> aaCharSet = getAACharSet(posCodonReads, minReads);
+		Map<Character, Long> aaCharReadsMap = getAACharReadsMap(posCodonReads, minReads);
 		char ref = gene.getRefChar(position);
-		if (aaCharSet.isEmpty() ||
-			(aaCharSet.size() == 1 && aaCharSet.contains(ref))
+		if (aaCharReadsMap.isEmpty() ||
+			(aaCharReadsMap.size() == 1 && aaCharReadsMap.containsKey(ref))
 		) {
+			// don't create a mutation object when only reference AA is present
 			return null;
 		}
 		String compatTriplet = getCompatTriplet(posCodonReads, minReads);
 		return new MultiCodonsMutation<>(
-			gene, position, aaCharSet, totalCount, compatTriplet);
+			gene, position, aaCharReadsMap, totalCount, compatTriplet);
 	}
 
 	private MultiCodonsMutation(
 		Gene<VirusT> gene, int position,
-		Set<Character> aaCharSet,
+		Map<Character, Long> aaCharReadsMap,
 		long totalCount, String compatTriplet
 	) {
-		super(gene, position, aaCharSet, DEFAULT_MAX_DISPLAY_AAS);
+		super(gene, position, aaCharReadsMap.keySet(), DEFAULT_MAX_DISPLAY_AAS);
+		this.allAAReads = (
+			aaCharReadsMap.entrySet()
+			.stream()
+			.map(entry -> new AAReads(
+				entry.getKey(),
+				entry.getValue(),
+				entry.getValue().doubleValue() / totalCount * 100
+			))
+			.collect(Collectors.toList())
+		);
 		this.totalCount = totalCount;
 		this.compatTriplet = compatTriplet;
 	}
@@ -126,6 +163,13 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	 * @return a Long number
 	 */
 	public Long getTotalCount() { return totalCount; }
+	
+	/**
+	 * Gets list of read count / prevalence for each AA (include reference AA)
+	 * 
+	 * @return a List of AAReads objects
+	 */
+	public List<AAReads> getAllAAReads() { return allAAReads; }
 
 	@Override
 	public boolean isUnsequenced() { return this.totalCount == 0; }
