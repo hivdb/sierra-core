@@ -64,7 +64,7 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	
 	private static final int DEFAULT_MAX_DISPLAY_AAS = 6;
 
-	private final long totalCount;
+	private final long totalReads;
 	private final List<AAReads> allAAReads;
 	private final String compatTriplet;
 
@@ -140,7 +140,7 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	private MultiCodonsMutation(
 		Gene<VirusT> gene, int position,
 		Map<Character, Long> aaCharReadsMap,
-		long totalCount, String compatTriplet
+		long totalReads, String compatTriplet
 	) {
 		super(gene, position, aaCharReadsMap.keySet(), DEFAULT_MAX_DISPLAY_AAS);
 		this.allAAReads = (
@@ -149,11 +149,11 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 			.map(entry -> new AAReads(
 				entry.getKey(),
 				entry.getValue(),
-				entry.getValue().doubleValue() / totalCount * 100
+				entry.getValue().doubleValue() / totalReads * 100
 			))
 			.collect(Collectors.toList())
 		);
-		this.totalCount = totalCount;
+		this.totalReads = totalReads;
 		this.compatTriplet = compatTriplet;
 	}
 
@@ -162,7 +162,7 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	 *
 	 * @return a Long number
 	 */
-	public Long getTotalCount() { return totalCount; }
+	public Long getTotalReads() { return totalReads; }
 	
 	/**
 	 * Gets list of read count / prevalence for each AA (include reference AA)
@@ -172,7 +172,7 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	public List<AAReads> getAllAAReads() { return allAAReads; }
 
 	@Override
-	public boolean isUnsequenced() { return this.totalCount == 0; }
+	public boolean isUnsequenced() { return this.totalReads == 0; }
 
 	@Override
 	public String getTriplet() { return compatTriplet; }
