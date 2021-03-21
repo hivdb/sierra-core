@@ -30,6 +30,7 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 
 import edu.stanford.hivdb.drugresistance.GeneDR;
+import edu.stanford.hivdb.drugresistance.algorithm.ASIDrugSusc;
 import edu.stanford.hivdb.drugresistance.algorithm.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.drugs.Drug;
 import edu.stanford.hivdb.drugs.DrugClass;
@@ -153,8 +154,16 @@ public class ResistanceSummaryTSV<VirusT extends Virus<VirusT>> {
 
 		for (DrugClass<VirusT> drugClass : geneDR.getGene().getDrugClasses()) {
 			for (Drug<VirusT> drug : drugClass.getDrugs()) {
-				int score = geneDR.getDrugSusc(drug).getScore().intValue();
-				int level = geneDR.getDrugSusc(drug).getLevel();
+				ASIDrugSusc<VirusT> drugSusc = geneDR.getDrugSusc(drug);
+				Integer score, level;
+				if (drugSusc == null) {
+					score = null;
+					level = null;
+				}
+				else {
+					score = drugSusc.getScore().intValue();
+					level = drugSusc.getLevel();
+				}
 				results.put(
 					String.format("%s Score", drug.getDisplayAbbr()),
 					Integer.toString(score));

@@ -182,22 +182,38 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 
 	@Deprecated
 	public Double getTotalDrugScore(Drug<VirusT> drug) {
-		return getDrugSusc(drug).getScore();
+		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return null;
+		}
+		return drugSusc.getScore();
 	}
 
 	@Deprecated
 	public Integer getDrugLevel(Drug<VirusT> drug) {
-		return getDrugSusc(drug).getLevel();
+		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return null;
+		}
+		return drugSusc.getLevel();
 	}
 
 	@Deprecated
 	public String getDrugLevelText(Drug<VirusT> drug) {
-		return getDrugSusc(drug).getLevelText();
+		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return null;
+		}
+		return drugSusc.getLevelText();
 	}
 
 	@Deprecated
 	public String getDrugLevelSIR(Drug<VirusT> drug) {
-		return getDrugSusc(drug).getSIR().toString();
+		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return null;
+		}
+		return drugSusc.getSIR().toString();
 	}
 	
 	public SortedMap<MutationType<VirusT>, MutationSet<VirusT>> groupMutationsByTypes() {
@@ -261,17 +277,26 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 		);
 		SortedSet<ASIDrugSusc<VirusT>> drugSusc = MySetUtils.filter(drugSuscs, ds -> ds.drugIs(drug));
 		AssertUtils.isTrue(
-			drugSusc.size() == 1,
+			drugSusc.size() <= 1,
 			RuntimeException.class,
-			"Expect one DrugSusc data for %s but received %d",
+			"Expect at most one DrugSusc data for %s but received %d",
 			drug, drugSusc.size()
 		);
-		return drugSusc.first();
+		if (drugSusc.isEmpty()) {
+			return null;
+		}
+		else {
+			return drugSusc.first();
+		}
 	}
 
 	@Deprecated
 	public final Map<Mutation<VirusT>, Double> getMutScores(Drug<VirusT> drug) {
-		return getDrugSusc(drug).getSingleMutPartialScores();
+		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return Collections.emptyMap();
+		}
+		return drugSusc.getSingleMutPartialScores();
 	}
 
 	@Deprecated
@@ -288,6 +313,9 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 	public final Map<MutationSet<VirusT>, Double> getComboMutScores(Drug<VirusT> drug) {
 		Map<MutationSet<VirusT>, Double> multiMutsPartialScores = new TreeMap<>();
 		ASIDrugSusc<VirusT> drugSusc = getDrugSusc(drug);
+		if (drugSusc == null) {
+			return Collections.emptyMap();
+		}
 		multiMutsPartialScores.putAll(drugSusc.getMultiMutsPartialScores());
 		return multiMutsPartialScores;
 	}
