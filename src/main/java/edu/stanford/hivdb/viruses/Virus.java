@@ -428,12 +428,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		}
 	}
 	
-	public List<String> getAnnotationFunctionList();
-	public String execAnnotationFunction(String funcName, MutationSet<VirusT> mutations);
-	public String execAnnotationFunction(String funcName, AlignedSequence<VirusT> alignedSeq);
-	public String execAnnotationFunction(String funcName, SequenceReads<VirusT> seqReads);
-
-	AlignmentConfig<VirusT> getAlignmentConfig();
+	public AlignmentConfig<VirusT> getAlignmentConfig();
 	
 	public default VirusGraphQLExtension getVirusGraphQLExtension() {
 		return DefaultVirusGraphQLExtension.getInstance();
