@@ -39,6 +39,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Streams;
+
 import edu.stanford.hivdb.comments.ConditionalComments;
 import edu.stanford.hivdb.drugresistance.algorithm.DrugResistanceAlgorithm;
 import edu.stanford.hivdb.drugs.Drug;
@@ -307,13 +309,10 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	}
 
 	public default DrugResistanceAlgorithm<VirusT> getLatestDrugResistAlgorithm(String family) {
-		return (
+		return Streams.findLast(
 			getDrugResistAlgorithmsByFamily(family)
 			.stream()
-			.sorted((a, b) -> - a.getVersion().compareTo(b.getVersion()))
-			.findFirst()
-			.get()
-		);
+		).get();
 	}
 	
 	public default List<MutationPrevalence<VirusT>> getMutationPrevalence(GenePosition<VirusT> genePos) {
