@@ -32,6 +32,14 @@ import edu.stanford.hivdb.mutations.CodonReads;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.viruses.Virus;
 
+/**
+ * TODO: This class generates results for mutationStat. It is super slow
+ * and should be replaced by a faster version.
+ * 
+ * @author Philip Tzou
+ *
+ * @param <VirusT>
+ */
 public class SequenceReadsHistogram<VirusT extends Virus<VirusT>> {
 	
 	private static double MIN_LOG10_LOWER_LIMIT = -100d;

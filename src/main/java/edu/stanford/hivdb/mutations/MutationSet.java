@@ -238,44 +238,53 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	// Begin of all write methods
 	@Override
+	@Deprecated
 	public boolean addAll(Collection<? extends Mutation<VirusT>> muts) {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public boolean add(Mutation<VirusT> mut) {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public void clear() {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public boolean removeAll(Collection<?> muts) {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public boolean retainAll(Collection<?> muts) {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public boolean remove(Object m) {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public Mutation<VirusT> pollFirst() {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
 
 	@Override
+	@Deprecated
 	public Mutation<VirusT> pollLast() {
 		throw new UnsupportedOperationException(MESSAGE_ON_WRITE);
 	}
+	
 	// End of all write methods
 
 	/**
@@ -652,8 +661,8 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 *
 	 * @return a list of mutation positions
 	 */
-	public List<GenePosition<VirusT>> getPositions() {
-		return new ArrayList<>(genePositionMap.keySet());
+	public Set<GenePosition<VirusT>> getPositions() {
+		return new TreeSet<>(genePositionMap.keySet());
 	}
 
 	/** Check if the given position is an insertion
@@ -687,7 +696,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	public boolean hasSharedAAMutation(Mutation<VirusT> anotherMut) {
 		return hasSharedAAMutation(anotherMut, true);
 	}
-
+	
 	/**
 	 * Returns true if contains any mutation that its AAs shared with mutRef.
 	 *

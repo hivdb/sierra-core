@@ -159,6 +159,7 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 					cmd.add(REF_END.get(fragmentName).toString());
 				}
 			}
+			// System.out.println(String.join(" ", cmd));
 			CompletableFuture<List<Map<String, ?>>> future = CompletableFuture.supplyAsync(() -> {
 				List<Map<String, ?>> jsonObjs = new ArrayList<>();
 				Iterable<List<Sequence>> partialSets = Iterables.partition(sequences, 100);
