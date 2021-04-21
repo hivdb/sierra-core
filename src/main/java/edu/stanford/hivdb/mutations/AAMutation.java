@@ -213,7 +213,8 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		return String.valueOf(getRefChar());
 	}
 
-	protected final Character getRefChar() {
+	@Override
+	public final Character getRefChar() {
 		if (ref == null) {
 			ref = gene.getRefChar(position);
 		}

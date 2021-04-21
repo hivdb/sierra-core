@@ -178,13 +178,22 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public String getAbstractGene();
 
 	/**
-	 * Gets the subtype B reference at this position.
+	 * Gets the reference AA at this position.
 	 *
-	 * TODO: We should probably return Character instead.
+	 * Note: this function returns a String. If you want Character, use `getRefChar()`.
 	 *
 	 * @return A single character string
 	 */
 	public String getReference();
+	
+	/**
+	 * Gets the reference AA at this position.
+	 *
+	 * Note: this function returns a Character. If you want String, use `getReference()`.
+	 *
+	 * @return A single character string
+	 */
+	public Character getRefChar();
 
 	/**
 	 * Gets the position number of this mutation.
