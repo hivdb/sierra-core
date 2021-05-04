@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import edu.stanford.hivdb.mutations.CodonMutation;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.viruses.Gene;
@@ -28,6 +29,10 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 		public Long getSize() { return posEnd - posStart + 1; }
 
 		public Long size() { return getSize(); }
+		
+		public boolean isUnsequenced(long position) {
+			return posStart <= position && position <= posEnd;
+		}
 
 		@Override
 		public String toString() {
@@ -37,12 +42,37 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 
 	}
 
-	private static <T extends Virus<T>> List<UnsequencedRegion> findUnseqRegionsFromMutations(Gene<T> gene, MutationSet<T> mutations) {
+	private static <T extends Virus<T>> List<UnsequencedRegion> findUnseqRegionsFromMutations(Gene<T> gene, long firstAA, long lastAA, MutationSet<T> mutations) {
 		List<UnsequencedRegion> regions = new ArrayList<>();
-		MutationSet<T> unseqs = mutations.getGeneMutations(gene).filterBy(Mutation::isUnsequenced);
-		Long[] positions = (
-			unseqs.getPositions().stream().map(gp -> gp.getPosition().longValue())
-			.toArray(Long[]::new)
+		MutationSet<T> geneMuts = mutations.getGeneMutationsNoSplit(gene); 
+		final MutationSet<T> definitiveUnseqs = geneMuts.filterByNoSplit(Mutation::isUnsequenced);
+		final MutationSet<T> conditionalUnseqs = geneMuts.filterByNoSplit(mut -> {
+			// mutation is considered "conditionally unsequenced"
+			// if its "N" part is adjacent to a "definitively unsequenced" mutation
+			if (mut.isUnsequenced()) {
+				return false;
+			}
+			if (mut.isInsertion()) {
+				return false;
+			}
+			if (mut instanceof CodonMutation) {
+				String triplet = mut.getTriplet();
+				int pos = mut.getPosition();
+				if (triplet.endsWith("N") && (definitiveUnseqs.get(gene, pos + 1) != null || pos + 1 > lastAA)) {
+					// right N adjacent to a "definitively unsequenced" mutation
+					return true;
+				}
+				else if (triplet.startsWith("N") && (definitiveUnseqs.get(gene, pos - 1) != null || pos - 1 < firstAA)) {
+					// left N adjacent to a "definitively unsequenced" mutation
+					return true;
+				}
+			}
+			return false;
+		});
+		MutationSet<T> unseqs = definitiveUnseqs.mergesWith(conditionalUnseqs);
+	
+		long[] positions = (
+			unseqs.getPositions().stream().mapToLong(gp -> gp.getPosition().longValue()).toArray()
 		);
 		for (int i = 0; i < positions.length; i ++) {
 			long posStart = positions[i];
@@ -57,6 +87,12 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 					break;
 				}
 			}
+			if (posStart == firstAA) {
+				posStart = 1;
+			}
+			if (posEnd == lastAA) {
+				posEnd = gene.getAASize();
+			}
 			regions.add(new UnsequencedRegion(posStart, posEnd));
 		}
 		return regions;
@@ -66,16 +102,10 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 	private final List<UnsequencedRegion> regions;
 
 	public UnsequencedRegions(Gene<VirusT> gene, long firstAA, long lastAA, MutationSet<VirusT> mutations) {
-		List<UnsequencedRegion> regions = new ArrayList<>();
-		if (firstAA > 1) {
-			regions.add(new UnsequencedRegion(1, firstAA - 1));
-		}
-		regions.addAll(findUnseqRegionsFromMutations(gene, mutations));
-		if (lastAA < gene.getAASize()) {
-			regions.add(new UnsequencedRegion(lastAA + 1, gene.getAASize()));
-		}
 		this.gene = gene;
-		this.regions = Collections.unmodifiableList(regions);
+		this.regions = Collections.unmodifiableList(
+			findUnseqRegionsFromMutations(gene, firstAA, lastAA, mutations)
+		);
 	}
 
 	@Override
@@ -83,6 +113,18 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 
 	public List<UnsequencedRegion> getRegions() { return regions; }
 
+	public boolean isUnsequenced(Gene<VirusT> gene, long position) {
+		if (gene != this.gene) {
+			throw new RuntimeException("The input gene doesn't match these unsequenced regions.");
+		}
+		for (UnsequencedRegion region : regions) {
+			if (region.isUnsequenced(position)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public Long getSize() {
 		return regions.stream().map(r -> r.getSize()).reduce(0L, (a, b) -> a + b);
 	}

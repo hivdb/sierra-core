@@ -413,6 +413,15 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 			.collect(Collectors.toList())
 		);
 	}
+
+	public MutationSet<VirusT> filterByNoSplit(Predicate<Mutation<VirusT>> predicate) {
+		return new MutationSet<>(
+			this
+			.stream()
+			.filter(predicate)
+			.collect(Collectors.toList())
+		);
+	}
 	
 	public Long countIf(Predicate<Mutation<VirusT>> predicate) {
 		return this
@@ -494,6 +503,15 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 */
 	public MutationSet<VirusT> getGeneMutations(Gene<VirusT> gene) {
 		return filterBy(mut -> mut.getGene() == gene);
+	}
+
+	/**
+	 * Returns only mutations of a specific gene.
+	 * @param gene	Gene
+	 * @return 		A MutationSet contains all mutations of the given gene
+	 */
+	public MutationSet<VirusT> getGeneMutationsNoSplit(Gene<VirusT> gene) {
+		return filterByNoSplit(mut -> mut.getGene() == gene);
 	}
 
 	/**
