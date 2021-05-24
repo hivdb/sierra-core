@@ -387,11 +387,11 @@ public class CodonUtils {
 				String ref = consAAs.substring(firstAA + pos - 1, firstAA + pos);
 				aas = aas.replaceAll(ref, "");
 			}
-			if (aas.length() > 1) {
+			if (aas.length() > 2) {
 				allAAs.append("X");
 			}
 			else {
-				allAAs.append(aas);
+				allAAs.append(aas.substring(0, 1));
 			}
 		}
 		return allAAs.toString();
