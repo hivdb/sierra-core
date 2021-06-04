@@ -48,20 +48,18 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	private final int firstAA;
 	private final int lastAA;
 	private final List<PositionCodonReads<VirusT>> posCodonReads;
-	private final double minPrevalence;
-	private final long minCodonReads;
+	private final CutoffCalculator<VirusT> cutoffObj;
 	private MutationSet<VirusT> mutations;
 	private transient DescriptiveStatistics readDepthStats;
 	private transient UnsequencedRegions<VirusT> unseqRegions;
 
 	public GeneSequenceReads(
-			final Gene<VirusT> gene,
-			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence,
-			final long minCodonReads) {
+		final Gene<VirusT> gene,
+		final List<PositionCodonReads<VirusT>> posCodonReads,
+		final CutoffCalculator<VirusT> cutoffObj
+	) {
 		this.gene = gene;
-		this.minPrevalence = minPrevalence;
-		this.minCodonReads = minCodonReads;
+		this.cutoffObj = cutoffObj;
 		this.firstAA = Math.max(1, (int) posCodonReads.get(0).getPosition());
 		this.lastAA = Math.min(gene.getAASize(), (int) posCodonReads.get(posCodonReads.size() - 1).getPosition());
 		this.posCodonReads = Collections.unmodifiableList(
@@ -84,10 +82,10 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * @param minPrevalence
 	 */
 	protected GeneSequenceReads(
-			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence,
-			final long minCodonReads) {
-		this(posCodonReads.get(0).getGene(), posCodonReads, minPrevalence, minCodonReads);
+		final List<PositionCodonReads<VirusT>> posCodonReads,
+		final CutoffCalculator<VirusT> cutoffObj
+	) {
+		this(posCodonReads.get(0).getGene(), posCodonReads, cutoffObj);
 	}
 
 	public Gene<VirusT> getGene() { return gene; }
@@ -98,7 +96,11 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	public List<PositionCodonReads<VirusT>> getAllPositionCodonReads() { return posCodonReads; }
 
 	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonReads) {
-		if (minPrevalence != this.minPrevalence || minCodonReads != this.minCodonReads || mutations == null) {
+		if (
+			minPrevalence != cutoffObj.getActualMinPrevalence()||
+			minCodonReads != cutoffObj.getMinCodonReads() ||
+			mutations == null
+		) {
 			List<Mutation<VirusT>> myMutations = new ArrayList<>();
 			long prevPos = firstAA - 1;
 			for (PositionCodonReads<VirusT> pcr : posCodonReads) {
@@ -116,7 +118,10 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 					myMutations.add(mut);
 				}
 			}
-			if (minPrevalence == this.minPrevalence && minCodonReads == this.minCodonReads) {
+			if (
+				minPrevalence == cutoffObj.getActualMinPrevalence() &&
+				minCodonReads == cutoffObj.getMinCodonReads()
+			) {
 				mutations = new MutationSet<>(myMutations);
 			}
 			else {
@@ -183,7 +188,10 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	}
 
 	public MutationSet<VirusT> getMutations() {
-		return getMutations(this.minPrevalence, this.minCodonReads);
+		return getMutations(
+			this.cutoffObj.getActualMinPrevalence(),
+			this.cutoffObj.getMinCodonReads()
+		);
 	}
 
 	/** Returns consensus sequence aligned to subtype B reference.
@@ -194,7 +202,11 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * @return the aligned consensus sequence
 	 */
 	public String getAlignedNAs(boolean autoComplete) {
-		return getAlignedNAs(minPrevalence, minCodonReads, autoComplete);
+		return getAlignedNAs(
+			this.cutoffObj.getActualMinPrevalence(),
+			this.cutoffObj.getMinCodonReads(),
+			autoComplete
+		);
 	}
 
 	/** Returns consensus sequence aligned to subtype B reference.

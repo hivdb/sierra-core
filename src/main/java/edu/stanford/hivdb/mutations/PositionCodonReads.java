@@ -68,7 +68,7 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 
 	public long getPosition() { return position; }
 	
-	public GenePosition<VirusT> getGenePositon() { return new GenePosition<VirusT>(gene, position); }
+	public GenePosition<VirusT> getGenePosition() { return new GenePosition<VirusT>(gene, position); }
 	public long getTotalReads() { return totalReads; }
 	public List<CodonReads<VirusT>> getCodonReads() {
 		return getCodonReads(false, 2., -1.);
