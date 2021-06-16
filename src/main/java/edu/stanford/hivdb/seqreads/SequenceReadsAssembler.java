@@ -172,7 +172,7 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> {
 				);
 			}
 		}
-		return cons.toString();
+		return cons.toString().replace("-", "");
 	}
 	
 }

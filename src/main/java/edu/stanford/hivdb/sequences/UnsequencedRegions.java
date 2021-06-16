@@ -10,7 +10,6 @@ import com.google.common.collect.Streams;
 import edu.stanford.hivdb.mutations.CodonMutation;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
-import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;

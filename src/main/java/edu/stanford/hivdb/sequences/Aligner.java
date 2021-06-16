@@ -220,6 +220,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		}
 		
 		List<?> mutationReports = (List<?>) report.get("Mutations");
+
 		List<Mutation<VirusT>> mutations = mutationReports.stream()
 			.map(m -> (Map<?, ?>) m)
 			.map(m -> CodonMutation.fromNucAminoMutation(gene, 1, m))
