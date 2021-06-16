@@ -449,20 +449,23 @@ public class CodonUtils {
 	 */
 	public static String getMergedCodon(Collection<String> codons) {
 		List<Set<Character>> allBPs = new ArrayList<>();
-		allBPs.add(new TreeSet<>());
-		allBPs.add(new TreeSet<>());
-		allBPs.add(new TreeSet<>());
-		for (String codon : codons) {
-			for (int i=0; i<3; i++) {
-				Set<Character> bps = allBPs.get(i);
+		int longest = codons.stream().mapToInt(cd -> cd.length()).max().orElse(0);
+		for (int i = 0; i < longest; i ++) {
+			Set<Character> bps = new TreeSet<>();
+			for (String codon : codons) {
+				if (codon.length() <= i) {
+					continue;
+				}
 				char bp = codon.charAt(i);
-				// only allows '-' if bps is empty
 				if (bp == '-' && !bps.isEmpty()) {
 					continue;
 				}
+				// only allows '-' if is highest prevalence (bps is empty)
 				bps.add(bp);
 			}
+			allBPs.add(bps);
 		}
+
 		StringBuilder resultCodon = new StringBuilder();
 		for (Set<Character> bps : allBPs) {
 			if (bps.contains('-')) {

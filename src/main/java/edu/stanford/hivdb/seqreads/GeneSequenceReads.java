@@ -105,7 +105,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 			long prevPos = firstAA - 1;
 			for (PositionCodonReads<VirusT> pcr : posCodonReads) {
 				long curPos = pcr.getPosition();
-				for (Long pos = prevPos + 1; pos < curPos - 1; pos ++) {
+				for (Long pos = prevPos + 1; pos < curPos; pos ++) {
 					// add unsequenced regions
 					myMutations.add(MultiCodonsMutation.initUnsequenced(
 						gene, pos.intValue()
@@ -194,7 +194,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 		);
 	}
 
-	/** Returns consensus sequence aligned to subtype B reference.
+	/** Returns consensus sequence aligned to reference.
 	 *  All insertions are removed from the result.
 	 *
 	 * @param autoComplete specify <tt>true</tt> to prepend and/or append
@@ -209,8 +209,8 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 		);
 	}
 
-	/** Returns consensus sequence aligned to subtype B reference.
-	 *  All insertions are removed from the result.
+	/** Returns consensus sequence aligned to reference.
+	 *  All insertions are removed from the result. 1a/1b frameshifts are preserved.
 	 *
 	 * @param threshold specify the minimal prevalence requirement for
 	 * creating codon consensus
@@ -230,14 +230,16 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 				seq.append(StringUtils.repeat("...", (int) (curPos - prevPos - 1)));
 			}
 			prevPos = curPos;
-			seq.append(pcr.getCodonConsensus(pcntThreshold, countThreshold));
+			seq.append(pcr.getCodonConsensusWithoutIns(pcntThreshold, countThreshold));
 		}
 		if (autoComplete) {
 			seq.append(StringUtils.repeat("...", gene.getAASize() - lastAA));
 		}
 		return seq.toString();
 	}
-
+	
+	public CutoffCalculator<VirusT> getCutoffObj() { return cutoffObj; }
+	
 	/** Returns consensus sequence aligned to subtype B reference without
 	 *  initial and trailing "." for incomplete sequence. All insertions are
 	 *  removed from the result. The result is equivalent to the result of

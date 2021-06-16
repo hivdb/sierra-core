@@ -56,6 +56,7 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.mutations.MutationTypePair;
 import edu.stanford.hivdb.mutations.MutationsValidator;
+import edu.stanford.hivdb.seqreads.SequenceReadsAssembler;
 import edu.stanford.hivdb.seqreads.SequenceReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsValidator;
 import edu.stanford.hivdb.sequences.AlignedSequence;
@@ -433,5 +434,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public default VirusGraphQLExtension getVirusGraphQLExtension() {
 		return DefaultVirusGraphQLExtension.getInstance();
 	}
+
+	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler();
 
 }

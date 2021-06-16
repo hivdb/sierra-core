@@ -3,10 +3,14 @@ package edu.stanford.hivdb.sequences;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.LongStream;
+
+import com.google.common.collect.Streams;
 
 import edu.stanford.hivdb.mutations.CodonMutation;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
+import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;
@@ -71,9 +75,11 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 		});
 		MutationSet<T> unseqs = definitiveUnseqs.mergesWith(conditionalUnseqs);
 	
-		long[] positions = (
-			unseqs.getPositions().stream().mapToLong(gp -> gp.getPosition().longValue()).toArray()
-		);
+		long[] positions = Streams.concat(
+			LongStream.range(1, firstAA),
+			unseqs.getPositions().stream().mapToLong(gp -> gp.getPosition().longValue()),
+			LongStream.range(lastAA + 1, gene.getAASize() + 1)
+		).toArray();
 		for (int i = 0; i < positions.length; i ++) {
 			long posStart = positions[i];
 			long posEnd = posStart;

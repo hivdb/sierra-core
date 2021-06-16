@@ -52,6 +52,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	private final static double MIN_PREVALENCE_FOR_SUBTYPING = 0.2;
 	private final Strain<VirusT> strain;
 	private final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads;
+	private final List<UntranslatedRegion> untranslatedRegions;
 	private final List<OneCodonReadsCoverage<VirusT>> codonReadsCoverage;
 	private final CutoffCalculator<VirusT> cutoffObj;
 	private final Double proportionTrimmedPositions;
@@ -62,10 +63,12 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	private transient DescriptiveStatistics readDepthStats;
 	private transient DescriptiveStatistics readDepthStatsDRP;
 	private transient List<ValidationResult> validationResults;
+	private transient Map<String, UntranslatedRegion> utrLookup;
 	
 	public static <VirusT extends Virus<VirusT>> SequenceReads<VirusT> fromCodonReadsTable(
 			final String name,
 			final Strain<VirusT> strain, List<PositionCodonReads<VirusT>> allReads,
+			final List<UntranslatedRegion> untranslatedRegions,
 			final Double maxMixturePcnt,
 			final Double minPrevalence,
 			final Long minCodonReads,
@@ -115,6 +118,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 				name,
 				strain,
 				geneSequences,
+				untranslatedRegions,
 				cutoffObj,
 				codonReadsCoverage,
 				proportionTrimmedPositions);
@@ -124,12 +128,14 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 			final String name,
 			final Strain<VirusT> strain,
 			final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
+			final List<UntranslatedRegion> untranslatedRegions,
 			final CutoffCalculator<VirusT> cutoffSuggestion,
 			final List<OneCodonReadsCoverage<VirusT>> codonReadsCoverage,
 			final double proportionTrimmedPositions) {
 		this.name = name;
 		this.strain = strain;
 		this.allGeneSequenceReads = Collections.unmodifiableMap(allGeneSequenceReads);
+		this.untranslatedRegions = untranslatedRegions;
 		this.cutoffObj = cutoffSuggestion;
 		this.codonReadsCoverage = Collections.unmodifiableList(codonReadsCoverage);
 		this.proportionTrimmedPositions = proportionTrimmedPositions;
@@ -137,6 +143,28 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	
 	public List<OneCodonReadsCoverage<VirusT>> getCodonReadsCoverage() {
 		return codonReadsCoverage;
+	}
+	
+	public Map<String, UntranslatedRegion> getUntranslatedRegionLookup() {
+		if (utrLookup == null) {
+			utrLookup = (
+				untranslatedRegions
+				.stream()
+				.collect(Collectors.toMap(utr -> utr.getName(), utr -> utr))
+			);
+		}
+		return utrLookup;
+	}
+	
+	public String getAssembledConsensus() {
+		return (
+			strain.getVirusInstance()
+			.getSequenceReadsAssembler()
+			.assemble(
+				allGeneSequenceReads,
+				getUntranslatedRegionLookup()
+			)
+		);
 	}
 	
 	public Integer getSize() {

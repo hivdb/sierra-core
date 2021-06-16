@@ -20,14 +20,12 @@
 
 package edu.stanford.hivdb.mutations;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
@@ -73,48 +71,18 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	}
 
 	private static <VirusT extends Virus<VirusT>> Map<Character, Long>
-	getAACharReadsMap(PositionCodonReads<VirusT> posCodonReads, long minReads) {
+	getAACharReadsMap(List<CodonReads<VirusT>> codonReads) {
 		Map<Character, Long> aaCharReadsMap = new TreeMap<>();
 
-		for (CodonReads<VirusT> codonReads : posCodonReads.getCodonReads()) {
-			char aa = codonReads.getAminoAcid();
+		for (CodonReads<VirusT> cdr : codonReads) {
+			char aa = cdr.getAminoAcid();
 			if (aa == 'X') {
 				continue;
 			}
-			long count = codonReads.getReads();
-			if (count < minReads) {
-				// remove minor variants below min-prevalence
-				continue;
-			}
+			long count = cdr.getReads();
 			aaCharReadsMap.put(aa, aaCharReadsMap.getOrDefault(aa, 0L) + count);
 		}
 		return aaCharReadsMap;
-	}
-
-	private static <VirusT extends Virus<VirusT>> String getCompatTriplet(
-		PositionCodonReads<VirusT> posCodonReads, long minReads
-	) {
-		List<String> cleanCodons = new ArrayList<>();
-		for (CodonReads<VirusT> codonReads : posCodonReads.getCodonReads()) {
-			// Tolerant spaces and dashes
-			String codon = codonReads.getCodon().replaceAll("[ -]", "");
-			long count = codonReads.getReads();
-			if (count <= minReads) {
-				// remove minor variants below min-prevalence
-				continue;
-			}
-			if (!codon.matches("^[ACGT]*$")) {
-				// do not allow ambiguous codes
-				continue;
-			}
-			int codonLen = codon.length();
-			if (codonLen < 3 || codonLen > 5) {
-				// skip indels
-				continue;
-			}
-			cleanCodons.add(codon.substring(0, 3));
-		}
-		return CodonUtils.getMergedCodon(cleanCodons);
 	}
 
 	public static <VirusT extends Virus<VirusT>> MultiCodonsMutation<VirusT> fromPositionCodonReads(
@@ -122,9 +90,13 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	) {
 		Gene<VirusT> gene = posCodonReads.getGene();
 		int position = (int) posCodonReads.getPosition();
+		List<CodonReads<VirusT>> codonReads = posCodonReads.getCodonReadsUsingThreshold(minPrevalence, minCodonReads);
+		if (codonReads.isEmpty()) {
+			return initUnsequenced(gene, position);
+		}
 		long totalCount = posCodonReads.getTotalReads();
-		long minReads = Math.max(Math.round(totalCount * minPrevalence + 0.5), minCodonReads);
-		Map<Character, Long> aaCharReadsMap = getAACharReadsMap(posCodonReads, minReads);
+		String compatTriplet = PositionCodonReads.getCodonConsensusWithoutIns(codonReads);
+		Map<Character, Long> aaCharReadsMap = getAACharReadsMap(codonReads);
 		char ref = gene.getRefChar(position);
 		if (aaCharReadsMap.isEmpty() ||
 			(aaCharReadsMap.size() == 1 && aaCharReadsMap.containsKey(ref))
@@ -132,7 +104,6 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 			// don't create a mutation object when only reference AA is present
 			return null;
 		}
-		String compatTriplet = getCompatTriplet(posCodonReads, minReads);
 		return new MultiCodonsMutation<>(
 			gene, position, aaCharReadsMap, totalCount, compatTriplet);
 	}

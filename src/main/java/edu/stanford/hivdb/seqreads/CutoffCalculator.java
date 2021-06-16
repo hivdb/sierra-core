@@ -148,9 +148,7 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 			double curProportion = cdr.getProportion();
 			if (curMixturePcnt > maxMixturePcnt || curProportion < minPrevalence) {
 				// System.out.println(codonLookup);
-				this.actualMixturePcnt = prevMixturePcnt;
-				this.actualMinPrevalence = prevProportion;
-				return;
+				break;
 			}
 			else {
 				prevMixturePcnt = curMixturePcnt;
@@ -158,7 +156,7 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 			}
 		}
 		this.actualMixturePcnt = prevMixturePcnt;
-		this.actualMinPrevalence = .0;
+		this.actualMinPrevalence = prevProportion;
 	}
 	
 	public Double getMaxMixturePcnt() { return maxMixturePcnt; }
