@@ -68,10 +68,10 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 
 	public long getPosition() { return position; }
 	
-	public GenePosition<VirusT> getGenePositon() { return new GenePosition<VirusT>(gene, position); }
+	public GenePosition<VirusT> getGenePosition() { return new GenePosition<VirusT>(gene, position); }
 	public long getTotalReads() { return totalReads; }
 	public List<CodonReads<VirusT>> getCodonReads() {
-		return getCodonReads(false, 1., .0);
+		return getCodonReads(false, 2., -1.);
 	}
 	public List<CodonReads<VirusT>> getCodonReads(
 		boolean mutationOnly,
@@ -84,32 +84,66 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			.filter(cr -> mutationOnly ? !cr.isReference() : true)
 			.filter(cr -> {
 				double prop = cr.getProportion();
-				return prop > minProportion && prop < maxProportion;
+				return prop >= minProportion && prop <= maxProportion;
 			})
 			.collect(Collectors.toList());
 	}
-	
-	public Map<String, Double> getCodonWithPrevalence(double minPrevalence, long minCodonCount) {
-		long minReads = Math.max(Math.round(totalReads * minPrevalence + 0.5), minCodonCount);
-		return allCodonReads.entrySet().stream()
-			.filter(e -> e.getValue() > minReads)
-			.collect(Collectors.toMap(
-				e -> e.getKey(),
-				e -> Double.valueOf(e.getValue() / totalReads),
-				(e1, e2) -> e1,
-				LinkedHashMap::new));
+	public List<CodonReads<VirusT>> getCodonReadsUsingThreshold(
+		double minPrevalence, long minCodonReads
+	) {
+		long minReads = Math.max(Math.round(totalReads * minPrevalence + 0.5), minCodonReads);
+		return (
+			getCodonReads().stream()
+			.filter(cdr -> cdr.getReads() > minReads)
+			.collect(Collectors.toList())
+		);
+		
 	}
-
-	public String getCodonConsensus(double minPrevalence, long minCodonCount) {
+	
+	public Map<String, Double> getCodonWithPrevalence(double minPrevalence, long minCodonReads) {
+		return (
+			getCodonReadsUsingThreshold(minPrevalence, minCodonReads)
+			.stream()
+			.collect(Collectors.toMap(
+				cdr -> cdr.getCodon(),
+				cdr -> cdr.getProportion(),
+				(e1, e2) -> e1,
+				LinkedHashMap::new))
+		);
+	}
+	
+	public static <VirusT extends Virus<VirusT>> String getCodonConsensusWithoutIns(List<CodonReads<VirusT>> codonReads) {
+		return (getCodonConsensusWithIns(codonReads) + "---").substring(0, 3);
+	}
+	
+	public static <VirusT extends Virus<VirusT>> String getCodonConsensusWithIns(List<CodonReads<VirusT>> codonReads) {
 		List<String> codons = (
-			getCodonWithPrevalence(minPrevalence, minCodonCount).keySet().stream()
-			.map(cd -> cd.substring(0, 3))
+			codonReads
+			.stream()
+			.sorted((cdr1, cdr2) -> {
+				int cmp = cdr2.getReads().compareTo(cdr1.getReads());
+				if (cmp != 0) { return cmp; }
+				return cdr1.getCodon().compareTo(cdr2.getCodon());
+			})
+			.map(cdr -> cdr.getCodon())
 			.collect(Collectors.toList()));
 		if (codons.isEmpty()) {
 			// do not return null
 			return "NNN";
 		}
 		return CodonUtils.getMergedCodon(codons);
+	}
+	
+	public String getCodonConsensusWithoutIns(double minPrevalence, long minCodonReads) {
+		return getCodonConsensusWithoutIns(
+			getCodonReadsUsingThreshold(minPrevalence, minCodonReads)
+		);
+	}
+
+	public String getCodonConsensusWithIns(double minPrevalence, long minCodonReads) {
+		return getCodonConsensusWithIns(
+			getCodonReadsUsingThreshold(minPrevalence, minCodonReads)
+		);
 	}
 	
 	/**

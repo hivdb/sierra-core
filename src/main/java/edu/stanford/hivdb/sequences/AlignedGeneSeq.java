@@ -59,11 +59,12 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final int lastNA;
 	private final int leftTrimmed;
 	private final int rightTrimmed;
-	private float matchPcnt;
+	private Double matchPcnt;
 	private final boolean sequenceReversed;
 	private transient Sequence reversedSeq;
 	private transient List<AlignedSite> alignedSites;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
+	private transient UnsequencedRegions<VirusT> unseqRegions;
 
 	// Variables assigned by NucAminoAligner and changed by the methods in this class
 	private String alignedNAs;
@@ -80,8 +81,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private String mutationListString;
 
 	private transient Map<MutationType<VirusT>, MutationSet<VirusT>> mutationsGroupingByMutType;
-
-
+	
 	/**
 	 *
 	 * @param sequence			Aligned gene sequence
@@ -113,7 +113,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.lastAA = lastAA;
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
-		this.matchPcnt = -1;
+		this.matchPcnt = -1.;
 		this.sequenceReversed = sequenceReversed;
 		if (sequenceReversed) {
 			reversedSeq = sequence.reverseCompliment();
@@ -184,16 +184,15 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			}
 
 			for (AlignedSite site : alignedSites) {
-				int posNA = site.getPosNA();
-				int lengthNA = site.getLengthNA();
+				List<Integer> posNAs = site.getPosNAs().subList(0, 3);
 				StringBuilder codon = new StringBuilder();
-				if (lengthNA > 0) {
-					codon.append(
-						naSeq.substring(posNA - 1, posNA - 1 + Math.min(lengthNA, 3))
-					);
-				}
-				if (lengthNA < 3) {
-					codon.append(StringUtils.repeat('-', 3 - lengthNA));
+				for (Integer posNA : posNAs) {
+					if (posNA == null) {
+						codon.append('-');
+					}
+					else {
+						codon.append(naSeq.charAt(posNA - 1));
+					}
 				}
 				alignedNAs.append(codon);
 			}
@@ -256,7 +255,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 
 	}
 
-	public float getMatchPcnt() {
+	public Double getMatchPcnt() {
 		if (matchPcnt == -1) {
 			int numNAs = lastNA - firstNA + 1;
 			for (Mutation<VirusT> mut : mutations) {
@@ -274,7 +273,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 					numNAs += fs.getSize();
 				}
 			}
-			matchPcnt = 100 - 100 * (float) getNumDiscordantNAs() / (float) numNAs;
+			matchPcnt = 100 - 100 * Double.valueOf(getNumDiscordantNAs()) / Double.valueOf(numNAs);
 		}
 		return matchPcnt;
 	}
@@ -352,6 +351,13 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			);
 		}
 		return nonDrmTsms;
+	}
+	
+	public UnsequencedRegions<VirusT> getUnsequencedRegions() {
+		if (unseqRegions == null) {
+			unseqRegions = new UnsequencedRegions<>(gene, firstAA, lastAA, mutations);
+		}
+		return unseqRegions;
 	}
 
 }

@@ -26,7 +26,6 @@ import java.util.List;
 
 import com.google.common.base.CharMatcher;
 
-import edu.stanford.hivdb.genotypes.Genotype;
 import edu.stanford.hivdb.genotypes.Genotype.RegionalGenotype;
 import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.viruses.Virus;

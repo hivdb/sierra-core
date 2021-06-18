@@ -21,6 +21,7 @@ package edu.stanford.hivdb.genotypes;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import edu.stanford.hivdb.viruses.Virus;
 
@@ -34,13 +35,20 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 	}
 
 	public BoundGenotype<VirusT> getFirstMatch() {
+		if (genotypes.isEmpty()) {
+			return null;
+		}
 		return genotypes.get(0);
 	}
 
 	public BoundGenotype<VirusT> getFallbackMatch() {
-		return genotypes.stream()
-			.filter(bg -> !bg.getGenotype().hasParentGenotypes())
-			.findFirst().get();
+		try {
+			return genotypes.stream()
+				.filter(bg -> !bg.getGenotype().hasParentGenotypes())
+				.findFirst().get();
+		} catch (NoSuchElementException e) {
+			return null;
+		}
 	}
 
 	public List<BoundGenotype<VirusT>> getAllMatches() {
@@ -50,6 +58,10 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 	public BoundGenotype<VirusT> getBestMatch() {
 		BoundGenotype<VirusT> first = getFirstMatch();
 		BoundGenotype<VirusT> fallback = getFallbackMatch();
+		
+		if (first == null || fallback == null) {
+			return null;
+		}
 
 		return first.shouldFallbackTo(fallback) ? fallback : first;
 	}

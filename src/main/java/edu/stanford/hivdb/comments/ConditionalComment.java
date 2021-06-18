@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import edu.stanford.hivdb.drugs.Drug;
 import edu.stanford.hivdb.drugs.DrugClass;
 import edu.stanford.hivdb.mutations.GenePosition;
+import edu.stanford.hivdb.utilities.AAUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
@@ -73,7 +74,7 @@ public class ConditionalComment<VirusT extends Virus<VirusT>> implements WithGen
 		if (conditionType != ConditionType.MUTATION) {
 			return null;
 		}
-		return (String) conditionValue.get("aas");
+		return AAUtils.normalizeAAs((String) conditionValue.get("aas"));
 	}
 	
 	public GenePosition<VirusT> getMutationGenePosition() {

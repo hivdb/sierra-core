@@ -20,13 +20,12 @@
 
 package edu.stanford.hivdb.mutations;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
-import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
@@ -37,86 +36,95 @@ import edu.stanford.hivdb.viruses.Virus;
  */
 public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutation<VirusT> {
 
+	public static class AAReads {
+		private final Character aminoAcid;
+		private final Long numReads;
+		private final Double percent;
+		
+		public AAReads(char aminoAcid, long numReads, double percent) {
+			this.aminoAcid = aminoAcid;
+			this.numReads = numReads;
+			this.percent = percent;
+		}
+		
+		public Character getAminoAcid() {
+			return aminoAcid;
+		}
+		
+		public Long getNumReads() {
+			return numReads;
+		}
+		
+		public Double getPercent() {
+			return percent;
+		}
+	}
+	
 	private static final int DEFAULT_MAX_DISPLAY_AAS = 6;
 
-	private final long totalCount;
+	private final long totalReads;
+	private final List<AAReads> allAAReads;
 	private final String compatTriplet;
 
 	public static <VirusT extends Virus<VirusT>> MultiCodonsMutation<VirusT> initUnsequenced(Gene<VirusT> gene, int position) {
-		return new MultiCodonsMutation<>(gene, position, Collections.emptySet(), 0, "NNN");
+		return new MultiCodonsMutation<>(gene, position, Collections.emptyMap(), 0, "NNN");
 	}
 
-	private static <VirusT extends Virus<VirusT>> Set<Character>
-	getAACharSet(PositionCodonReads<VirusT> posCodonReads, long minReads) {
-		Set<Character> aaCharSet = new TreeSet<>();
+	private static <VirusT extends Virus<VirusT>> Map<Character, Long>
+	getAACharReadsMap(List<CodonReads<VirusT>> codonReads) {
+		Map<Character, Long> aaCharReadsMap = new TreeMap<>();
 
-		for (CodonReads<VirusT> codonReads : posCodonReads.getCodonReads()) {
-			char aa = codonReads.getAminoAcid();
+		for (CodonReads<VirusT> cdr : codonReads) {
+			char aa = cdr.getAminoAcid();
 			if (aa == 'X') {
 				continue;
 			}
-			long count = codonReads.getReads();
-			if (count < minReads) {
-				// remove minor variants below min-prevalence
-				continue;
-			}
-			aaCharSet.add(aa);
+			long count = cdr.getReads();
+			aaCharReadsMap.put(aa, aaCharReadsMap.getOrDefault(aa, 0L) + count);
 		}
-		return aaCharSet;
-	}
-
-	private static <VirusT extends Virus<VirusT>> String getCompatTriplet(
-		PositionCodonReads<VirusT> posCodonReads, long minReads
-	) {
-		List<String> cleanCodons = new ArrayList<>();
-		for (CodonReads<VirusT> codonReads : posCodonReads.getCodonReads()) {
-			// Tolerant spaces and dashes
-			String codon = codonReads.getCodon().replaceAll("[ -]", "");
-			long count = codonReads.getReads();
-			if (count <= minReads) {
-				// remove minor variants below min-prevalence
-				continue;
-			}
-			if (!codon.matches("^[ACGT]*$")) {
-				// do not allow ambiguous codes
-				continue;
-			}
-			int codonLen = codon.length();
-			if (codonLen < 3 || codonLen > 5) {
-				// skip indels
-				continue;
-			}
-			cleanCodons.add(codon.substring(0, 3));
-		}
-		return CodonUtils.getMergedCodon(cleanCodons);
+		return aaCharReadsMap;
 	}
 
 	public static <VirusT extends Virus<VirusT>> MultiCodonsMutation<VirusT> fromPositionCodonReads(
-		PositionCodonReads<VirusT> posCodonReads, double minPrevalence, long minCodonCount
+		PositionCodonReads<VirusT> posCodonReads, double minPrevalence, long minCodonReads
 	) {
 		Gene<VirusT> gene = posCodonReads.getGene();
 		int position = (int) posCodonReads.getPosition();
+		List<CodonReads<VirusT>> codonReads = posCodonReads.getCodonReadsUsingThreshold(minPrevalence, minCodonReads);
+		if (codonReads.isEmpty()) {
+			return initUnsequenced(gene, position);
+		}
 		long totalCount = posCodonReads.getTotalReads();
-		long minReads = Math.max(Math.round(totalCount * minPrevalence + 0.5), minCodonCount);
-		Set<Character> aaCharSet = getAACharSet(posCodonReads, minReads);
+		String compatTriplet = PositionCodonReads.getCodonConsensusWithoutIns(codonReads);
+		Map<Character, Long> aaCharReadsMap = getAACharReadsMap(codonReads);
 		char ref = gene.getRefChar(position);
-		if (aaCharSet.isEmpty() ||
-			(aaCharSet.size() == 1 && aaCharSet.contains(ref))
+		if (aaCharReadsMap.isEmpty() ||
+			(aaCharReadsMap.size() == 1 && aaCharReadsMap.containsKey(ref))
 		) {
+			// don't create a mutation object when only reference AA is present
 			return null;
 		}
-		String compatTriplet = getCompatTriplet(posCodonReads, minReads);
 		return new MultiCodonsMutation<>(
-			gene, position, aaCharSet, totalCount, compatTriplet);
+			gene, position, aaCharReadsMap, totalCount, compatTriplet);
 	}
 
 	private MultiCodonsMutation(
 		Gene<VirusT> gene, int position,
-		Set<Character> aaCharSet,
-		long totalCount, String compatTriplet
+		Map<Character, Long> aaCharReadsMap,
+		long totalReads, String compatTriplet
 	) {
-		super(gene, position, aaCharSet, DEFAULT_MAX_DISPLAY_AAS);
-		this.totalCount = totalCount;
+		super(gene, position, aaCharReadsMap.keySet(), DEFAULT_MAX_DISPLAY_AAS);
+		this.allAAReads = (
+			aaCharReadsMap.entrySet()
+			.stream()
+			.map(entry -> new AAReads(
+				entry.getKey(),
+				entry.getValue(),
+				entry.getValue().doubleValue() / totalReads * 100
+			))
+			.collect(Collectors.toList())
+		);
+		this.totalReads = totalReads;
 		this.compatTriplet = compatTriplet;
 	}
 
@@ -125,10 +133,17 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 	 *
 	 * @return a Long number
 	 */
-	public Long getTotalCount() { return totalCount; }
+	public Long getTotalReads() { return totalReads; }
+	
+	/**
+	 * Gets list of read count / prevalence for each AA (include reference AA)
+	 * 
+	 * @return a List of AAReads objects
+	 */
+	public List<AAReads> getAllAAReads() { return allAAReads; }
 
 	@Override
-	public boolean isUnsequenced() { return this.totalCount == 0; }
+	public boolean isUnsequenced() { return this.totalReads == 0; }
 
 	@Override
 	public String getTriplet() { return compatTriplet; }

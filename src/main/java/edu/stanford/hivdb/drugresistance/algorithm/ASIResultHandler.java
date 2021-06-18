@@ -21,6 +21,7 @@ package edu.stanford.hivdb.drugresistance.algorithm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,6 +201,10 @@ public class ASIResultHandler {
 		).toASIFormat();
 
 		org.fstrf.stanfordAsiInterpreter.resistance.definition.Gene asiGene = algorithm.getASIGene(srcGene);
+		if (asiGene == null) {
+			// this gene is not supported by current algorithm
+			return null;
+		}
 
 		MutationComparator mutationComparator = new StringMutationComparator(false);
 		if (!mutationComparator.areMutationsValid(asiMutations)){
@@ -220,6 +225,10 @@ public class ASIResultHandler {
 	public final static <T extends Virus<T>> SortedSet<ASIDrugSusc<T>> extractDrugSuscs(
 		Gene<T> targetGene, EvaluatedGene evaluatedGene, DrugResistanceAlgorithm<T> algorithm
 	) {
+		if (evaluatedGene == null) {
+			// the current algorithm doesn't support targetGene
+			return Collections.emptySortedSet();
+		}
 		T virusIns = targetGene.getVirusInstance();
 		SortedSet<ASIDrugSusc<T>> asiDrugSuscs = new TreeSet<>();
 		for(Object drugClassObj : evaluatedGene.getEvaluatedDrugClasses()) {
@@ -275,7 +284,7 @@ public class ASIResultHandler {
 				if (mut == null) {
 					throw new IllegalArgumentException(String.format(
 							"Mutation %s is not match with comment definition %s.",
-							matchedMut.getASIFormat(), commentName));
+							matchedMut.getHumanFormat(), commentName));
 				}
 				List<String> highlight = new ArrayList<>();
 				highlight.add(mut.getHumanFormat());

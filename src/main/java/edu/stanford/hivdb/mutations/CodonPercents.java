@@ -75,7 +75,6 @@ public class CodonPercents<VirusT extends Virus<VirusT>> {
 					strain.getGene((String) aaPcnt.get("gene")),
 					((Double) aaPcnt.get("position")).intValue(),
 					(String) aaPcnt.get("codon"),
-					((String) aaPcnt.get("aa")).charAt(0),
 					(Double) aaPcnt.get("percent"),
 					((Double) aaPcnt.get("count")).intValue(),
 					((Double) aaPcnt.get("total")).intValue()
@@ -137,14 +136,13 @@ public class CodonPercents<VirusT extends Virus<VirusT>> {
 		}
 		else if (codon.matches("^(ins|del)$")) {
 			int total = posCodons.values().iterator().next().getTotal();
-			char aa = codon.equals("ins") ? '_' : '-';
-			CodonPercent<VirusT> posCodon = new CodonPercent<>(gene, pos, codon, aa, .0, 0, total);
+			CodonPercent<VirusT> posCodon = new CodonPercent<>(gene, pos, codon, .0, 0, total);
 			posCodons.put(codon, posCodon);
 			return posCodon;
 		}
 		else if (codon.matches("^[ACGT]{3}$")) {
 			int total = posCodons.values().iterator().next().getTotal();
-			CodonPercent<VirusT> posCodon = new CodonPercent<>(gene, pos, codon, 'X', .0, 0, total);
+			CodonPercent<VirusT> posCodon = new CodonPercent<>(gene, pos, codon, .0, 0, total);
 			posCodons.put(codon, posCodon);
 			return posCodon;
 		}

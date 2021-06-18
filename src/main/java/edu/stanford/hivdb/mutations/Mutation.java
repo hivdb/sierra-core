@@ -26,6 +26,7 @@ import java.util.Set;
 
 import edu.stanford.hivdb.comments.BoundComment;
 import edu.stanford.hivdb.drugs.DrugClass;
+import edu.stanford.hivdb.sequences.UnsequencedRegions;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;
@@ -136,6 +137,13 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public boolean isUnsequenced();
 
 	/**
+	 * Checks if the position is unsequenced by given unsequenced regions.
+	 *
+	 * @return true if the position is unsequenced.
+	 */
+	public boolean isUnsequenced(UnsequencedRegions<VirusT> unseqRegions);
+
+	/**
 	 * Checks if the mutation is a DRM
 	 *
 	 * @return true if the mutation is a DRM
@@ -178,13 +186,22 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	public String getAbstractGene();
 
 	/**
-	 * Gets the subtype B reference at this position.
+	 * Gets the reference AA at this position.
 	 *
-	 * TODO: We should probably return Character instead.
+	 * Note: this function returns a String. If you want Character, use `getRefChar()`.
 	 *
 	 * @return A single character string
 	 */
 	public String getReference();
+	
+	/**
+	 * Gets the reference AA at this position.
+	 *
+	 * Note: this function returns a Character. If you want String, use `getReference()`.
+	 *
+	 * @return A single character string
+	 */
+	public Character getRefChar();
 
 	/**
 	 * Gets the position number of this mutation.
@@ -307,7 +324,24 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * @return true if the mutation is considered unusual
 	 */
 	public boolean isUnusual();
+	
+	/**
+	 * Checks if the mutation is considered unusual
+	 *  
+	 * @param aaPcnts
+	 * @return true if the mutation is considered unusual
+	 */
+	public boolean isUnusual(AminoAcidPercents<VirusT> aaPcnts);
 
+	/**
+	 * Checks if the mutation is considered unusual
+	 *  
+	 * @param treatment
+	 * @param subtype
+	 * @return true if the mutation is considered unusual
+	 */
+	public boolean isUnusual(String treatment, String subtype);
+	
 	/**
 	 * Checks if the mutation is an SDRM mutation
 	 *

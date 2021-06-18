@@ -119,7 +119,6 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 		this.algorithm = algorithm;
 		evalGene = ASIResultHandler.evalutateGeneMutations(gene, mutations, algorithm);
 		drugSuscs = ASIResultHandler.extractDrugSuscs(gene, evalGene, algorithm);
-		
 	}
 
 	public final Gene<VirusT> getGene() { return gene; }
@@ -135,6 +134,9 @@ public class GeneDR<VirusT extends Virus<VirusT>> {
 	}
 
 	public List<BoundComment<VirusT>> getComments() {
+		if (evalGene == null) {
+			return Collections.emptyList();
+		}
 		VirusT virusIns = gene.getVirusInstance();
 		List<BoundComment<VirusT>> comments = (
 			ASIResultHandler.extractMutationComments(

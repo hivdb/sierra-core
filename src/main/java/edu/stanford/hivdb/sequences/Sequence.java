@@ -61,6 +61,7 @@ public class Sequence {
 	private String header;
 	private String sequence;
 	private String removedInvalidChars;
+	private Boolean isReversed;
 
 	/**
 	 * Initializes a sequence with given header and sequence string.
@@ -69,9 +70,21 @@ public class Sequence {
 	 * @param sequenceText	Sequence
 	 */
 	public Sequence(String header, String sequenceText) {
+		this(header, sequenceText, false);
+	}
+	
+	/**
+	 * Initializes a sequence with given header and sequence string.
+	 *
+	 * @param header		Sequence header
+	 * @param sequenceText	Sequence
+	 * @param isReversed    When true the sequence is the reversed compliment
+	 */
+	public Sequence(String header, String sequenceText, boolean isReversed) {
 		this.header = header;
 		this.removedInvalidChars = "";
 		this.sequence = sanitizeSequence(sequenceText);
+		this.isReversed = isReversed;
 	}
 
 	/**
@@ -184,7 +197,7 @@ public class Sequence {
 			char code = sequence.charAt(i);
 			reversed.append(COMPLEMENT_CODES.getOrDefault(code, code));
 		}
-		return new Sequence(header, reversed.toString());
+		return new Sequence(header, reversed.toString(), !isReversed);
 	}
 
 	@Override
@@ -193,6 +206,9 @@ public class Sequence {
 		if (o == null) { return false; }
 		if (!(o instanceof Sequence)) { return false;}
 		Sequence s = (Sequence) o;
+		if (s.isReversed != this.isReversed) {
+			s = s.reverseCompliment();
+		}
 
 		return new EqualsBuilder()
 			.append(header, s.header)
@@ -202,9 +218,13 @@ public class Sequence {
 
 	@Override
 	public int hashCode() {
+		Sequence s = this;
+		if (this.isReversed) {
+			s = reverseCompliment();
+		}
 		return new HashCodeBuilder(6945227, 231285)
-			.append(header)
-			.append(sequence)
+			.append(s.header)
+			.append(s.sequence)
 			.toHashCode();
 	}
 

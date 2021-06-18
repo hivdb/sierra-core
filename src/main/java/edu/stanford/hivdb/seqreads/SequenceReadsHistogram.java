@@ -25,12 +25,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.mutations.CodonReads;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.viruses.Virus;
 
+/**
+ * TODO: This class generates results for mutationStat. It is super slow
+ * and should be replaced by a faster version.
+ * 
+ * @author Philip Tzou
+ *
+ * @param <VirusT>
+ */
 public class SequenceReadsHistogram<VirusT extends Virus<VirusT>> {
 	
 	private static double MIN_LOG10_LOWER_LIMIT = -100d;
@@ -203,6 +212,19 @@ public class SequenceReadsHistogram<VirusT extends Virus<VirusT>> {
 			default:  // case Codon:
 				return getSites(cr -> !cr.isUnusualByCodon());
 		}
+	}
+	
+	public List<HistogramBin> getUsualSites(String treatment, String subtype) {
+		switch (aggregatesBy) {
+			case Position:
+				return getSites(cr -> !cr.isUnusual(treatment, subtype));
+			case AminoAcid:
+				return getSites(cr -> !cr.isUnusual(treatment, subtype));
+			default:  // case Codon:
+				throw new NotImplementedException("Unsupport aggregate by codon");
+				// return getSites(cr -> !cr.isUnusualByCodon());
+		}
+		
 	}
 	
 	public List<HistogramBin> getUnusualSites() {

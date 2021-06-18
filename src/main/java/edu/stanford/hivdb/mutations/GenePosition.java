@@ -44,7 +44,7 @@ public class GenePosition<VirusT extends Virus<VirusT>> implements Comparable<Ge
 
 	private final Gene<VirusT> gene;
 	private final Integer position;
-	
+
 	private transient Boolean isDrugResistancePosition;
 
 	public static <VirusT extends Virus<VirusT>> Set<GenePosition<VirusT>> getGenePositionsBetween(

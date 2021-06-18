@@ -58,9 +58,11 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.mutations.MutationTypePair;
 import edu.stanford.hivdb.mutations.MutationsValidator;
+import edu.stanford.hivdb.seqreads.SequenceReadsAssembler;
 import edu.stanford.hivdb.seqreads.SequenceReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsValidator;
 import edu.stanford.hivdb.sequences.AlignedSequence;
+import edu.stanford.hivdb.sequences.AlignmentConfig;
 import edu.stanford.hivdb.sequences.SequenceValidator;
 import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.ValidationResult;
@@ -213,8 +215,12 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public MutationSet<VirusT> getApobecDRMs();
 
 	public AminoAcidPercents<VirusT> getAminoAcidPercents(Strain<VirusT> strain, String treatment, String subtype);
+	
+	public AminoAcidPercents<VirusT> getMainAminoAcidPercents(Strain<VirusT> strain);
 
 	public CodonPercents<VirusT> getCodonPercents(Strain<VirusT> strain, String treatment, String subtype);
+	
+	public CodonPercents<VirusT> getMainCodonPercents(Strain<VirusT> strain);
 
 	public Collection<MutationType<VirusT>> getMutationTypes();
 
@@ -307,6 +313,8 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
+	
+	public DrugResistanceAlgorithm<VirusT> getDefaultDrugResistAlgorithm();
 
 	public default DrugResistanceAlgorithm<VirusT> getLatestDrugResistAlgorithm(String family) {
 		return Streams.findLast(
@@ -419,5 +427,13 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			return Collections.emptyList();
 		}
 	}
+	
+	public AlignmentConfig<VirusT> getAlignmentConfig();
+	
+	public default VirusGraphQLExtension getVirusGraphQLExtension() {
+		return DefaultVirusGraphQLExtension.getInstance();
+	}
+
+	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler();
 
 }

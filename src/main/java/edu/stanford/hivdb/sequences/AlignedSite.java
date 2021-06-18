@@ -20,19 +20,62 @@
 
 package edu.stanford.hivdb.sequences;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 public class AlignedSite {
 	private final int posAA;
-	private final int posNA;
+	private final List<Integer> posNAs;
 	private final int lengthNA;
+	
+	private static List<Integer> inferPosNAs(int firstPosNA, int lengthNA) {
+		List<Integer> posNAs = new ArrayList<>();
+		for (int offset = 0; offset < lengthNA; offset ++) {
+			posNAs.add(firstPosNA + offset);
+		}
+		for (int offset = posNAs.size(); offset < 3; offset ++) {
+			posNAs.add(null);
+		}
+		return posNAs;
+	}
+	
+	public AlignedSite(int posAA, int firstPosNA, int lengthNA) {
+		this(posAA, inferPosNAs(firstPosNA, lengthNA), lengthNA);
+	}
 
-	public AlignedSite(int posAA, int posNA, int lengthNA) {
+	public AlignedSite(int posAA, List<Integer> posNAs, int lengthNA) {
 		this.posAA = posAA;
-		this.posNA = posNA;
+		this.posNAs = Collections.unmodifiableList(posNAs);
 		this.lengthNA = lengthNA;
 	}
 
 	public int getPosAA() { return posAA; }
-	public int getPosNA() { return posNA; }
+
+	public List<Integer> getPosNAs() { return posNAs; }
+
+	public Optional<Integer> getFirstPosNA() {
+		return (
+			posNAs
+			.stream()
+			.filter(pos -> pos != null)
+			.findFirst()
+		);
+	}
+
+	public Optional<Integer> getLastPosNA() {
+		List<Integer> nonNulls = (
+			posNAs
+			.stream()
+			.filter(pos -> pos != null)
+			.collect(Collectors.toList())
+		);
+		long count = nonNulls.size();
+		return nonNulls.stream().skip(Math.max(0, count - 1)).findFirst();
+	}
+
 	public int getLengthNA() { return lengthNA; }
 	
 }

@@ -20,6 +20,7 @@
 
 package edu.stanford.hivdb.mutations;
 
+import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
@@ -29,18 +30,26 @@ public class CodonPercent<VirusT extends Virus<VirusT>> implements WithGene<Viru
 	final private Gene<VirusT> gene;
 	final private Integer position;
 	final private String codon;
-	final private Character aa;
 	final private Double percent;
 	final private Integer count;
 	final private Integer total;
+	final transient private Character aa;
 
 	protected CodonPercent(
-			Gene<VirusT> gene, int position, String codon, char aa,
+			Gene<VirusT> gene, int position, String codon,
 			double percent, int count, int total) {
 		this.gene = gene;
 		this.position = position;
 		this.codon = codon;
-		this.aa = aa;
+		if (codon.equals("ins")) {
+			this.aa = '_';
+		}
+		else if (codon.equals("del")) {
+			this.aa = '-';
+		}
+		else {
+			this.aa = CodonUtils.translateNATriplet(codon).charAt(0);
+		}
 		this.percent = percent;
 		this.count = count;
 		this.total = total;

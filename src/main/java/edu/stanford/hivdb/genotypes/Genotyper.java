@@ -144,6 +144,13 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		
 		Integer firstNA = null, lastNA = null;
 		
+		if (references.size() == 0) {
+			treeFirstNA = 0;
+			treeLastNA = 0;
+			referenceMismatchTree = new int[0][0][0];
+			return;
+		}
+		
 		for (GenotypeReference<VirusT> ref : references) {
 			if (firstNA == null) {
 				firstNA = ref.getFirstNA();

@@ -179,13 +179,35 @@ public class FastaUtils {
 		return readStream(stream);
 	}
 
-	public static void writeStream(Collection<Sequence> sequences, OutputStream stream) {
+	public static void writeStream(Collection<Sequence> sequences, OutputStream stream, boolean useSHA512Name) {
 		try (
 			FASTAFileWriter writer = new FASTAFileWriter(stream);
 		) {
 			for (Sequence seq : sequences) {
 				writer.write(new FASTAElementImpl(
-					seq.getHeader(), seq.getSequence()));
+					useSHA512Name ? seq.getSHA512() : seq.getHeader(),
+					seq.getSequence()
+				));
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static void writeStream(Collection<Sequence> sequences, OutputStream stream) {
+		writeStream(sequences, stream, false);
+	}
+
+	public static void writeFile(Collection<Sequence> sequences, String filePath, boolean useSHA512Name) {
+		File out = new File(filePath);
+		try (
+			FASTAFileWriter writer = new FASTAFileWriter(out)
+		) {
+			for (Sequence seq : sequences) {
+				writer.write(new FASTAElementImpl(
+					useSHA512Name ? seq.getSHA512() : seq.getHeader(),
+					seq.getSequence()
+				));
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -193,28 +215,34 @@ public class FastaUtils {
 	}
 
 	public static void writeFile(Collection<Sequence> sequences, String filePath) {
-		File out = new File(filePath);
-		try (
-			FASTAFileWriter writer = new FASTAFileWriter(out)
-		) {
-			for (Sequence seq : sequences) {
-				writer.write(new FASTAElementImpl(
-					seq.getHeader(), seq.getSequence()));
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		writeFile(sequences, filePath, false);
 	}
 
+	public static void writeFile(Sequence sequence, String filePath, boolean useSHA512Name) {
+		writeFile(List.of(sequence), filePath, useSHA512Name);
+	}
+	
 	public static void writeFile(Sequence sequence, String filePath) {
-		List<Sequence> sequences = new ArrayList<>();
-		sequences.add(sequence);
-		writeFile(sequences, filePath);
+		writeFile(sequence, filePath, false);
+	}
+
+	public static String writeString(Collection<Sequence> sequences, boolean useSHA512Name) {
+		OutputStream stream = new ByteArrayOutputStream();
+		writeStream(sequences, stream, useSHA512Name);
+		return stream.toString();
 	}
 
 	public static String writeString(Collection<Sequence> sequences) {
+		return writeString(sequences, false);
+	}
+
+	public static String writeString(Sequence sequence, boolean useSHA512Name) {
 		OutputStream stream = new ByteArrayOutputStream();
-		writeStream(sequences, stream);
+		writeStream(List.of(sequence), stream, useSHA512Name);
 		return stream.toString();
+	}
+
+	public static String writeString(Sequence sequence) {
+		return writeString(sequence, false);
 	}
 }

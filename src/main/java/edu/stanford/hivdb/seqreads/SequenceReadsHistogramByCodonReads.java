@@ -32,22 +32,22 @@ import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
+public class SequenceReadsHistogramByCodonReads<VirusT extends Virus<VirusT>> {
 
-	public static interface WithSequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
+	public static interface WithSequenceReadsHistogramByCodonReads<VirusT extends Virus<VirusT>> {
 		
-		public SequenceReadsHistogramByCodonCount<VirusT> getHistogramByCodonCount(
-			final Long[] codonCountCutoffs,
+		public SequenceReadsHistogramByCodonReads<VirusT> getHistogramByCodonReads(
+			final Long[] codonReadsCutoffs,
 			final AggregationOption aggregatesBy);
 		
 	}
 	
-	public static class HistogramByCodonCountBin {
+	public static class HistogramByCodonReadsBin {
 		final public Long cutoff;
 		final public Integer count;
 		// final public String type;
 		
-		public HistogramByCodonCountBin(long cutoff, int count) {
+		public HistogramByCodonReadsBin(long cutoff, int count) {
 			this.cutoff = cutoff;
 			this.count = count;
 		}
@@ -63,21 +63,21 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 	
 	final private List<GeneSequenceReads<VirusT>> allGeneSequenceReads;
 	final private Integer numBins;
-	final private Long[] codonCountCutoffs;
+	final private Long[] codonReadsCutoffs;
 	final private AggregationOption aggregatesBy;
 	
-	public SequenceReadsHistogramByCodonCount(
+	public SequenceReadsHistogramByCodonReads(
 		List<GeneSequenceReads<VirusT>> allGeneSequenceReads,
-		Long[] codonCountCutoffs,
+		Long[] codonReadsCutoffs,
 		AggregationOption aggregatesBy
 	) {
 		this.allGeneSequenceReads = allGeneSequenceReads;
-		this.numBins = codonCountCutoffs.length;
-		this.codonCountCutoffs = codonCountCutoffs;
+		this.numBins = codonReadsCutoffs.length;
+		this.codonReadsCutoffs = codonReadsCutoffs;
 		this.aggregatesBy = aggregatesBy;
 	}
 
-	private List<HistogramByCodonCountBin> getSites(
+	private List<HistogramByCodonReadsBin> getSites(
 		Function<CodonReads<VirusT>, Boolean> filter
 	) {
 		/* initialize binsCount */
@@ -105,7 +105,7 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 								key = cr.getCodon();
 						}
 						for (int idx = 0; idx < numBins; idx ++) {
-							if (reads >= codonCountCutoffs[idx]) {
+							if (reads >= codonReadsCutoffs[idx]) {
 								aggregatedSites.add(Pair.of(idx, key));
 							}
 						}
@@ -118,16 +118,16 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 			}
 		}
 		
-		List<HistogramByCodonCountBin> result = new ArrayList<>();
+		List<HistogramByCodonReadsBin> result = new ArrayList<>();
 		for (int idx = 0; idx < numBins; idx ++) {
-			result.add(new HistogramByCodonCountBin(
-				codonCountCutoffs[idx],
+			result.add(new HistogramByCodonReadsBin(
+				codonReadsCutoffs[idx],
 				binsCount[idx]));
 		}
 		return result;
 	}
 	
-	public List<HistogramByCodonCountBin> getUsualSites() {
+	public List<HistogramByCodonReadsBin> getUsualSites() {
 		switch (aggregatesBy) {
 			case Position:
 				return getSites(cr -> !cr.isUnusual());
@@ -138,7 +138,7 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 		}
 	}
 	
-	public List<HistogramByCodonCountBin> getUnusualSites() {
+	public List<HistogramByCodonReadsBin> getUnusualSites() {
 		switch (aggregatesBy) {
 			case Position:
 			case AminoAcid:
@@ -148,7 +148,7 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 		}
 	}
 	
-	public List<HistogramByCodonCountBin> getUnusualApobecSites() {
+	public List<HistogramByCodonReadsBin> getUnusualApobecSites() {
 		switch (aggregatesBy) {
 			case Position:
 			case AminoAcid:
@@ -158,7 +158,7 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 		}
 	}
 
-	public List<HistogramByCodonCountBin> getUnusualNonApobecSites() {
+	public List<HistogramByCodonReadsBin> getUnusualNonApobecSites() {
 		switch (aggregatesBy) {
 			case Position:
 			case AminoAcid:
@@ -168,19 +168,19 @@ public class SequenceReadsHistogramByCodonCount<VirusT extends Virus<VirusT>> {
 		}
 	}
 	
-	public List<HistogramByCodonCountBin> getApobecSites() {
+	public List<HistogramByCodonReadsBin> getApobecSites() {
 		return getSites(cr -> cr.isApobecMutation());
 	}
 	
-	public List<HistogramByCodonCountBin> getApobecDrmSites() {
+	public List<HistogramByCodonReadsBin> getApobecDrmSites() {
 		return getSites(cr -> cr.isApobecDRM());
 	}
 
-	public List<HistogramByCodonCountBin> getStopCodonSites() {
+	public List<HistogramByCodonReadsBin> getStopCodonSites() {
 		return getSites(cr -> cr.hasStop());
 	}
 	
-	public List<HistogramByCodonCountBin> getDrmSites() {
+	public List<HistogramByCodonReadsBin> getDrmSites() {
 		return getSites(cr -> cr.isDRM());
 	}
 	

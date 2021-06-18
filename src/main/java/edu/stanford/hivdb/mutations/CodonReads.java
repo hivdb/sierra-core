@@ -127,7 +127,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 			try {
 				codonPcnt = (
 					gene.getVirusInstance()
-					.getCodonPercents(gene.getStrain(), "all", "all")
+					.getMainCodonPercents(gene.getStrain())
 					.get(gene, position, cleanedCodon)
 				);
 				if (codonPcnt == null) {
@@ -147,13 +147,17 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 	
 	public Double getAAPercent() {
 		if (aaPcnt == null) {
-			aaPcnt = (
+			AminoAcidPercent<?> aaPcntObj = (
 				gene.getVirusInstance()
-				.getAminoAcidPercents(gene.getStrain(), "all", "all")
+				.getMainAminoAcidPercents(gene.getStrain())
 				.get(gene, position, getAminoAcid())
-				.getPercent()
 			);
-				
+			if (aaPcntObj == null) {
+				aaPcnt = .0;
+			}
+			else {
+				aaPcnt = aaPcntObj.getPercent();
+			}
 		}
 		return aaPcnt;
 	}
@@ -176,6 +180,10 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 	
 	public boolean isUnusual() {
 		return isReference() ? false : getMutation().isUnusual();
+	}
+	
+	public boolean isUnusual(String treatment, String subtype) {
+		return isReference() ? false : getMutation().isUnusual(treatment, subtype);
 	}
 	
 	public boolean isUnusualByCodon() {

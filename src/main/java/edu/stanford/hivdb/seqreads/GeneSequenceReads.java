@@ -39,6 +39,7 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.WithSequenceReadsHistogram;
+import edu.stanford.hivdb.sequences.UnsequencedRegions;
 import edu.stanford.hivdb.utilities.CodonUtils;
 
 public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT> {
@@ -47,19 +48,18 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	private final int firstAA;
 	private final int lastAA;
 	private final List<PositionCodonReads<VirusT>> posCodonReads;
-	private final double minPrevalence;
-	private final long minCodonCount;
+	private final CutoffCalculator<VirusT> cutoffObj;
 	private MutationSet<VirusT> mutations;
 	private transient DescriptiveStatistics readDepthStats;
+	private transient UnsequencedRegions<VirusT> unseqRegions;
 
 	public GeneSequenceReads(
-			final Gene<VirusT> gene,
-			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence,
-			final long minCodonCount) {
+		final Gene<VirusT> gene,
+		final List<PositionCodonReads<VirusT>> posCodonReads,
+		final CutoffCalculator<VirusT> cutoffObj
+	) {
 		this.gene = gene;
-		this.minPrevalence = minPrevalence;
-		this.minCodonCount = minCodonCount;
+		this.cutoffObj = cutoffObj;
 		this.firstAA = Math.max(1, (int) posCodonReads.get(0).getPosition());
 		this.lastAA = Math.min(gene.getAASize(), (int) posCodonReads.get(posCodonReads.size() - 1).getPosition());
 		this.posCodonReads = Collections.unmodifiableList(
@@ -82,10 +82,10 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * @param minPrevalence
 	 */
 	protected GeneSequenceReads(
-			final List<PositionCodonReads<VirusT>> posCodonReads,
-			final double minPrevalence,
-			final long minCodonCount) {
-		this(posCodonReads.get(0).getGene(), posCodonReads, minPrevalence, minCodonCount);
+		final List<PositionCodonReads<VirusT>> posCodonReads,
+		final CutoffCalculator<VirusT> cutoffObj
+	) {
+		this(posCodonReads.get(0).getGene(), posCodonReads, cutoffObj);
 	}
 
 	public Gene<VirusT> getGene() { return gene; }
@@ -95,13 +95,17 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	public int getNumPositions() { return posCodonReads.size(); }
 	public List<PositionCodonReads<VirusT>> getAllPositionCodonReads() { return posCodonReads; }
 
-	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonCount) {
-		if (minPrevalence != this.minPrevalence || minCodonCount != this.minCodonCount || mutations == null) {
+	public MutationSet<VirusT> getMutations(final double minPrevalence, final long minCodonReads) {
+		if (
+			minPrevalence != cutoffObj.getActualMinPrevalence()||
+			minCodonReads != cutoffObj.getMinCodonReads() ||
+			mutations == null
+		) {
 			List<Mutation<VirusT>> myMutations = new ArrayList<>();
 			long prevPos = firstAA - 1;
 			for (PositionCodonReads<VirusT> pcr : posCodonReads) {
 				long curPos = pcr.getPosition();
-				for (Long pos = prevPos + 1; pos < curPos - 1; pos ++) {
+				for (Long pos = prevPos + 1; pos < curPos; pos ++) {
 					// add unsequenced regions
 					myMutations.add(MultiCodonsMutation.initUnsequenced(
 						gene, pos.intValue()
@@ -109,12 +113,15 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 				}
 				prevPos = curPos;
 				Mutation<VirusT> mut = MultiCodonsMutation
-					.fromPositionCodonReads(pcr, minPrevalence, minCodonCount);
+					.fromPositionCodonReads(pcr, minPrevalence, minCodonReads);
 				if (mut != null) {
 					myMutations.add(mut);
 				}
 			}
-			if (minPrevalence == this.minPrevalence && minCodonCount == this.minCodonCount) {
+			if (
+				minPrevalence == cutoffObj.getActualMinPrevalence() &&
+				minCodonReads == cutoffObj.getMinCodonReads()
+			) {
 				mutations = new MutationSet<>(myMutations);
 			}
 			else {
@@ -181,10 +188,13 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	}
 
 	public MutationSet<VirusT> getMutations() {
-		return getMutations(this.minPrevalence, this.minCodonCount);
+		return getMutations(
+			this.cutoffObj.getActualMinPrevalence(),
+			this.cutoffObj.getMinCodonReads()
+		);
 	}
 
-	/** Returns consensus sequence aligned to subtype B reference.
+	/** Returns consensus sequence aligned to reference.
 	 *  All insertions are removed from the result.
 	 *
 	 * @param autoComplete specify <tt>true</tt> to prepend and/or append
@@ -192,11 +202,15 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	 * @return the aligned consensus sequence
 	 */
 	public String getAlignedNAs(boolean autoComplete) {
-		return getAlignedNAs(minPrevalence, minCodonCount, autoComplete);
+		return getAlignedNAs(
+			this.cutoffObj.getActualMinPrevalence(),
+			this.cutoffObj.getMinCodonReads(),
+			autoComplete
+		);
 	}
 
-	/** Returns consensus sequence aligned to subtype B reference.
-	 *  All insertions are removed from the result.
+	/** Returns consensus sequence aligned to reference.
+	 *  All insertions are removed from the result. 1a/1b frameshifts are preserved.
 	 *
 	 * @param threshold specify the minimal prevalence requirement for
 	 * creating codon consensus
@@ -216,14 +230,16 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 				seq.append(StringUtils.repeat("...", (int) (curPos - prevPos - 1)));
 			}
 			prevPos = curPos;
-			seq.append(pcr.getCodonConsensus(pcntThreshold, countThreshold));
+			seq.append(pcr.getCodonConsensusWithoutIns(pcntThreshold, countThreshold));
 		}
 		if (autoComplete) {
 			seq.append(StringUtils.repeat("...", gene.getAASize() - lastAA));
 		}
 		return seq.toString();
 	}
-
+	
+	public CutoffCalculator<VirusT> getCutoffObj() { return cutoffObj; }
+	
 	/** Returns consensus sequence aligned to subtype B reference without
 	 *  initial and trailing "." for incomplete sequence. All insertions are
 	 *  removed from the result. The result is equivalent to the result of
@@ -244,6 +260,13 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	public String getAlignedAAs() {
 		return CodonUtils.simpleTranslate(
 			this.getAlignedNAs(false), firstAA, gene.getRefSequence());
+	}
+
+	public UnsequencedRegions<VirusT> getUnsequencedRegions() {
+		if (unseqRegions == null) {
+			unseqRegions = new UnsequencedRegions<>(gene, firstAA, lastAA, getMutations());
+		}
+		return unseqRegions;
 	}
 
 }

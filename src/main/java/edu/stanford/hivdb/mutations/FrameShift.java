@@ -62,7 +62,7 @@ public class FrameShift<VirusT extends Virus<VirusT>> implements Comparable<Fram
 	}
 
 	public int compareTo (FrameShift<VirusT> fs) {
-		return new Integer(position).compareTo(new Integer(fs.position));
+		return Integer.valueOf(position).compareTo(Integer.valueOf(fs.position));
 	}
 
 	public boolean isInsertion() {
