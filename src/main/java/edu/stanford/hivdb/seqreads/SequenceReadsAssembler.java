@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.Gene;
+import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;
 
@@ -139,12 +140,23 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> {
 		}
 	}
 		
-	public static <VirusT extends Virus<VirusT>> SequenceReadsAssembler<VirusT> loadJson(String raw, VirusT virusIns) {
-		List<AssemblyRegion<VirusT>> regionList = Json.loads(raw, new TypeToken<List<AssemblyRegion<VirusT>>>(){});
-		for (AssemblyRegion<VirusT> region : regionList) {
-			region.setVirusInstance(virusIns);
-		}
-		return new SequenceReadsAssembler<>(regionList);
+	public static <VirusT extends Virus<VirusT>>
+	Map<Strain<VirusT>, SequenceReadsAssembler<VirusT>> loadJson(String raw, VirusT virusIns) {
+		return (
+			Json.loads(raw, new TypeToken<Map<String, List<AssemblyRegion<VirusT>>>>(){})
+			.entrySet()
+			.stream()
+			.map(e -> {
+				e.getValue()
+				.stream()
+				.forEach(r -> r.setVirusInstance(virusIns));
+				return e;
+			})
+			.collect(Collectors.toMap(
+				e -> virusIns.getStrain(e.getKey()),
+				e -> new SequenceReadsAssembler<>(e.getValue())
+			))
+		);
 	}
 	
 	private final List<AssemblyRegion<VirusT>> regions;

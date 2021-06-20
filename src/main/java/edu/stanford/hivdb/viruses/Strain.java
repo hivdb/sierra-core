@@ -38,6 +38,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import edu.stanford.hivdb.drugs.DrugClass;
+import edu.stanford.hivdb.seqreads.SequenceReadsAssembler;
 import edu.stanford.hivdb.utilities.Json;
 
 public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<VirusT>> {
@@ -171,6 +172,10 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 			this.drugClasses = Collections.unmodifiableSet(drugClasses);
 		}
 		return drugClasses;
+	}
+	
+	public SequenceReadsAssembler<VirusT> getSequenceReadsAssembler() {
+		return virusInstance.getSequenceReadsAssembler(this);
 	}
 	
 	@Override

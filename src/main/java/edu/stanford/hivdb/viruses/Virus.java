@@ -434,6 +434,6 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		return DefaultVirusGraphQLExtension.getInstance();
 	}
 
-	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler();
+	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler(Strain<VirusT> strain);
 
 }

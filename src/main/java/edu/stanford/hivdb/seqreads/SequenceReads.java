@@ -158,7 +158,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	
 	public String getAssembledConsensus() {
 		return (
-			strain.getVirusInstance()
+			strain
 			.getSequenceReadsAssembler()
 			.assemble(
 				allGeneSequenceReads,
