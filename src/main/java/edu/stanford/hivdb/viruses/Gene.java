@@ -49,7 +49,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	private final String refSequence;
 	private final Map<String, String> strainModifiers;
 	private final List<String> mutationTypes;
-	private final Integer nucaminoMinNumOfAA;
 	private final List<String> synonyms;
 
 	private transient VirusT virusInstance;
@@ -96,7 +95,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		String refSequence,
 		List<String> mutationTypes,
 		Map<String, String> strainModifiers,
-		Integer nucaminoMinNumOfAA,
 		List<String> synonyms
 	) {
 		this.name = name;
@@ -106,7 +104,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		this.refSequence = refSequence;
 		this.mutationTypes = mutationTypes;
 		this.strainModifiers = strainModifiers;
-		this.nucaminoMinNumOfAA = nucaminoMinNumOfAA;
 		this.synonyms = synonyms;
 	}
 	
@@ -157,10 +154,6 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	
 	public int getNASize() {
 		return refSequence.length() * 3;
-	}
-	
-	public int getNucaminoMinNumOfAA() {
-		return nucaminoMinNumOfAA;
 	}
 	
 	public Character getRefChar(int pos) {

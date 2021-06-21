@@ -298,7 +298,8 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 								sequenceReversed,
 								minMatchPcnt.get(gene),
 								seqShrinkWindow.get(gene),
-								seqShrinkCutoff.get(gene)
+								seqShrinkCutoff.get(gene),
+								0 // minNumOfSites
 							));
 					} catch (MisAlignedException e) {
 						if (!e.isSuppressible()) {

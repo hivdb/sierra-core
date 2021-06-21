@@ -147,13 +147,13 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		boolean sequenceReversed,
 		Double minMatchPcnt,
 		Double seqShrinkWindow,
-		Double seqShrinkCutoff
+		Double seqShrinkCutoff,
+		final int minNumOfSites
 	) {
 		int geneLength = gene.getAASize();
 		int firstAA = Math.max(1, ((Double) report.get("FirstAA")).intValue());
 		int lastAA = Math.min(geneLength, ((Double) report.get("LastAA")).intValue());
 		int aaSize = Math.max(0, lastAA - firstAA + 1);
-		final int minNumOfSites = gene.getNucaminoMinNumOfAA();
 		if (aaSize < minNumOfSites) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s was discarded " +
