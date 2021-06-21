@@ -337,7 +337,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	}
 
 	public MutationSet<VirusT> getMutations() {
-		if (!isEmpty() && mutations == null) {
+		if (mutations == null) {
 			mutations = getMutations(
 				this.cutoffObj.getActualMinPrevalence(),
 				this.cutoffObj.getMinCodonReads()
