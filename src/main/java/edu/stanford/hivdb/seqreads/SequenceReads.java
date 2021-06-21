@@ -194,7 +194,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	
 	public Long getMinCodonReads() { return cutoffObj.getMinCodonReads(); }
 
-	public Long getMinPositionReads() { return cutoffObj.getMinCodonReads(); }
+	public Long getMinPositionReads() { return cutoffObj.getMinPositionReads(); }
 	
 	public List<ValidationResult> getValidationResults() {
 		if (validationResults == null) {
