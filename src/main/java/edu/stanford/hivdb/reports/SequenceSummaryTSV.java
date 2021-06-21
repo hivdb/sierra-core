@@ -141,7 +141,7 @@ public class SequenceSummaryTSV<VirusT extends Virus<VirusT>> {
 			// PcntMix
 			sequenceRecord.put(
 				"Pcnt Mix",
-				NumberFormats.prettyDecimalAsString(alignedSeq.getMixturePcnt()));
+				NumberFormats.prettyDecimalAsString(alignedSeq.getMixtureRate() * 100));
 
 			// %(DrugClass)s %(MutationType)s
 			sequenceRecord.putAll(determineMutLists(alignedSeq));

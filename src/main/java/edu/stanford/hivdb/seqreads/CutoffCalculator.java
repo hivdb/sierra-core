@@ -36,9 +36,9 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 
 	private static final int EMPTY = 0; 
 	private static final int MIXTURE = -1;
-	private final Double actualMixturePcnt;
+	private final Double actualMixtureRate;
 	private final Double actualMinPrevalence;
-	private final Double maxMixturePcnt;
+	private final Double maxMixtureRate;
 	private final Double minPrevalence;
 	private final Long minCodonReads;
 	private final Long minPositionReads;
@@ -72,13 +72,13 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 	
 	public CutoffCalculator(
 		List<PositionCodonReads<VirusT>> allReads,
-		Double maxMixturePcnt,
+		Double maxMixtureRate,
 		Double minPrevalence,
 		Long minCodonReads,
 		Long minPositionReads
 	) {
-		if (maxMixturePcnt == null || maxMixturePcnt < 0 || maxMixturePcnt > 1) {
-			maxMixturePcnt = 1.;
+		if (maxMixtureRate == null || maxMixtureRate < 0 || maxMixtureRate > 1) {
+			maxMixtureRate = 1.;
 		}
 		if (minPrevalence == null || minPrevalence < 0 || minPrevalence > 1) {
 			minPrevalence = 0.;
@@ -89,7 +89,7 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 		if (minPositionReads == null || minPositionReads < 1) {
 			minPositionReads = 1L;
 		}
-		this.maxMixturePcnt = maxMixturePcnt;
+		this.maxMixtureRate = maxMixtureRate;
 		this.minPrevalence = minPrevalence;
 		this.minCodonReads = minCodonReads;
 		this.minPositionReads = minPositionReads;
@@ -119,7 +119,7 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 		double numMixtures = 0;
 		double numNAs = 0;
 		double prevProportion = 1.;
-		double prevMixturePcnt = 0.;
+		double prevMixtureRate = 0.;
 		for (Pair<GenePosition<VirusT>, CodonReads<VirusT>> pcdr : sortedCodonReads) {
 			GenePosition<VirusT> genePos = pcdr.getLeft();
 			CodonReads<VirusT> cdr = pcdr.getRight();
@@ -144,27 +144,27 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 				"  mixture: " +				
 				numMixtures +
 				"  total: " + numNAs); */
-			double curMixturePcnt = numMixtures / numNAs;
+			double curMixtureRate = numMixtures / numNAs;
 			double curProportion = cdr.getProportion();
-			if (curMixturePcnt > maxMixturePcnt || curProportion < minPrevalence) {
+			if (curMixtureRate > maxMixtureRate || curProportion < minPrevalence) {
 				// System.out.println(codonLookup);
 				break;
 			}
 			else {
-				prevMixturePcnt = curMixturePcnt;
+				prevMixtureRate = curMixtureRate;
 				prevProportion = curProportion;
 			}
 		}
-		this.actualMixturePcnt = prevMixturePcnt;
+		this.actualMixtureRate = prevMixtureRate;
 		this.actualMinPrevalence = prevProportion;
 	}
 	
-	public Double getMaxMixturePcnt() { return maxMixturePcnt; }
+	public Double getMaxMixtureRate() { return maxMixtureRate; }
 	public Double getMinPrevalence() { return minPrevalence; }
 	public Long getMinCodonReads() { return minCodonReads; }
 	public Long getMinPositionReads() { return minPositionReads; }
 	
-	public Double getActualMixturePcnt() { return actualMixturePcnt; }
+	public Double getActualMixtureRate() { return actualMixtureRate; }
 	public Double getActualMinPrevalence() { return actualMinPrevalence; }
 	
 }

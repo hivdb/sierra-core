@@ -212,7 +212,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		}
 		if (firstNA == null || lastNA == null) {
 			throw new MisAlignedException(String.format(
-				"ALignment of gene %s is discarded " +
+				"Alignment of gene %s is discarded " +
 				"since the List of 'alignedSites' is " +
 				"empty or contains only gaps.",
 				gene

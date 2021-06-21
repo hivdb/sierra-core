@@ -50,7 +50,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 	private MutationSet<VirusT> mutations;
 	private MutationSet<VirusT> sdrms;
 	private GenotypeResult<VirusT> genotypeResult;
-	private Double mixturePcnt;
+	private Double mixtureRate;
 	private transient List<FrameShift<VirusT>> frameShifts;
 	private final Boolean isReverseComplement;
 	private final Boolean isEmpty;
@@ -232,11 +232,15 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return getGenotypeText();
 	}
 
-	public double getMixturePcnt() {
-		if (mixturePcnt == null) {
-			mixturePcnt = SeqUtils.mixturePcnt(getConcatenatedSeq());
+	public double getMixtureRate() {
+		if (mixtureRate == null) {
+			mixtureRate = SeqUtils.calcMixtureRate(getConcatenatedSeq());
 		}
-		return mixturePcnt;
+		return mixtureRate;
+	}
+	
+	public double getMixturePcnt() {
+		return mixtureRate * 100.;
 	}
 
 	public List<FrameShift<VirusT>> getFrameShifts() {

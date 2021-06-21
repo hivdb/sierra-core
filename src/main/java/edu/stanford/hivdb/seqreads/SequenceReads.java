@@ -69,7 +69,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 			final String name,
 			final Strain<VirusT> strain, List<PositionCodonReads<VirusT>> allReads,
 			final List<UntranslatedRegion> untranslatedRegions,
-			final Double maxMixturePcnt,
+			final Double maxMixtureRate,
 			final Double minPrevalence,
 			final Long minCodonReads,
 			final Long minPositionReads
@@ -77,7 +77,7 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		// TODO: dynamic cutoff
 		CutoffCalculator<VirusT> cutoffObj = new CutoffCalculator<>(
 			allReads,
-			maxMixturePcnt,
+			maxMixtureRate,
 			minPrevalence,
 			minCodonReads,
 			minPositionReads
@@ -184,9 +184,9 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 
 	public boolean isEmpty() { return allGeneSequenceReads.isEmpty(); }
 
-	public Double getMaxMixturePcnt() { return cutoffObj.getMaxMixturePcnt(); }
+	public Double getMaxMixtureRate() { return cutoffObj.getMaxMixtureRate(); }
 	
-	public Double getMixturePcnt() { return cutoffObj.getActualMixturePcnt(); }
+	public Double getMixtureRate() { return cutoffObj.getActualMixtureRate(); }
 
 	public Double getMinPrevalence() { return cutoffObj.getMinPrevalence(); }
 

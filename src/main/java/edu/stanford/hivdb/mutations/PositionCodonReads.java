@@ -20,6 +20,7 @@
 
 package edu.stanford.hivdb.mutations;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,13 +49,15 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 		this.gene = gene;
 		this.position = position;
 		this.totalReads = totalReads;
-		this.allCodonReads = allCodonReads.entrySet().stream()
+		this.allCodonReads = Collections.unmodifiableMap(
+			allCodonReads.entrySet().stream()
 			.sorted(Comparator.comparingLong(Map.Entry<String, Long>::getValue).reversed())
 			.collect(Collectors.toMap(
 				e -> e.getKey(),
 				e -> e.getValue(),
 				(e1, e2) -> e1,
-				LinkedHashMap::new));
+				LinkedHashMap::new))
+		);
 	}
 
 	@Override

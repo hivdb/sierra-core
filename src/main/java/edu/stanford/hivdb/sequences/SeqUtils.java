@@ -50,11 +50,11 @@ public class SeqUtils {
 	 * @param nucleotideSeq	Nucleic acid sequence
 	 * @return				Percentage of mixture
 	 */
-	public static double mixturePcnt(String nucleotideSeq) {
+	public static double calcMixtureRate(String nucleotideSeq) {
 		if (nucleotideSeq.isEmpty()) {
-			return 0.0;
+			return .0;
 		}
-		return 100.0 * (double) numRYMWKS(nucleotideSeq) / (double) nucleotideSeq.length();
+		return (double) numRYMWKS(nucleotideSeq) / (double) nucleotideSeq.length();
 	}
 
 	public static int numBDHVN(String nucleotideSeq) {
