@@ -94,10 +94,13 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 	public List<CodonReads<VirusT>> getCodonReadsUsingThreshold(
 		double minPrevalence, long minCodonReads
 	) {
-		long minReads = Math.max(Math.round(totalReads * minPrevalence + 0.5), minCodonReads);
+		long minReads = Math.max(
+			((Double) Math.floor(totalReads * minPrevalence)).longValue(),
+			minCodonReads
+		);
 		return (
 			getCodonReads().stream()
-			.filter(cdr -> cdr.getReads() > minReads)
+			.filter(cdr -> cdr.getReads() >= minReads)
 			.collect(Collectors.toList())
 		);
 		
