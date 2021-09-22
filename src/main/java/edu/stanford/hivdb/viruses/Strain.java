@@ -39,6 +39,7 @@ import com.google.gson.reflect.TypeToken;
 
 import edu.stanford.hivdb.drugs.DrugClass;
 import edu.stanford.hivdb.seqreads.SequenceReadsAssembler;
+import edu.stanford.hivdb.sequences.SequenceAssembler;
 import edu.stanford.hivdb.utilities.Json;
 
 public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<VirusT>> {
@@ -176,6 +177,10 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 	
 	public SequenceReadsAssembler<VirusT> getSequenceReadsAssembler() {
 		return virusInstance.getSequenceReadsAssembler(this);
+	}
+	
+	public SequenceAssembler<VirusT> getSequenceAssembler() {
+		return virusInstance.getSequenceAssembler(this);
 	}
 	
 	@Override

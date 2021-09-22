@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
+import edu.stanford.hivdb.viruses.WithGene;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MultiCodonsMutation;
 import edu.stanford.hivdb.mutations.MutationSet;
@@ -42,7 +43,7 @@ import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.WithSequenceReadsHisto
 import edu.stanford.hivdb.sequences.UnsequencedRegions;
 import edu.stanford.hivdb.utilities.CodonUtils;
 
-public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT> {
+public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithGene<VirusT> {
 
 	private final Gene<VirusT> gene;
 	private final int firstAA;
@@ -88,7 +89,9 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 		this(posCodonReads.get(0).getGene(), posCodonReads, cutoffObj);
 	}
 
+	@Override
 	public Gene<VirusT> getGene() { return gene; }
+
 	public int getFirstAA() { return firstAA; }
 	public int getLastAA() { return lastAA; }
 	public int getSize() { return lastAA - firstAA; }

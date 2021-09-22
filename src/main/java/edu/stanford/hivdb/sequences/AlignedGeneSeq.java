@@ -171,30 +171,42 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	public int[] getShrinkage() {
 		return new int [] { leftTrimmed, rightTrimmed };
 	}
+	
+	protected List<Pair<Integer, String>> getAllCodons() {
+		String naSeq;
+		if (sequenceReversed) {
+			naSeq = reversedSeq.getSequence();
+		}
+		else {
+			naSeq = sequence.getSequence();
+		}
+
+		List<Pair<Integer, String>> allCodons = new ArrayList<>();
+
+		for (AlignedSite site : alignedSites) {
+			List<Integer> posNAs = site.getPosNAs();
+			StringBuilder codon = new StringBuilder();
+			for (Integer posNA : posNAs) {
+				if (posNA == null) {
+					codon.append('-');
+				}
+				else {
+					codon.append(naSeq.charAt(posNA - 1));
+				}
+			}
+			allCodons.add(Pair.of(site.getPosAA(), codon.toString()));
+		}
+		
+		return allCodons;
+	}
 
 	public String getAlignedNAs() {
 		if (this.alignedNAs == null) {
 			StringBuilder alignedNAs = new StringBuilder();
-			String naSeq;
-			if (sequenceReversed) {
-				naSeq = reversedSeq.getSequence();
-			}
-			else {
-				naSeq = sequence.getSequence();
-			}
-
-			for (AlignedSite site : alignedSites) {
-				List<Integer> posNAs = site.getPosNAs().subList(0, 3);
-				StringBuilder codon = new StringBuilder();
-				for (Integer posNA : posNAs) {
-					if (posNA == null) {
-						codon.append('-');
-					}
-					else {
-						codon.append(naSeq.charAt(posNA - 1));
-					}
-				}
-				alignedNAs.append(codon);
+			for (Pair<Integer, String> posCodon : getAllCodons()) {
+				// skip insertions by only using first 3 chars
+				String noInsCodon = posCodon.getRight().substring(0, 3);
+				alignedNAs.append(noInsCodon);
 			}
 			this.alignedNAs = alignedNAs.toString();
 		}

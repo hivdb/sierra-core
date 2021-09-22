@@ -63,6 +63,7 @@ import edu.stanford.hivdb.seqreads.SequenceReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsValidator;
 import edu.stanford.hivdb.sequences.AlignedSequence;
 import edu.stanford.hivdb.sequences.AlignmentConfig;
+import edu.stanford.hivdb.sequences.SequenceAssembler;
 import edu.stanford.hivdb.sequences.SequenceValidator;
 import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.ValidationResult;
@@ -434,6 +435,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		return DefaultVirusGraphQLExtension.getInstance();
 	}
 
+	SequenceAssembler<VirusT> getSequenceAssembler(Strain<VirusT> strain);
 	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler(Strain<VirusT> strain);
 
 }

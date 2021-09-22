@@ -1,4 +1,4 @@
-package edu.stanford.hivdb.seqreads;
+package edu.stanford.hivdb.sequences;
 
 import java.util.List;
 import java.util.Map;
@@ -10,34 +10,34 @@ import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.UntranslatedRegion;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assembler<
+public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 	VirusT,
-	GeneSequenceReads<VirusT>,
-	SequenceReadsAssemblyRegion<VirusT>,
-	SequenceReadsAssembler<VirusT>
+	AlignedGeneSeq<VirusT>,
+	SequenceAssemblyRegion<VirusT>,
+	SequenceAssembler<VirusT>
 > {
-	
+
 	@SuppressWarnings("unchecked")
 	public static <VirusT extends Virus<VirusT>>
-	Map<Strain<VirusT>, SequenceReadsAssembler<VirusT>> loadJson(
+	Map<Strain<VirusT>, SequenceAssembler<VirusT>> loadJson(
 		String raw,
 		VirusT virusIns
 	) {
-		return Assembler.loadJson(SequenceReadsAssembler.class, SequenceReadsAssemblyRegion.class, raw, virusIns);
+		return Assembler.loadJson(SequenceAssembler.class, SequenceAssemblyRegion.class, raw, virusIns);
 	}
 
-	public SequenceReadsAssembler(List<SequenceReadsAssemblyRegion<VirusT>> regions) {
+	public SequenceAssembler(List<SequenceAssemblyRegion<VirusT>> regions) {
 		super(regions);
 	}
 	
 	@Override
 	public String assemble(
-		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
+		final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs,
 		final Map<String, UntranslatedRegion> utrLookup,
 		final boolean skipIns
 	) {
 		StringBuilder cons = new StringBuilder();
-		for (SequenceReadsAssemblyRegion<VirusT> abr : getRegions()) {
+		for (SequenceAssemblyRegion<VirusT> abr : getRegions()) {
 			if (abr.getType() == AssemblyRegionType.UNTRANS_REGION) {
 				cons.append(
 					abr.assemble(utrLookup.get(abr.getName()), skipIns)
@@ -45,7 +45,10 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 			}
 			else { // type == GENE
 				cons.append(
-					abr.assemble(allGeneSequenceReads.get(abr.getGene()), skipIns)
+					abr.assemble(
+						alignedGeneSeqs.get(abr.getGene()),
+						skipIns
+					)
 				);
 			}
 		}
@@ -56,5 +59,5 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 			return cons.toString().replace("-", "");
 		}
 	}
-
+	
 }

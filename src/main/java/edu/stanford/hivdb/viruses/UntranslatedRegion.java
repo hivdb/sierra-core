@@ -1,4 +1,4 @@
-package edu.stanford.hivdb.seqreads;
+package edu.stanford.hivdb.viruses;
 
 public class UntranslatedRegion {
 

@@ -38,6 +38,7 @@ import edu.stanford.hivdb.genotypes.BoundGenotype;
 import edu.stanford.hivdb.genotypes.GenotypeResult;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
+import edu.stanford.hivdb.viruses.UntranslatedRegion;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
@@ -48,8 +49,6 @@ import edu.stanford.hivdb.viruses.Virus;
 
 public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodonReads<VirusT> {
 
-	private final static int HXB2_PR_FIRST_NA = 2253;
-	private final static double MIN_PREVALENCE_FOR_SUBTYPING = 0.2;
 	private final Strain<VirusT> strain;
 	private final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads;
 	private final List<UntranslatedRegion> untranslatedRegions;
@@ -156,15 +155,20 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		return utrLookup;
 	}
 	
-	public String getAssembledConsensus() {
+	public String getAssembledConsensus(boolean skipIns) {
 		return (
 			strain
 			.getSequenceReadsAssembler()
 			.assemble(
-				allGeneSequenceReads,
-				getUntranslatedRegionLookup()
+				/* allGeneSeqReads = */allGeneSequenceReads,
+				/* utrLookup = */getUntranslatedRegionLookup(),
+				skipIns
 			)
 		);
+	}
+	
+	public String getAssembledConsensus() {
+		return getAssembledConsensus(false);
 	}
 	
 	public Integer getSize() {
@@ -272,20 +276,6 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 		return concatenatedSeq;
 	}
 	
-	public String getConcatenatedSeqForSubtyping() {
-		StringBuilder concatSeq = new StringBuilder();
-		for (Gene<VirusT> gene : strain.getGenes()) {
-			GeneSequenceReads<VirusT> geneSeq = allGeneSequenceReads.get(gene);
-			if (geneSeq == null) {
-				concatSeq.append(StringUtils.repeat("...", gene.getAASize()));
-			} else {
-				concatSeq.append(
-					geneSeq.getAlignedNAs(MIN_PREVALENCE_FOR_SUBTYPING, 0, true));
-			}
-		}
-		return concatSeq.toString();
-	}
-	
 	@Override
 	public SequenceReadsHistogram<VirusT> getHistogram(
 		final Double pcntLowerLimit,
@@ -348,8 +338,13 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 
 	public GenotypeResult<VirusT> getSubtypeResult() {
 		if (!isEmpty() && subtypeResult == null) {
-			subtypeResult = strain.getVirusInstance().getGenotyper().compareAll(
-				getConcatenatedSeqForSubtyping(), HXB2_PR_FIRST_NA);
+			subtypeResult = strain
+				.getVirusInstance()
+				.getGenotyper()
+				.compareAll(
+					getAssembledConsensus(true),
+					strain.getAbsoluteFirstNA()
+				);
 		}
 		return subtypeResult;
 	}

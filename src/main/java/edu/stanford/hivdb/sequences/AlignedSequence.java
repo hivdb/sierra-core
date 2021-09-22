@@ -141,7 +141,32 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return concatenatedSequence;
 	}
 	
+	/**
+	 * 
+	 * @param skipIns: skip insertions (will be aligned with reference sequences
+	 * @return
+	 */
+	public String getAssembledAlignment(boolean skipIns) {
+		return strain
+			.getSequenceAssembler()
+			.assemble(
+				/* alignedGeneSeqs = */getAlignedGeneSequenceMap(),
+				/* utrLookup = */Collections.emptyMap(),
+				skipIns
+			);
+	}
+	
+	/**
+	 * @deprecated
+	 * Should gradually convert to using getAssembledAlignment()
+	 * 
+	 * @param <T>: virus class of the targetStrain
+	 * @param trimResult: should trimming N's at each side or not
+	 * @param targetStrain: apply modifier to concatSeq
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	private <T extends Virus<T>> String concatAlignments(boolean trimResult, Strain<T> targetStrain) {
 		String geneSeqNAs;
 		AlignedGeneSeq<VirusT> geneSeq;
@@ -195,12 +220,12 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		if (!isEmpty && genotypeResult == null) {
 			Strain<VirusT> targetStrain = virusInstance.getMainStrain();
 			// Tweak the alignment first
-			String compatConcatSeq = concatAlignments(false, targetStrain);
+			String assembledAlignment = getAssembledAlignment(true);
 			int absFirstNA = targetStrain.getAbsoluteFirstNA();
 			genotypeResult = (
 				virusInstance
 				.getGenotyper()
-				.compareAll(compatConcatSeq, absFirstNA)
+				.compareAll(assembledAlignment, absFirstNA)
 			);
 		}
 		return genotypeResult;
