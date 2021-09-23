@@ -2,10 +2,9 @@ package edu.stanford.hivdb.sequences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.viruses.AssemblyRegion;
 import edu.stanford.hivdb.viruses.Gene;
@@ -40,22 +39,16 @@ public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends Assemb
 			);
 		}
 		else {
-			int firstAA = geneSeq.getFirstAA();
-			int lastAA = geneSeq.getLastAA();
 			seq = new ArrayList<>();
-			for (int pos = 1; pos < firstAA; pos ++) {
-				seq.add("NNN");
-			}
-			for (Pair<Integer, String> posCodon : geneSeq.getAllCodons()) {
+			Map<Integer, String> codonLookup = geneSeq.getCodonLookup();
+			for (int pos = 1; pos <= aaSize; pos ++) {
+				String posCodon = codonLookup.getOrDefault(pos, "NNN");
 				if (skipIns) {
-					seq.add(posCodon.getRight().substring(0, 3));
+					seq.add(posCodon.substring(0, 3));
 				}
 				else {
-					seq.add(posCodon.getRight().replace("-", ""));
+					seq.add(posCodon.replace("-", ""));
 				}
-			}
-			for (int pos = lastAA + 1; pos < aaSize; pos ++) {
-				seq.add("NNN");
 			}
 		}
 		seq = this.trimCodonList(seq);

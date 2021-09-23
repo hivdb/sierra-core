@@ -39,11 +39,26 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 		StringBuilder cons = new StringBuilder();
 		for (SequenceAssemblyRegion<VirusT> abr : getRegions()) {
 			if (abr.getType() == AssemblyRegionType.UNTRANS_REGION) {
+				/* System.out.printf(
+					"name: %s; length: %d; actual: %d\n",
+					abr.getName(),
+					abr.getRefEnd() - abr.getRefStart() + 1,
+					abr.assemble(utrLookup.get(abr.getName()), skipIns).length()
+				); */
 				cons.append(
 					abr.assemble(utrLookup.get(abr.getName()), skipIns)
 				);
 			}
 			else { // type == GENE
+				/* System.out.printf(
+					"name: %s; length: %d; actual: %d\n",
+					abr.getName(),
+					abr.getGene().getNASize(),
+					abr.assemble(
+						alignedGeneSeqs.get(abr.getGene()),
+						skipIns
+					).length()
+				); */
 				cons.append(
 					abr.assemble(
 						alignedGeneSeqs.get(abr.getGene()),

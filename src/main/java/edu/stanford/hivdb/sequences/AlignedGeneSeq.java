@@ -172,6 +172,15 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return new int [] { leftTrimmed, rightTrimmed };
 	}
 	
+	protected Map<Integer, String> getCodonLookup() {
+		return getAllCodons()
+			.stream()
+			.collect(Collectors.toMap(
+				pair -> pair.getLeft(),
+				pair -> pair.getRight()
+			));
+	}
+	
 	protected List<Pair<Integer, String>> getAllCodons() {
 		String naSeq;
 		if (sequenceReversed) {
@@ -203,9 +212,10 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	public String getAlignedNAs() {
 		if (this.alignedNAs == null) {
 			StringBuilder alignedNAs = new StringBuilder();
-			for (Pair<Integer, String> posCodon : getAllCodons()) {
+			Map<Integer, String> codonLookup = getCodonLookup();
+			for (int pos = firstAA; pos <= lastAA; pos ++) {
 				// skip insertions by only using first 3 chars
-				String noInsCodon = posCodon.getRight().substring(0, 3);
+				String noInsCodon = codonLookup.getOrDefault(pos, "NNN").substring(0, 3);
 				alignedNAs.append(noInsCodon);
 			}
 			this.alignedNAs = alignedNAs.toString();

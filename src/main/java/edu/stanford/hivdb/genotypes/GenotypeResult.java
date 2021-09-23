@@ -41,29 +41,48 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 		return genotypes.get(0);
 	}
 
-	public BoundGenotype<VirusT> getFallbackMatch() {
+	public BoundGenotype<VirusT> getParentFallbackMatch(BoundGenotype<VirusT> firstBg) {
 		try {
 			return genotypes.stream()
-				.filter(bg -> !bg.getGenotype().hasParentGenotypes())
+				.filter(bg -> (
+					bg != firstBg &&
+					firstBg.getGenotype().hasParentGenotypes() &&
+					firstBg.getGenotype().getParentGenotypes().contains(bg.getGenotype())
+				))
 				.findFirst().get();
 		} catch (NoSuchElementException e) {
 			return null;
 		}
 	}
 
+	public BoundGenotype<VirusT> getChildFallbackMatch(BoundGenotype<VirusT> firstBg) {
+		try {
+			return genotypes.stream()
+				.filter(bg -> (
+					bg != firstBg &&
+					bg.getGenotype().hasParentGenotypes() &&
+					bg.getGenotype().getParentGenotypes().contains(firstBg.getGenotype())
+				))
+				.findFirst().get();
+		} catch (NoSuchElementException e) {
+			return null;
+		}
+	}
+	
 	public List<BoundGenotype<VirusT>> getAllMatches() {
 		return Collections.unmodifiableList(genotypes);
 	}
 
 	public BoundGenotype<VirusT> getBestMatch() {
 		BoundGenotype<VirusT> first = getFirstMatch();
-		BoundGenotype<VirusT> fallback = getFallbackMatch();
+		BoundGenotype<VirusT> parentFb = getParentFallbackMatch(first);
+		BoundGenotype<VirusT> childFb = getChildFallbackMatch(first);
 		
-		if (first == null || fallback == null) {
+		if (first == null || (parentFb == null && childFb == null)) {
 			return null;
 		}
 
-		return first.shouldFallbackTo(fallback) ? fallback : first;
+		return first.useOrFallbackTo(parentFb, childFb);
 	}
 
 }

@@ -269,14 +269,35 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		return getGenotype().getParentGenotypes();
 	}
 
-	public Boolean shouldFallbackTo(BoundGenotype<VirusT> fallback) {
-		if (checkDistance() ||
-				fallback.getDistance() - getDistance() >
-				MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF) {
-
-			return false;
+	public BoundGenotype<VirusT> useOrFallbackTo(
+		BoundGenotype<VirusT> parentFb,
+		BoundGenotype<VirusT> childFb
+	) {
+		if (!checkDistance()) {
+			double parentFbDistDiff = parentFb == null ? 1. : parentFb.getDistance() - getDistance();
+			double childFbDistDiff = childFb == null ? 1. : childFb.getDistance() - getDistance();
+			boolean parentFbChk = parentFb == null ? false : parentFb.checkDistance();
+			boolean childFbChk = childFb == null ? false : childFb.checkDistance();
+			if (
+				parentFbDistDiff < MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF &&
+				(
+					(parentFbChk &&	!childFbChk) || 
+					parentFbDistDiff < childFbDistDiff
+				)
+			) {
+				return parentFb;
+			}
+			else if (
+				childFbDistDiff < MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF &&
+				(
+					(childFbChk && !parentFbChk) ||
+					childFbDistDiff < parentFbDistDiff
+				)
+			) {
+				return childFb;
+			}
 		}
-		return true;
+		return this;
 	}
 
 	@Override

@@ -63,7 +63,7 @@ public class SequenceReadsAssemblyRegion<VirusT extends Virus<VirusT>> extends A
 					seq.add(pcr.getCodonConsensusWithIns(pcntThreshold, countThreshold));
 				}
 			}
-			for (int pos = lastAA + 1; pos < aaSize; pos ++) {
+			for (int pos = lastAA + 1; pos <= aaSize; pos ++) {
 				seq.add("NNN");
 			}
 		}

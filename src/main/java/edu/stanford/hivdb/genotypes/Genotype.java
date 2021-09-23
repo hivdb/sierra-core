@@ -193,6 +193,7 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 	 * @return			Is distance less than upper limit
 	 */
 	public Boolean checkDistance(double distance) {
+		// System.out.printf("name: %s; distance: %f; distanceUL: %f\n", name, distance, distanceUpperLimit);
 		return distance < distanceUpperLimit;
 	}
 
