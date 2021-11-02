@@ -35,8 +35,8 @@ import edu.stanford.hivdb.viruses.Virus;
 
 public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 	
-	public static final Double minKeyPointMixtureRateDiff = 0.00001;
-	public static final Double minKeyPointMinPrevalenceRateDiff = 0.001;
+	public static final Double minKeyPointMixtureRateFoldDiff = 1.1;
+	public static final Double minKeyPointMinPrevalenceRateFoldDiff = 1.1;
 	
 	public static class CutoffKeyPoint {
 		private final Double mixtureRate;
@@ -145,12 +145,13 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 		double prevMixtureRate = 0.;
 		double prevProportion = 1.;
 		List<CutoffKeyPoint> cutoffKeyPoints = new ArrayList<>();
-		cutoffKeyPoints.add(new CutoffKeyPoint(
+		CutoffKeyPoint prevKeyPoint = new CutoffKeyPoint(
 			prevMixtureRate,
 			prevProportion,
 			prevMixtureRate > maxMixtureRate,
 			prevProportion < minPrevalence
-		));
+		);
+		cutoffKeyPoints.add(prevKeyPoint);
 		for (Pair<GenePosition<VirusT>, CodonReads<VirusT>> pcdr : sortedCodonReads) {
 			GenePosition<VirusT> genePos = pcdr.getLeft();
 			CodonReads<VirusT> cdr = pcdr.getRight();
@@ -172,32 +173,30 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 			double curProportion = cdr.getProportion();
 			if (
 				(
-					curMixtureRate - prevMixtureRate < minKeyPointMixtureRateDiff ||
-					prevProportion - curProportion < minKeyPointMinPrevalenceRateDiff
-				) &&
-				!(
+					prevMixtureRate / prevKeyPoint.mixtureRate >= minKeyPointMixtureRateFoldDiff &&
+					prevKeyPoint.minPrevalence / prevProportion >= minKeyPointMinPrevalenceRateFoldDiff
+				) ||
+				(
 					curMixtureRate > maxMixtureRate ^  // xor
 					curProportion < minPrevalence
 				)
 			) {
-				continue;
+				prevKeyPoint = new CutoffKeyPoint(
+					prevMixtureRate,
+					prevProportion,
+					prevMixtureRate > maxMixtureRate,
+					prevProportion < minPrevalence
+				);
+				cutoffKeyPoints.add(prevKeyPoint);
 			}
-			else {
-				prevMixtureRate = curMixtureRate;
-				prevProportion = curProportion;
-				cutoffKeyPoints.add(new CutoffKeyPoint(
-					curMixtureRate,
-					curProportion,
-					curMixtureRate > maxMixtureRate,
-					curProportion < minPrevalence
-				));
-			}
+			prevMixtureRate = curMixtureRate;
+			prevProportion = curProportion;
 		}
 		cutoffKeyPoints.add(new CutoffKeyPoint(
-			1.0,
-			0.0,
-			true,
-			true
+			prevMixtureRate,
+			prevProportion,
+			prevMixtureRate > maxMixtureRate,
+			prevProportion < minPrevalence
 		));
 		return Collections.unmodifiableList(cutoffKeyPoints);
 	}
