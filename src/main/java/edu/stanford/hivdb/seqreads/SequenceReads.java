@@ -41,13 +41,15 @@ import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.UntranslatedRegion;
 import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
+import edu.stanford.hivdb.seqreads.CutoffCalculator.CutoffKeyPoint;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.WithSequenceReadsHistogram;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogramByCodonReads.WithSequenceReadsHistogramByCodonReads;
 import edu.stanford.hivdb.utilities.ValidationResult;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodonReads<VirusT> {
+public class SequenceReads<VirusT extends Virus<VirusT>>
+implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodonReads<VirusT> {
 
 	private final Strain<VirusT> strain;
 	private final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads;
@@ -199,6 +201,8 @@ public class SequenceReads<VirusT extends Virus<VirusT>> implements WithSequence
 	public Long getMinCodonReads() { return cutoffObj.getMinCodonReads(); }
 
 	public Long getMinPositionReads() { return cutoffObj.getMinPositionReads(); }
+	
+	public List<CutoffKeyPoint> getCutoffKeyPoints() { return cutoffObj.getCutoffKeyPoints(); }
 	
 	public List<ValidationResult> getValidationResults() {
 		if (validationResults == null) {

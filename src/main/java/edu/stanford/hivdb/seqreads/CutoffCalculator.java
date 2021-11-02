@@ -20,6 +20,7 @@
 package edu.stanford.hivdb.seqreads;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +34,54 @@ import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class CutoffCalculator<VirusT extends Virus<VirusT>> {
+	
+	public static final Double minKeyPointMixtureRateDiff = 0.00001;
+	public static final Double minKeyPointMinPrevalenceRateDiff = 0.001;
+	
+	public static class CutoffKeyPoint {
+		private final Double mixtureRate;
+		private final Double minPrevalence;
+		private final Boolean aboveMixtureRateThreshold;
+		private final Boolean belowMinPrevalenceThreshold;
+
+		public CutoffKeyPoint(
+			double mixtureRate,
+			double minPrevalence,
+			boolean aboveMixtureRateThreshold,
+			boolean belowMinPrevalenceThreshold
+		) {
+			this.mixtureRate = mixtureRate;
+			this.minPrevalence = minPrevalence;
+			this.aboveMixtureRateThreshold = aboveMixtureRateThreshold;
+			this.belowMinPrevalenceThreshold = belowMinPrevalenceThreshold;
+		}
+		
+		public Double getMixtureRate() {
+			return mixtureRate;
+		}
+		
+		public Double getMinPrevalence() {
+			return minPrevalence;
+		}
+		
+		public Boolean isAboveMixtureRateThreshold() {
+			return aboveMixtureRateThreshold;
+		}
+		
+		public Boolean isBelowMinPrevalenceThreshold() {
+			return belowMinPrevalenceThreshold;
+		}
+		
+	}
 
 	private static final int EMPTY = 0; 
 	private static final int MIXTURE = -1;
-	private final Double actualMixtureRate;
-	private final Double actualMinPrevalence;
 	private final Double maxMixtureRate;
 	private final Double minPrevalence;
 	private final Long minCodonReads;
 	private final Long minPositionReads;
+	private final CutoffKeyPoint selectedCutoff;
+	private final List<CutoffKeyPoint> cutoffKeyPoints;
 	
 	protected static List<Integer> mergeCodon(List<Integer> codonA, List<Integer> codonB) {
 		if (codonA == null) {
@@ -69,6 +109,98 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 		return newCodon;
 	}
 	
+	protected static
+	<VirusT extends Virus<VirusT>> List<CutoffKeyPoint>
+	calcCutoffKeyPoints(
+		List<PositionCodonReads<VirusT>> allReads,
+		Double maxMixtureRate,
+		Double minPrevalence,
+		Long minCodonReads,
+		Long minPositionReads
+	) {
+		List<Pair<GenePosition<VirusT>, CodonReads<VirusT>>> sortedCodonReads = allReads
+			.stream()
+			.filter(pcr -> pcr.getTotalReads() >= minPositionReads)
+			.flatMap(
+				pcr -> (
+					pcr.getCodonReads()
+					.stream()
+					.filter(cdr -> cdr.getReads() >= minCodonReads)
+					.map(cdr -> Pair.of(pcr.getGenePosition(), cdr))
+				)
+			)
+			.sorted(
+				(r1, r2) -> (
+					r2.getRight().getProportion()
+					.compareTo(
+						r1.getRight().getProportion()
+					)
+				)
+			)
+			.collect(Collectors.toList());
+
+		Map<GenePosition<VirusT>, List<Integer>> codonLookup = new HashMap<>();
+		double numMixtures = 0;
+		double numNAs = 0;
+		double prevMixtureRate = 0.;
+		double prevProportion = 1.;
+		List<CutoffKeyPoint> cutoffKeyPoints = new ArrayList<>();
+		cutoffKeyPoints.add(new CutoffKeyPoint(
+			prevMixtureRate,
+			prevProportion,
+			prevMixtureRate > maxMixtureRate,
+			prevProportion < minPrevalence
+		));
+		for (Pair<GenePosition<VirusT>, CodonReads<VirusT>> pcdr : sortedCodonReads) {
+			GenePosition<VirusT> genePos = pcdr.getLeft();
+			CodonReads<VirusT> cdr = pcdr.getRight();
+			List<Integer> codon = (
+				(cdr.getCodon() + "---").substring(0, 3).chars()
+				.mapToObj(i -> i).collect(Collectors.toList())
+			);
+			List<Integer> prevCodon = codonLookup.getOrDefault(genePos, null);
+			if (prevCodon == null) {
+				numNAs += 3;
+			}
+			List<Integer> mergedCodon = mergeCodon(prevCodon, codon);
+			codonLookup.put(genePos, mergedCodon);
+			numMixtures += (
+				- (prevCodon == null ? 0 : prevCodon.stream().filter(na -> na == MIXTURE).count())
+				+ mergedCodon.stream().filter(na -> na == MIXTURE).count()
+			);
+			double curMixtureRate = numMixtures / numNAs;
+			double curProportion = cdr.getProportion();
+			if (
+				(
+					curMixtureRate - prevMixtureRate < minKeyPointMixtureRateDiff ||
+					prevProportion - curProportion < minKeyPointMinPrevalenceRateDiff
+				) &&
+				!(
+					curMixtureRate > maxMixtureRate ^  // xor
+					curProportion < minPrevalence
+				)
+			) {
+				continue;
+			}
+			else {
+				prevMixtureRate = curMixtureRate;
+				prevProportion = curProportion;
+				cutoffKeyPoints.add(new CutoffKeyPoint(
+					curMixtureRate,
+					curProportion,
+					curMixtureRate > maxMixtureRate,
+					curProportion < minPrevalence
+				));
+			}
+		}
+		cutoffKeyPoints.add(new CutoffKeyPoint(
+			1.0,
+			0.0,
+			true,
+			true
+		));
+		return Collections.unmodifiableList(cutoffKeyPoints);
+	}
 	
 	public CutoffCalculator(
 		List<PositionCodonReads<VirusT>> allReads,
@@ -93,78 +225,31 @@ public class CutoffCalculator<VirusT extends Virus<VirusT>> {
 		this.minPrevalence = minPrevalence;
 		this.minCodonReads = minCodonReads;
 		this.minPositionReads = minPositionReads;
-		
-		List<Pair<GenePosition<VirusT>, CodonReads<VirusT>>> sortedCodonReads = allReads
+		cutoffKeyPoints = calcCutoffKeyPoints(
+			allReads,
+			maxMixtureRate,
+			minPrevalence,
+			minCodonReads,
+			minPositionReads
+		);
+		selectedCutoff = cutoffKeyPoints
 			.stream()
-			.filter(pcr -> pcr.getTotalReads() >= this.minPositionReads)
-			.flatMap(
-				pcr -> (
-					pcr.getCodonReads()
-					.stream()
-					.filter(cdr -> cdr.getReads() >= this.minCodonReads)
-					.map(cdr -> Pair.of(pcr.getGenePosition(), cdr))
-				)
-			)
-			.sorted(
-				(r1, r2) -> (
-					r2.getRight().getProportion()
-					.compareTo(
-						r1.getRight().getProportion()
-					)
-				)
-			)
-			.collect(Collectors.toList());
-		
-		Map<GenePosition<VirusT>, List<Integer>> codonLookup = new HashMap<>();
-		double numMixtures = 0;
-		double numNAs = 0;
-		double prevProportion = 1.;
-		double prevMixtureRate = 0.;
-		for (Pair<GenePosition<VirusT>, CodonReads<VirusT>> pcdr : sortedCodonReads) {
-			GenePosition<VirusT> genePos = pcdr.getLeft();
-			CodonReads<VirusT> cdr = pcdr.getRight();
-			List<Integer> codon = (
-				(cdr.getCodon() + "---").substring(0, 3).chars()
-				.mapToObj(i -> i).collect(Collectors.toList())
-			);
-			List<Integer> prevCodon = codonLookup.getOrDefault(genePos, null);
-			if (prevCodon == null) {
-				numNAs += 3;
-			}
-			List<Integer> mergedCodon = mergeCodon(prevCodon, codon);
-			codonLookup.put(genePos, mergedCodon);
-			numMixtures += (
-				- (prevCodon == null ? 0 : prevCodon.stream().filter(na -> na == MIXTURE).count())
-				+ mergedCodon.stream().filter(na -> na == MIXTURE).count()
-			);
-			/* System.out.println("prevCodon: " + prevCodon + " " +
-				(prevCodon == null ? 0 : prevCodon.stream().filter(na -> na == MIXTURE).count()) +
-				"  mergedCodon: " + mergedCodon + " " +
-				mergedCodon.stream().filter(na -> na == MIXTURE).count() +
-				"  mixture: " +				
-				numMixtures +
-				"  total: " + numNAs); */
-			double curMixtureRate = numMixtures / numNAs;
-			double curProportion = cdr.getProportion();
-			if (curMixtureRate > maxMixtureRate || curProportion < minPrevalence) {
-				// System.out.println(codonLookup);
-				break;
-			}
-			else {
-				prevMixtureRate = curMixtureRate;
-				prevProportion = curProportion;
-			}
-		}
-		this.actualMixtureRate = prevMixtureRate;
-		this.actualMinPrevalence = prevProportion;
+			.filter(ckp -> (
+				!ckp.isAboveMixtureRateThreshold() &&
+				!ckp.isBelowMinPrevalenceThreshold()
+			))
+			.reduce((first, second) -> second)
+			.get();
 	}
-	
+
 	public Double getMaxMixtureRate() { return maxMixtureRate; }
 	public Double getMinPrevalence() { return minPrevalence; }
 	public Long getMinCodonReads() { return minCodonReads; }
 	public Long getMinPositionReads() { return minPositionReads; }
 	
-	public Double getActualMixtureRate() { return actualMixtureRate; }
-	public Double getActualMinPrevalence() { return actualMinPrevalence; }
+	public Double getActualMixtureRate() { return selectedCutoff.getMixtureRate(); }
+	public Double getActualMinPrevalence() { return selectedCutoff.getMinPrevalence(); }
+	
+	public List<CutoffKeyPoint> getCutoffKeyPoints() { return cutoffKeyPoints; }
 	
 }
