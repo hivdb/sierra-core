@@ -37,7 +37,7 @@ dependencies {
     implementation 'com.mashape.unirest:unirest-java:1.4.9'
     implementation 'com.neovisionaries:nv-i18n:1.22'
     implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.688'
-    compile project(':asi_interpreter')
+    implementation project(':asi_interpreter')
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.2.0'
 }
