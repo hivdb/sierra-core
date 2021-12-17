@@ -365,6 +365,10 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		int proteinSize = lastAA - firstAA + 1;
 		List<Integer> candidates = new ArrayList<>();
 		List<Boolean> invalidSites = new ArrayList<>(Collections.nCopies(proteinSize, false));
+		if (seqShrinkWindow == 0. || seqShrinkCutoff == 100.) {
+			return new int[]{trimLeft, trimRight};
+		}
+
 		for (Mutation<VirusT> mut : mutations) {
 			int idx = mut.getPosition() - firstAA;
 			if (!mut.isUnsequenced() && (
