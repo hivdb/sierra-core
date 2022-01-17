@@ -108,7 +108,26 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 			))
 		);
 
-		POST_PROCESSORS = Collections.unmodifiableMap(alignConfig.getConfigField("postProcessors"));
+		Map<String, List<String>> postProcessors = alignConfig.getConfigField("postProcessors");
+		POST_PROCESSORS = Collections.unmodifiableMap(
+			postProcessors.entrySet()
+			.stream()
+			.collect(
+				Collectors.toMap(
+					e -> e.getKey(),
+					e -> {
+						List<String> cmds = e.getValue();
+						if (cmds == null) {
+							return Collections.emptyList();
+						}
+						return cmds
+							.stream()
+							.filter(n -> !n.startsWith("#"))
+							.collect(Collectors.toList());
+					}
+				)
+			)
+		);
 	}
 
 
