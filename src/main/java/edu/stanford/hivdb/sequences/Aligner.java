@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
-
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.CodonMutation;
@@ -123,7 +121,10 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 				results = selectBestAlignments(reversedResults, results);
 			}
 		}
-		return Lists.newArrayList(results.values());
+		final Map<Sequence, AlignedSequence<VirusT>> finalResults = results;
+		return sequences.stream()
+			.map(seq -> finalResults.get(seq))
+			.collect(Collectors.toList());
 	}
 
 	/**
