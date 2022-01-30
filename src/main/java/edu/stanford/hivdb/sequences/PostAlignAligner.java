@@ -225,7 +225,7 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 
 	@Override
 	public Map<Sequence, AlignedSequence<VirusT>> commandParallelAlign(
-		Collection<Sequence> sequences,
+		List<Sequence> sequences,
 		boolean reversingSequence,
 		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors
 	) {
@@ -272,23 +272,18 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	 */
 	private List<AlignedSequence<VirusT>> processCommandOutput(
 			Strain<VirusT> strain,
-			Collection<Sequence> sequences,
+			List<Sequence> sequences,
 			Map<String, List<Map<String, ?>>> jsonObjs,
 			Map<Gene<VirusT>, String> geneLookup,
 			boolean sequenceReversed,
 			Map<Sequence, Map<Strain<VirusT>,
 			StringBuilder>> errors) {
 
-		int numAlignments = 0;
-		for (List<Map<String, ?>> alnResults : jsonObjs.values()) {
-			numAlignments = Math.max(numAlignments, ((List<?>) alnResults).size());
-		}
+		int numSequences = sequences.size();
 		List<AlignedSequence<VirusT>> alignedSequences = new ArrayList<>();
-		Map<String, Sequence> sequenceMap = sequences.stream()
-			.collect(Collectors.toMap(seq -> seq.getHeader(), seq -> seq));
 
-		for (int idx = 0; idx < numAlignments; idx ++) {
-			Sequence sequence = null;
+		for (int idx = 0; idx < numSequences; idx ++) {
+			Sequence sequence = sequences.get(idx);
 			Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs = new TreeMap<>();
 			Map<Gene<VirusT>, String> discardedGenes = new LinkedHashMap<>();
 
@@ -296,9 +291,6 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				String fragmentName = geneLookup.get(gene);
 				String refFragmentName = FROM_FRAGMENT.get(fragmentName);
 				Map<String, ?> result = jsonObjs.get(refFragmentName).get(idx);
-				// TODO: should we use hash key to prevent name conflict?
-				String name = (String) result.get("Name");
-				sequence = sequenceMap.get(name);
 
 				Map<?, ?> geneResult = ((List<?>) result.get("GeneReports"))
 					.stream()

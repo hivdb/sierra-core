@@ -85,7 +85,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 	 * @param sequences		Sequence list waiting to be aligned
 	 * @return 				list of AlignedSequence objects
 	 */
-	public default List<AlignedSequence<VirusT>> parallelAlign(Collection<Sequence> sequences) {
+	public default List<AlignedSequence<VirusT>> parallelAlign(List<Sequence> sequences) {
 		return parallelAlign(sequences, false);
 	}
 
@@ -98,9 +98,9 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 	 * @param reversingSequence   flag if the sequence should be converted to reverse compliment
 	 * @return                    list of AlignedSequence objects
 	 */
-	public default List<AlignedSequence<VirusT>> parallelAlign(Collection<Sequence> sequences, boolean reversingSequence) {
+	public default List<AlignedSequence<VirusT>> parallelAlign(List<Sequence> sequences, boolean reversingSequence) {
 		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors = new LinkedHashMap<>();
-		Collection<Sequence> preparedSeqs = sequences;
+		List<Sequence> preparedSeqs = sequences;
 		if (reversingSequence) {
 			preparedSeqs = preparedSeqs.stream()
 				.map(s -> s.reverseCompliment())
@@ -135,7 +135,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 	 * @return
 	 */
 	public Map<Sequence, AlignedSequence<VirusT>> commandParallelAlign(
-		Collection<Sequence> sequences,
+		List<Sequence> sequences,
 		boolean reversingSequence,
 		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors
 	);

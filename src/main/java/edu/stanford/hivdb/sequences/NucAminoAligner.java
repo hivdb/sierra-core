@@ -216,7 +216,7 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 	
 	@Override
 	public Map<Sequence, AlignedSequence<VirusT>> commandParallelAlign(
-		Collection<Sequence> sequences,
+		List<Sequence> sequences,
 		boolean reversingSequence,
 		Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors
 	) {
@@ -250,7 +250,7 @@ public class NucAminoAligner<VirusT extends Virus<VirusT>> implements Aligner<Vi
 	 * @return list of AlignedSequence for all input sequences
 	 */
 	private List<AlignedSequence<VirusT>> processCommandOutput(
-			Strain<VirusT> strain, Collection<Sequence> sequences, String jsonString,
+			Strain<VirusT> strain, List<Sequence> sequences, String jsonString,
 			boolean sequenceReversed, Map<Sequence, Map<Strain<VirusT>, StringBuilder>> errors) {
 
 		Map<?, ?> jsonObj = Json.loads(
