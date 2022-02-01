@@ -32,7 +32,6 @@ import edu.stanford.hivdb.viruses.Virus;
 
 public class BoundGenotype<VirusT extends Virus<VirusT>> {
 
-	private static final Double MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF = 0.01; // 1%
 	private String sequence;
 	private GenotypeReference<VirusT> reference;
 	private int firstNA;
@@ -273,13 +272,14 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		BoundGenotype<VirusT> parentFb,
 		BoundGenotype<VirusT> childFb
 	) {
+		Double maxDistDiff = virusInstance.getGenotypeMaxFallbackToSecondaryDistanceDiff();
 		if (!checkDistance()) {
 			double parentFbDistDiff = parentFb == null ? 1. : parentFb.getDistance() - getDistance();
 			double childFbDistDiff = childFb == null ? 1. : childFb.getDistance() - getDistance();
 			boolean parentFbChk = parentFb == null ? false : parentFb.checkDistance();
 			boolean childFbChk = childFb == null ? false : childFb.checkDistance();
 			if (
-				parentFbDistDiff < MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF &&
+				parentFbDistDiff < maxDistDiff &&
 				(
 					(parentFbChk &&	!childFbChk) || 
 					parentFbDistDiff < childFbDistDiff
@@ -288,7 +288,7 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 				return parentFb;
 			}
 			else if (
-				childFbDistDiff < MAX_FALLBACK_TO_SECONDARY_DISTANCE_DIFF &&
+				childFbDistDiff < maxDistDiff &&
 				(
 					(childFbChk && !parentFbChk) ||
 					childFbDistDiff < parentFbDistDiff

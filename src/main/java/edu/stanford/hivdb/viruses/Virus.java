@@ -162,6 +162,10 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public default Double getGenotypeUnknownThreshold() {
 		return 0.11;
 	}
+	
+	public default Double getGenotypeMaxFallbackToSecondaryDistanceDiff() {
+		return 0.01;
+	}
 
 	public Strain<VirusT> getMainStrain();
 
