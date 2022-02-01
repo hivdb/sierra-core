@@ -52,6 +52,15 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 				.findFirst().get();
 		} catch (NoSuchElementException e) {
 			return null;
+		} catch (NullPointerException e) {
+			throw new NullPointerException(
+				String.format(
+					"Genotyping reference %s doesn't have a valid genotype, " +
+					"which triggers following NullPointerException: %s",
+					firstBg.getReference().getAccession(),
+					e
+				)
+			);
 		}
 	}
 
@@ -78,10 +87,10 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 		BoundGenotype<VirusT> parentFb = getParentFallbackMatch(first);
 		BoundGenotype<VirusT> childFb = getChildFallbackMatch(first);
 		
-		if (first == null || (parentFb == null && childFb == null)) {
+		if (first == null) {
 			return null;
 		}
-
+		
 		return first.useOrFallbackTo(parentFb, childFb);
 	}
 

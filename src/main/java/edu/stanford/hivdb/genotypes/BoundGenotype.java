@@ -39,7 +39,7 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 	private int lastNA;
 	private List<Integer> discordanceList;
 	private double distance;
-	private final VirusT virusInstance;
+	private final transient VirusT virusInstance;
 
 	protected BoundGenotype(
 		GenotypeReference<VirusT> reference,
@@ -262,7 +262,7 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 	 * @return Boolean
 	 */
 	public Boolean shouldDisplayUnknown() {
-		return getDistance() > 0.11;
+		return getDistance() > virusInstance.getGenotypeUnknownThreshold();
 	}
 
 	public List<Genotype<VirusT>> getParentGenotypes() {

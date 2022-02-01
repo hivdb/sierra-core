@@ -158,6 +158,10 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Genotyper<VirusT> getGenotyper();
 
 	public List<GenotypeReference<VirusT>> getGenotypeReferences();
+	
+	public default Double getGenotypeUnknownThreshold() {
+		return 0.11;
+	}
 
 	public Strain<VirusT> getMainStrain();
 
