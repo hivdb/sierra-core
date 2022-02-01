@@ -30,7 +30,21 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 	private List<BoundGenotype<VirusT>> genotypes;
 
 	public GenotypeResult(List<BoundGenotype<VirusT>> genotypes) {
-		genotypes.sort((g1, g2) -> g1.getDistance().compareTo(g2.getDistance()));
+		genotypes.sort((g1, g2) -> {
+			int cmp = g1.getDistance().compareTo(g2.getDistance());
+			if (cmp == 0) {
+				List<Genotype<VirusT>> g1Parents = g1.getParentGenotypes();
+				List<Genotype<VirusT>> g2Parents = g2.getParentGenotypes();
+				// child genotype should be placed before parents
+				if (g1Parents != null && g1Parents.contains(g2.getGenotype())) {
+					cmp = -1;
+				}
+				else if (g2Parents != null && g2Parents.contains(g1.getGenotype())) {
+					cmp = 1;
+				}
+			}
+			return cmp;
+		});
 		this.genotypes = genotypes;
 	}
 
