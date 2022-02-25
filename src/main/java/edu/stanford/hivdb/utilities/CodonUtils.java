@@ -458,16 +458,33 @@ public class CodonUtils {
 				}
 				char bp = codon.charAt(i);
 				if (bp == '-' && !bps.isEmpty()) {
+					// only allows '-' if is highest prevalence (when bps is empty)
 					continue;
 				}
-				// only allows '-' if is highest prevalence (bps is empty)
-				bps.add(bp);
+				// Occasionally the bp can be an ambiguous notation;
+				// translate it to unambiguous notations first
+				List<Character> unambiBp = (
+					ambiguityMapping
+					.getOrDefault(bp, String.valueOf(bp))
+					.chars()
+					.mapToObj(ord -> (char) ord)
+					.collect(Collectors.toList())
+				);
+				bps.addAll(unambiBp);
 			}
+			// Keep only legal notations in bps; or we won't get a match from
+			// `ambiguityInverseMapping`, and eventually result a string "null" appear
+			// in the `resultCodon`.
+			bps.retainAll(List.of('A', 'C', 'G', 'T', '-'));
 			allBPs.add(bps);
 		}
 
 		StringBuilder resultCodon = new StringBuilder();
 		for (Set<Character> bps : allBPs) {
+			if (bps.isEmpty()) {
+				// there's no legal notation presented at this position
+				resultCodon.append('N');
+			}
 			if (bps.contains('-')) {
 				// '-' override any NA codes
 				resultCodon.append('-');
