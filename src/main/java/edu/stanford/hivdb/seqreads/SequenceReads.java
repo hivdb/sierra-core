@@ -170,7 +170,7 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 	}
 	
 	public String getAssembledConsensus() {
-		return getAssembledConsensus(false);
+		return getAssembledConsensus(false).replaceAll("(^N+|N+$)", "");
 	}
 	
 	public Integer getSize() {
