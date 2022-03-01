@@ -157,6 +157,19 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 		return utrLookup;
 	}
 	
+	public String getAssembledUnambiguousConsensus(boolean skipIns) {
+		return (
+			strain
+			.getSequenceReadsAssembler()
+			.assemble(
+				/* allGeneSeqReads = */allGeneSequenceReads,
+				/* utrLookup = */getUntranslatedRegionLookup(),
+				skipIns,
+				/* includeAmbiguousNA = */false
+			)
+		);
+	}
+	
 	public String getAssembledConsensus(boolean skipIns) {
 		return (
 			strain
@@ -164,9 +177,14 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 			.assemble(
 				/* allGeneSeqReads = */allGeneSequenceReads,
 				/* utrLookup = */getUntranslatedRegionLookup(),
-				skipIns
+				skipIns,
+				/* includeAmbiguousNA = */true
 			)
 		);
+	}
+	
+	public String getAssembledUnambiguousConsensus() {
+		return getAssembledUnambiguousConsensus(false).replaceAll("(^N+|N+$)",  "");
 	}
 	
 	public String getAssembledConsensus() {
@@ -346,7 +364,7 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 				.getVirusInstance()
 				.getGenotyper()
 				.compareAll(
-					getAssembledConsensus(true),
+					getAssembledUnambiguousConsensus(true),
 					strain.getAbsoluteFirstNA()
 				);
 		}

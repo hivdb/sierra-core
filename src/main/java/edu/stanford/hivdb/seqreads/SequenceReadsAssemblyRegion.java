@@ -28,7 +28,16 @@ public class SequenceReadsAssemblyRegion<VirusT extends Virus<VirusT>> extends A
 	}
 	
 	@Override
+	@Deprecated
 	public String assemble(GeneSequenceReads<VirusT> geneSeqReads, boolean skipIns) {
+		return assemble(geneSeqReads, skipIns, true);
+	}
+
+	public String assemble(
+		GeneSequenceReads<VirusT> geneSeqReads,
+		boolean skipIns,
+		boolean includeAmbiguousNA
+	) {
 		int aaSize = getGene().getAASize();
 		List<String> seq;
 		if (geneSeqReads == null) {
@@ -56,11 +65,21 @@ public class SequenceReadsAssemblyRegion<VirusT extends Virus<VirusT>> extends A
 					seq.add("NNN");
 				}
 				prevPos = curPos;
-				if (skipIns) {
-					seq.add(pcr.getCodonConsensusWithoutIns(pcntThreshold, countThreshold));
+				if (includeAmbiguousNA) {
+					if (skipIns) {
+						seq.add(pcr.getCodonConsensusWithoutIns(pcntThreshold, countThreshold));
+					}
+					else {
+						seq.add(pcr.getCodonConsensusWithIns(pcntThreshold, countThreshold));
+					}
 				}
 				else {
-					seq.add(pcr.getCodonConsensusWithIns(pcntThreshold, countThreshold));
+					if (skipIns) {
+						seq.add(pcr.getMajorCodonWithoutIns(countThreshold));
+					}
+					else {
+						seq.add(pcr.getMajorCodonWithIns(countThreshold));
+					}
 				}
 			}
 			for (int pos = lastAA + 1; pos <= aaSize; pos ++) {

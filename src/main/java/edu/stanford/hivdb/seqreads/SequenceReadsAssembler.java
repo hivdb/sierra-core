@@ -31,10 +31,20 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 	}
 	
 	@Override
+	@Deprecated
 	public String assemble(
 		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
 		final Map<String, UntranslatedRegion> utrLookup,
 		final boolean skipIns
+	) {
+		return assemble(allGeneSequenceReads, utrLookup, skipIns, true);
+	}
+
+	public String assemble(
+		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
+		final Map<String, UntranslatedRegion> utrLookup,
+		final boolean skipIns,
+		final boolean includeAmbiguousNA
 	) {
 		StringBuilder cons = new StringBuilder();
 		for (SequenceReadsAssemblyRegion<VirusT> abr : getRegions()) {
@@ -45,7 +55,7 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 			}
 			else { // type == GENE
 				cons.append(
-					abr.assemble(allGeneSequenceReads.get(abr.getGene()), skipIns)
+					abr.assemble(allGeneSequenceReads.get(abr.getGene()), skipIns, includeAmbiguousNA)
 				);
 			}
 		}

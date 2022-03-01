@@ -140,6 +140,31 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 		return CodonUtils.getMergedCodon(codons);
 	}
 	
+	public static <VirusT extends Virus<VirusT>> String getMajorCodonWithoutIns(List<CodonReads<VirusT>> codonReads) {
+		return (getMajorCodonWithIns(codonReads) + "---").substring(0, 3);
+	}
+	
+	public static <VirusT extends Virus<VirusT>> String getMajorCodonWithIns(List<CodonReads<VirusT>> codonReads) {
+		if (codonReads.isEmpty()) {
+			// do not raise error
+			return "NNN";
+		}
+		else {
+			return (
+				codonReads
+				.stream()
+				.sorted((cdr1, cdr2) -> {
+					int cmp = cdr2.getReads().compareTo(cdr1.getReads());
+					if (cmp != 0) { return cmp; }
+					return cdr1.getCodon().compareTo(cdr2.getCodon());
+				})
+				.map(cdr -> cdr.getCodon())
+				.findFirst()
+				.get()
+			);
+		}
+	}
+	
 	public String getCodonConsensusWithoutIns(double minPrevalence, long minCodonReads) {
 		return getCodonConsensusWithoutIns(
 			getCodonReadsUsingThreshold(minPrevalence, minCodonReads)
@@ -150,6 +175,14 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 		return getCodonConsensusWithIns(
 			getCodonReadsUsingThreshold(minPrevalence, minCodonReads)
 		);
+	}
+	
+	public String getMajorCodonWithoutIns(long minCodonReads) {
+		return getMajorCodonWithoutIns(getCodonReadsUsingThreshold(0., minCodonReads));
+	}
+
+	public String getMajorCodonWithIns(long minCodonReads) {
+		return getMajorCodonWithIns(getCodonReadsUsingThreshold(0., minCodonReads));
 	}
 	
 	/**
