@@ -208,6 +208,14 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		}
 		return mutations;
 	}
+	
+	public Long getMutationCount() {
+		return getMutations().countIf(mut -> !mut.isUnsequenced());
+	}
+
+	public Long getUnusualMutationCount() {
+		return getMutations().countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
+	}
 
 	public MutationSet<VirusT> getSdrms() {
 		if (sdrms == null) {

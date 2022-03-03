@@ -24,11 +24,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -184,6 +187,24 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 		}
 		return pcntVal;
 	}
+	
+	/**
+	 * Finds unusual AAs from given AAs
+	 * 
+	 * @param gene
+	 * @param pos
+	 * @param aas
+	 * @return Set
+	 */
+	public Set<Character> getUnusualAAs(Gene<VirusT> gene, int pos, Collection<Character> aas) {
+		GenePosition<VirusT> gpos = new GenePosition<VirusT>(gene, pos);
+		return aas.stream()
+			.filter(aa -> {
+				AminoAcidPercent<VirusT> aaPcnt = get(gpos, aa);
+				return aaPcnt == null || aaPcnt.isUnusual();
+			})
+			.collect(Collectors.toCollection(TreeSet::new));		
+	}
 
 	/**
 	 * Returns true if the given mutation contains any unusual AA
@@ -198,7 +219,7 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 		GenePosition<VirusT> gpos = new GenePosition<VirusT>(gene, pos);
 		for (char aa : aas.toCharArray()) {
 			AminoAcidPercent<VirusT> aaPcnt = get(gpos, aa);
-			if (aaPcnt != null && aaPcnt.isUnusual()) {
+			if (aaPcnt == null || aaPcnt.isUnusual()) {
 				return true;
 			}
 		}

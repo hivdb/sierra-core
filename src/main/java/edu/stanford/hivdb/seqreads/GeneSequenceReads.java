@@ -197,6 +197,14 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 		);
 	}
 
+	public Long getMutationCount() {
+		return getMutations().countIf(mut -> !mut.isUnsequenced());
+	}
+
+	public Long getUnusualMutationCount() {
+		return getMutations().countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
+	}
+
 	/** Returns consensus sequence aligned to reference.
 	 *  All insertions are removed from the result.
 	 *

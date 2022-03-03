@@ -257,6 +257,11 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public String getAAs() {
 		return StringUtils.join(aaChars.toArray());
 	}
+	
+	@Override
+	public String getUnusualAAs() {
+		return StringUtils.join(getMainAAPcnts().getUnusualAAs(gene, position, aaChars));
+	}
 
 	@Override
 	public final Set<Character> getAAChars() {
@@ -701,8 +706,8 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		String fmtAAs = getAAsWithRefFirst();
 		fmtAAs = (
 			fmtAAs
-			.replaceAll("^_$", "Insertion")
-			.replaceAll("^-$", "Deletion")
+			.replaceAll("^_$", "ins")
+			.replaceAll("^-$", "del")
 		);
 		if (isUnsequenced()) {
 			fmtAAs = "X";
@@ -731,12 +736,12 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public final String getHumanFormatWithGene() {
-		return String.format("%s_%s", gene.getName(), getHumanFormat());
+		return String.format("%s:%s", gene.getName(), getHumanFormat());
 	}
 
 	@Override
 	public final String getHumanFormatWithAbstractGene() {
-		return String.format("%s_%s", gene.getAbstractGene(), getHumanFormat());
+		return String.format("%s:%s", gene.getAbstractGene(), getHumanFormat());
 	}
 
 	@Override

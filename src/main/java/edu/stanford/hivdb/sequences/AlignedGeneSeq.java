@@ -301,6 +301,13 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	}
 
 	public MutationSet<VirusT> getMutations() { return mutations; }  // Need
+
+	public Long getMutationCount() { return mutations.countIf(mut -> !mut.isUnsequenced()); }
+
+	public Long getUnusualMutationCount() {
+		return mutations.countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
+	}
+	
 	public List<FrameShift<VirusT>> getFrameShifts() { return frameShifts; } // Need
 
 	public PrettyPairwise<VirusT> getPrettyPairwise() {
@@ -339,7 +346,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		}
 		return unusualMutations;
 	}
-
+	
 	public MutationSet<VirusT> getUnusualMutationsAtDrugResistancePositions() {
 		return getUnusualMutations().getAtDRPMutations();
 	}

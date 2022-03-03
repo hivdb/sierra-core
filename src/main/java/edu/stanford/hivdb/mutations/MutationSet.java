@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Predicates;
 import com.google.gson.reflect.TypeToken;
 
 import edu.stanford.hivdb.drugs.DrugClass;
@@ -423,12 +424,40 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 		);
 	}
 	
+	public Long count() {
+		return countIf(Predicates.alwaysTrue());
+	}
+	
 	public Long countIf(Predicate<Mutation<VirusT>> predicate) {
-		return this
+		List<Mutation<VirusT>> muts = this
 			.getSplitted()
 			.stream()
 			.filter(predicate)
-			.count();
+			.sorted(Mutation::compare)
+			.collect(Collectors.toList());
+		long counter = 0;
+		int mutSize = muts.size();
+		for (int i = 0; i < mutSize; i ++) {
+			if (i == 0) {
+				counter += 1;
+				continue;
+			}
+			Mutation<VirusT> mut = muts.get(i);
+			if (!mut.isDeletion()) {
+				counter += 1;
+				continue;
+			}
+			Mutation<VirusT> prevMut = muts.get(i - 1);
+			if (!prevMut.isDeletion()) {
+				counter += 1;
+				continue;
+			}
+			if (prevMut.getPosition() + 1 < mut.getPosition()) {
+				counter += 1;
+				continue;
+			}
+		}
+		return counter;
 	}
 
 	public <T> Map<T, MutationSet<VirusT>> filterAndGroupBy(

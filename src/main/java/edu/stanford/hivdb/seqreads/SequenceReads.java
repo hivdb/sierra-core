@@ -358,6 +358,14 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 		return mutations;
 	}
 
+	public Long getMutationCount() {
+		return getMutations().countIf(mut -> !mut.isUnsequenced());
+	}
+
+	public Long getUnusualMutationCount() {
+		return getMutations().countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
+	}
+
 	public GenotypeResult<VirusT> getSubtypeResult() {
 		if (!isEmpty() && subtypeResult == null) {
 			subtypeResult = strain

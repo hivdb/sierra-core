@@ -48,6 +48,18 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 		}
 	}
 
+	/**
+	 * Compare two mutations by gene, position and aas.
+	 * 
+	 * @param <VirusT>
+	 * @param mutA
+	 * @param mutB
+	 * @return int
+	 */
+	public static <VirusT extends Virus<VirusT>> int compare(Mutation<VirusT> mutA, Mutation<VirusT> mutB) {
+		return mutA.compareTo(mutB);
+	}
+
 	// /**
 	//  * Split a mixture into a set of mutations.
 	//  *
@@ -241,6 +253,13 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 * @return A String of amino acids (include insertion/deletion)
 	 */
 	public String getAAs();
+	
+	/**
+	 * Gets unusual amino acids string of this mutation.
+	 *
+	 * @return A String of unusual amino acids
+	 */
+	public String getUnusualAAs();
 
 	/**
 	 * Gets the original set of amino acid characters.
