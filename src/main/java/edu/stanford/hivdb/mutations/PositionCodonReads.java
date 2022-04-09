@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Strings;
+
 import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
@@ -137,7 +139,11 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			// do not return null
 			return "NNN";
 		}
-		return CodonUtils.getMergedCodon(codons);
+		String codon = CodonUtils.getMergedCodon(codons);
+		if (codon.length() < 3) {
+			codon = codon + Strings.repeat("-", 3 - codon.length());
+		}
+		return codon;
 	}
 	
 	public static <VirusT extends Virus<VirusT>> String getMajorCodonWithoutIns(List<CodonReads<VirusT>> codonReads) {
@@ -150,7 +156,7 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			return "NNN";
 		}
 		else {
-			return (
+			String codon = (
 				codonReads
 				.stream()
 				.sorted((cdr1, cdr2) -> {
@@ -162,6 +168,10 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 				.findFirst()
 				.get()
 			);
+			if (codon.length() < 3) {
+				codon = codon + Strings.repeat("-", 3 - codon.length());
+			}
+			return codon;
 		}
 	}
 	
