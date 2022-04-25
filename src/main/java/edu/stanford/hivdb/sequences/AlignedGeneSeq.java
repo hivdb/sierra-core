@@ -45,7 +45,7 @@ import edu.stanford.hivdb.viruses.WithGene;
 
 
 /**
- * Result object of data from {@link edu.stanford.hivdb.sequences.NucAminoAligner}.
+ * Result object of data from {@link edu.stanford.hivdb.sequences.PostAlignAligner}.
  *
  */
 public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<VirusT> {

@@ -20,10 +20,6 @@
 
 package edu.stanford.hivdb.viruses;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -48,13 +44,6 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 	private final Integer ordinal;
 	private final String displayText;
 	private final Integer absoluteFirstNA;
-	private final Integer nucaminoStopCodonPenalty;
-	private final Integer nucaminoGapOpeningPenalty;
-	private final Integer nucaminoGapExtensionPenalty;
-	private final Integer nucaminoIndelCodonOpeningBonus;
-	private final Integer nucaminoIndelCodonExtensionBonus;
-	private transient String nucaminoProfileString;
-	private transient File nucaminoProfileFile;
 
 	private transient VirusT virusInstance;
 	private transient Set<DrugClass<VirusT>> drugClasses;
@@ -83,11 +72,6 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 		this.ordinal = ordinal;
 		this.displayText = displayText;
 		this.absoluteFirstNA = offsetNA;
-		this.nucaminoStopCodonPenalty = nucaminoStopCodonPenalty;
-		this.nucaminoGapOpeningPenalty = nucaminoGapOpeningPenalty;
-		this.nucaminoGapExtensionPenalty = nucaminoGapExtensionPenalty;
-		this.nucaminoIndelCodonOpeningBonus = nucaminoIndelCodonOpeningBonus;
-		this.nucaminoIndelCodonExtensionBonus = nucaminoIndelCodonExtensionBonus;
 	}
 	
 	public VirusT getVirusInstance() {
@@ -106,49 +90,6 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 		return displayText;
 	}
 	
-	public Map<String, Gene<VirusT>> getNucaminoGeneMap() {
-		Map<String, Gene<VirusT>> geneMap = new LinkedHashMap<>();
-		for (Gene<VirusT> gene : getGenes()) {
-			geneMap.put(gene.getAbstractGene().toUpperCase(), gene);
-		}
-		return geneMap;
-	}
-	
-	public String makeNucaminoProfileString() {
-		if (nucaminoProfileString == null) {
-			Map<String, Object> profile = new LinkedHashMap<>();
-			profile.put("StopCodonPenalty", nucaminoStopCodonPenalty);
-			profile.put("GapOpeningPenalty", nucaminoGapOpeningPenalty);
-			profile.put("GapExtensionPenalty", nucaminoGapExtensionPenalty);
-			profile.put("IndelCodonOpeningBonus", nucaminoIndelCodonOpeningBonus);
-			profile.put("IndelCodonExtensionBonus", nucaminoIndelCodonExtensionBonus);
-			Map<String, String> refSeqs = new LinkedHashMap<>();
-			for (Gene<VirusT> gene : getGenes()) {
-				refSeqs.put(gene.getAbstractGene().toUpperCase(), gene.getRefSequence());
-			}
-			profile.put("ReferenceSequences", refSeqs);
-			// TODO: support PositionalIndelScores
-			nucaminoProfileString = Json.dumpsUgly(profile);
-		}
-		return nucaminoProfileString;
-	}
-	
-	public File makeNucaminoProfileFile() {
-		if (nucaminoProfileFile == null || ! nucaminoProfileFile.exists()) {
-			try {
-				nucaminoProfileFile = File.createTempFile("nucamino-" + name, ".yaml");
-				BufferedWriter bw = new BufferedWriter(new FileWriter(nucaminoProfileFile));
-				bw.write(makeNucaminoProfileString());
-				bw.close();
-				nucaminoProfileFile.setReadOnly();
-				nucaminoProfileFile.deleteOnExit();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return nucaminoProfileFile;
-	}
-
 	public Integer getAbsoluteFirstNA() {
 		return absoluteFirstNA;
 	}

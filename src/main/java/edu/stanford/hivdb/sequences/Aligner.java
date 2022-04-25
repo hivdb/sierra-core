@@ -43,9 +43,6 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		if (!singletons.containsKey(className)) {
 			AlignmentConfig<VirusT> alignConfig = virusIns.getAlignmentConfig();
 			switch(alignConfig.getMethod()) {
-			case NucAmino:
-				singletons.put(className, new NucAminoAligner<>(virusIns));
-				break;
 			case PostAlign:
 				singletons.put(className, new PostAlignAligner<>(virusIns));
 				break;
