@@ -393,12 +393,12 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		sequenceValidators.put(this.getClass().getName(), validator);
 	}
 
-	public default List<ValidationResult> validateSequence(AlignedSequence<VirusT> alignedSeq) {
+	public default List<ValidationResult> validateSequence(AlignedSequence<VirusT> alignedSeq, Collection<String> includeGenes) {
 		String className = this.getClass().getName();
 		if (sequenceValidators.containsKey(className)) {
 			@SuppressWarnings("unchecked")
 			SequenceValidator<VirusT> validator = (SequenceValidator<VirusT>) sequenceValidators.get(this.getClass().getName());
-			return validator.validate(alignedSeq);
+			return validator.validate(alignedSeq, includeGenes);
 		}
 		else {
 			return Collections.emptyList();

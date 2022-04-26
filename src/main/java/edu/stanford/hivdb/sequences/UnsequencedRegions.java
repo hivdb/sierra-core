@@ -130,6 +130,11 @@ public class UnsequencedRegions<VirusT extends Virus<VirusT>> implements WithGen
 		return false;
 	}
 	
+	/**
+	 * Get the amino acid size of the unsequenced regions.
+	 * 
+	 * @return int
+	 */
 	public Long getSize() {
 		return regions.stream().map(r -> r.getSize()).reduce(0L, (a, b) -> a + b);
 	}

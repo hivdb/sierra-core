@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.AssemblyRegion.AssemblyRegionType;
@@ -42,6 +41,27 @@ public abstract class Assembler<
 				Double refEnd = (Double) rawRegion.get("refEnd");
 				String geneName = (String) rawRegion.get("geneName");
 				List<?> trim = (List<?>) rawRegion.get("trim");
+				List<Long> trimLong = new ArrayList<>();
+				if (trim != null) {
+					for (Object trimOne : trim) {
+						if (trimOne instanceof List) {
+							List<?> trimRange = ((List<?>) trimOne);
+							if (trimRange.size() == 1) {
+								trimLong.add(((Double) trimRange.get(0)).longValue());
+							}
+							else if (trimRange.size() > 1) {
+								long start = ((Double) trimRange.get(0)).longValue();
+								long end = ((Double) trimRange.get(1)).longValue();
+								for (long pos = start; pos <= end; pos ++) {
+									trimLong.add(pos);
+								}
+							}
+						}
+						else if (trimOne instanceof Double) {
+							trimLong.add(((Double) trimOne).longValue());
+						}
+					}
+				}
 				regions.add(RegionT.of(
 					regionClass,
 					(String) rawRegion.get("name"),
@@ -49,10 +69,7 @@ public abstract class Assembler<
 					refStart == null ? null : refStart.longValue(),
 					refEnd == null ? null : refEnd.longValue(),
 					geneName == null ? null : virusIns.getGene(geneName),
-					trim == null ? null : trim
-						.stream()
-						.map(t -> (Long) ((Double) t).longValue())
-						.collect(Collectors.toList())
+					trim == null ? null : trimLong
 				));
 			}
 			T assembler = T.of(myClass, regions);

@@ -97,6 +97,12 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 	public Gene<VirusT> getGene(String name) {
 		return virusInstance.getGene(this.name + name);
 	}
+	
+	public Collection<Gene<VirusT>> getGenes(List<String> names) {
+		return names.stream()
+			.map(name -> virusInstance.getGene(this.name + name))
+			.collect(Collectors.toList());
+	}
 
 	public Collection<Gene<VirusT>> getGenes() {
 		return virusInstance.getGenes(this);

@@ -21,9 +21,11 @@
 package edu.stanford.hivdb.sequences;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 import java.util.Collections;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,6 +108,16 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		Gene<VirusT> gene = strain.getGene(abstractGene);
 		return alignedGeneSequenceMap.get(gene);
 	}
+	
+	public List<AlignedGeneSeq<VirusT>> getAlignedGeneSequences(Collection<String> genes) {
+		return Collections.unmodifiableList(
+			genes.stream()
+				.map(geneText -> strain.getGene(geneText))
+				.filter(gene -> alignedGeneSequenceMap.containsKey(gene))
+				.map(gene -> alignedGeneSequenceMap.get(gene))
+				.collect(Collectors.toList())
+		);
+	}
 
 	public List<AlignedGeneSeq<VirusT>> getAlignedGeneSequences() {
 		return Collections.unmodifiableList(
@@ -120,12 +132,17 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return new ArrayList<>(alignedGeneSequenceMap.keySet());
 	}
 
+	public List<ValidationResult> getValidationResults(Collection<String> includeGenes) {
+		return (
+			strain.getVirusInstance()
+			.validateSequence(this, includeGenes)
+		);
+	}
+
 	public List<ValidationResult> getValidationResults() {
 		if (validationResults == null) {
-			validationResults = (
-				strain.getVirusInstance()
-				.validateSequence(this)
-			);
+			Virus<VirusT> virusIns = strain.getVirusInstance();
+			validationResults = getValidationResults(virusIns.getAbstractGenes());
 		}
 		return validationResults;
 	}

@@ -21,6 +21,10 @@
 package edu.stanford.hivdb.utilities;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
 
 public class MyStringUtils {
 
@@ -61,5 +65,47 @@ public class MyStringUtils {
 		return new String(chars);
 	}
 	
+	/**
+	 * Format a list in English.
+	 * 
+	 * This function is a simple implementation of JavaScript's Intl.ListFormat
+	 * for English language. The rule is to join each item except the last one by
+	 * commas, and join the last one with previous ones by text " and " or " or ".
+	 * 
+	 * For example, ["Apple", "Orange", "Banana"] will become
+	 * "Apple, Orange, and Banana".
+	 *  
+	 * @param iter the list to be formatted
+	 * @param isDisjunction true for the last joining text to be " or " and false to be " and " 
+	 * @return the formatted result.
+	 */
+	public static String listFormat(Iterable<?> iter, boolean isDisjunction) {
+		List<String> lst = Lists.newArrayList(iter)
+			.stream()
+			.map(Object::toString)
+			.collect(Collectors.toList());
+		String lastJoiner = isDisjunction ? " or " : " and ";
+		int size = lst.size();
+		switch (size) {
+			case 0:
+				return "";
+			case 1:
+				return lst.get(0);
+			case 2:
+				return String.join(lastJoiner, lst);
+			default:
+				return String.join(
+					", ", lst.subList(0, size - 1)
+				) + "," + lastJoiner + lst.get(size - 1);
+		}
+	}
+	
+	public static String orListFormat(Iterable<?> iter) {
+		return listFormat(iter, true);
+	}
+	
+	public static String andListFormat(Iterable<?> iter) {
+		return listFormat(iter, false);
+	}
 
 }
