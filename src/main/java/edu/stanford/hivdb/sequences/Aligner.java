@@ -199,6 +199,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			Optional<Integer> optFirstNA = site.getFirstPosNA();
 			if (optFirstNA.isPresent()) {
 				firstNA = optFirstNA.get();
+				break;
 			}
 		}
 		for (int idx = alignedSites.size() - 1; idx > -1; idx --) {
@@ -206,6 +207,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			Optional<Integer> optLastNA = site.getLastPosNA();
 			if (optLastNA.isPresent()) {
 				lastNA = optLastNA.get();
+				break;
 			}
 		}
 		if (firstNA == null || lastNA == null) {

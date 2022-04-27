@@ -78,11 +78,11 @@ public class FrameShift<VirusT extends Virus<VirusT>> implements Comparable<Fram
 		String output;
 		if (getType() == Type.INSERTION) {
 			output = String.format(
-				"%s%dins%dbp_%s", gene.getAbstractGene(), position, size, nas
+				"%dins%dbp_%s", position, size, nas
 			);
 		} else {
 			output = String.format(
-				"%s%ddel%dbp", gene.getAbstractGene(), position, size
+				"%ddel%dbp", position, size
 			);
 		}
 		return output;

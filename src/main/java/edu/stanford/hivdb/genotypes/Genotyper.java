@@ -235,8 +235,8 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 			}
 			int[][] treeNAs = referenceMismatchTree[treeOffset + i];
 			char seqNA = sequence.charAt(seqOffset + i);
-			if (seqNA == '.') {
-				// no need for further processing if seqNA == '.'
+			if (seqNA == '.' || seqNA == 'N') {
+				// no need for further processing if seqNA == '.' or 'N'
 				curCodon.append(seqNA);
 				continue;
 			}

@@ -51,9 +51,10 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		this.lastNA = lastNA;
 		this.discordanceList = discordanceList;
 		int numWildcards = CharMatcher.is(StrainModifier.WILDCARD).countIn(sequence);
+		int numNs = CharMatcher.is('N').countIn(sequence);
 		this.distance = (
 				(double) discordanceList.size() /
-				(lastNA - firstNA + 1 - numWildcards));
+				(sequence.length() - numWildcards - numNs));
 		this.virusInstance = virusIns;
 	}
 

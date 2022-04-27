@@ -258,19 +258,14 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	protected int getNumDiscordantNAs() {
 		int numDiscordantNAs = 0;
 		for (Mutation<VirusT> mut : mutations) {
-			if (mut.getTriplet().equals("NNN")) {
+			if (mut.isUnsequenced()) {
 				// NNN doesn't count
 				continue;
 			}
-			if (mut.isDeletion()) {
+			else if (mut.isDeletion()) {
 				numDiscordantNAs += 3;
 			} else {
 				numDiscordantNAs += 3; //CodonTranslation.getMinimalNAChanges(mut.getTriplet(), mut.getConsensus());
-			}
-		}
-		for (FrameShift<VirusT> fs: frameShifts) {
-			if (fs.isInsertion()) {
-				numDiscordantNAs += fs.getSize();
 			}
 		}
 		return numDiscordantNAs;
@@ -281,18 +276,12 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		if (matchPcnt == -1) {
 			int numNAs = lastNA - firstNA + 1;
 			for (Mutation<VirusT> mut : mutations) {
-				if (mut.getTriplet().equals("NNN")) {
-					// NNN doesn't count
+				if (mut.isUnsequenced()) {
+					// unsequenced region doesn't count
 					numNAs -= 3;
-					continue;
 				}
-				if (mut.isDeletion()) {
+				else if (mut.isDeletion()) {
 					numNAs += 3;
-				}
-			}
-			for (FrameShift<VirusT> fs: frameShifts) {
-				if (fs.isDeletion()) {
-					numNAs += fs.getSize();
 				}
 			}
 			matchPcnt = 100 - 100 * Double.valueOf(getNumDiscordantNAs()) / Double.valueOf(numNAs);
