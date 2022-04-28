@@ -409,12 +409,15 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		mutationsValidators.put(this.getClass().getName(), validator);
 	}
 
-	public default List<ValidationResult> validateMutations(MutationSet<VirusT> mutations) {
+	public default List<ValidationResult> validateMutations(
+		MutationSet<VirusT> mutations,
+		Collection<String> includeGenes
+	) {
 		String className = this.getClass().getName();
 		if (mutationsValidators.containsKey(className)) {
 			@SuppressWarnings("unchecked")
 			MutationsValidator<VirusT> validator = (MutationsValidator<VirusT>) mutationsValidators.get(this.getClass().getName());
-			return validator.validate(mutations);
+			return validator.validate(mutations, includeGenes);
 		}
 		else {
 			return Collections.emptyList();

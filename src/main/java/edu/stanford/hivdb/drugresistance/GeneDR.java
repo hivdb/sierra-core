@@ -49,9 +49,10 @@ import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.MySetUtils;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
+import edu.stanford.hivdb.viruses.WithGene;
 import edu.stanford.hivdb.mutations.Mutation;
 
-public class GeneDR<VirusT extends Virus<VirusT>> {
+public class GeneDR<VirusT extends Virus<VirusT>> implements WithGene<VirusT>  {
 
 	// Required data structures used to instantiate the class
 	private final Gene<VirusT> gene;
