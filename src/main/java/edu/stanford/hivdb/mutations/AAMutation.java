@@ -39,7 +39,7 @@ import com.google.common.primitives.Chars;
 
 import edu.stanford.hivdb.comments.BoundComment;
 import edu.stanford.hivdb.drugs.DrugClass;
-import edu.stanford.hivdb.sequences.UnsequencedRegions;
+import edu.stanford.hivdb.sequences.GeneRegions;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
@@ -201,12 +201,12 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public boolean isUnsequenced() { return false; }
 	
 	@Override
-	public boolean isUnsequenced(UnsequencedRegions<VirusT> unseqRegions) {
+	public boolean isUnsequenced(GeneRegions<VirusT> unseqRegions) {
 		if (unseqRegions == null) {
 			return isUnsequenced();
 		}
 		else {
-			return unseqRegions.isUnsequenced(gene, position);
+			return unseqRegions.contains(gene, position);
 		}
 	}
 	

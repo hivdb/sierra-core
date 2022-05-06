@@ -20,6 +20,7 @@
 
 package edu.stanford.hivdb.mutations;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,8 @@ public class GenePosition<VirusT extends Virus<VirusT>> implements Comparable<Ge
 	private transient Boolean isDrugResistancePosition;
 
 	public static <VirusT extends Virus<VirusT>> Set<GenePosition<VirusT>> getGenePositionsBetween(
-		final GenePosition<VirusT> start, final GenePosition<VirusT> end
+		final GenePosition<VirusT> start,
+		final GenePosition<VirusT> end
 	) {
 		Gene<VirusT> startGene = start.getGene();
 		Gene<VirusT> endGene = end.getGene();
@@ -77,13 +79,37 @@ public class GenePosition<VirusT extends Virus<VirusT>> implements Comparable<Ge
 		return genePositions;
 	}
 
+	public static <VirusT extends Virus<VirusT>> Set<GenePosition<VirusT>> getGenePositionsBetween(
+		final GenePosition<VirusT> start,
+		final GenePosition<VirusT> end,
+		final Collection<String> includeGenes
+	) {
+		return getGenePositionsBetween(start, end).stream()
+			.filter(gp -> includeGenes.contains(gp.getAbstractGene()))
+			.collect(Collectors.toCollection(LinkedHashSet::new));
+	}
+
 	public static <VirusT extends Virus<VirusT>> Set<GenePosition<VirusT>> getDRGenePositionsBetween(
-		final GenePosition<VirusT> start, GenePosition<VirusT> end
+		final GenePosition<VirusT> start,
+		final GenePosition<VirusT> end
 	) {
 		return (
 			getGenePositionsBetween(start, end)
 			.stream()
 			.filter(gp -> gp.isDrugResistancePosition())
+			.collect(Collectors.toCollection(LinkedHashSet::new))
+		);
+	}
+
+	public static <VirusT extends Virus<VirusT>> Set<GenePosition<VirusT>> getDRGenePositionsBetween(
+		final GenePosition<VirusT> start,
+		final GenePosition<VirusT> end,
+		final Collection<String> includeGenes
+	) {
+		return (
+			getGenePositionsBetween(start, end)
+			.stream()
+			.filter(gp -> gp.isDrugResistancePosition() && includeGenes.contains(gp.getAbstractGene()))
 			.collect(Collectors.toCollection(LinkedHashSet::new))
 		);
 	}

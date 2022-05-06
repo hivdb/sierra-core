@@ -21,6 +21,7 @@
 package edu.stanford.hivdb.seqreads;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -142,8 +143,10 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 		this.proportionTrimmedPositions = proportionTrimmedPositions;
 	}
 	
-	public List<OneCodonReadsCoverage<VirusT>> getCodonReadsCoverage() {
-		return codonReadsCoverage;
+	public List<OneCodonReadsCoverage<VirusT>> getCodonReadsCoverage(Collection<String> includeGenes) {
+		return codonReadsCoverage.stream()
+			.filter(crc -> includeGenes.contains(crc.getAbstractGene()))
+			.collect(Collectors.toList());
 	}
 	
 	public Map<String, UntranslatedRegion> getUntranslatedRegionLookup() {
@@ -222,12 +225,17 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 	
 	public List<CutoffKeyPoint> getCutoffKeyPoints() { return cutoffObj.getCutoffKeyPoints(); }
 	
+	public List<ValidationResult> getValidationResults(Collection<String> includeGenes) {
+		return (
+			strain.getVirusInstance()
+			.validateSequenceReads(this, includeGenes)
+		);
+	}
+
 	public List<ValidationResult> getValidationResults() {
 		if (validationResults == null) {
-			validationResults = (
-				strain.getVirusInstance()
-				.validateSequenceReads(this)
-			);
+			Virus<VirusT> virusIns = strain.getVirusInstance();
+			validationResults = getValidationResults(virusIns.getAbstractGenes());
 		}
 		return validationResults;
 	}
@@ -268,6 +276,16 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 			}
 		}
 		return readDepthStatsDRP;
+	}
+
+	public List<GeneSequenceReads<VirusT>> getAllGeneSequenceReads(Collection<String> genes) {
+		return Collections.unmodifiableList(
+			genes.stream()
+				.map(geneText -> strain.getGene(geneText))
+				.filter(gene -> allGeneSequenceReads.containsKey(gene))
+				.map(gene -> allGeneSequenceReads.get(gene))
+				.collect(Collectors.toList())
+		);
 	}
 
 	public List<GeneSequenceReads<VirusT>> getAllGeneSequenceReads() {

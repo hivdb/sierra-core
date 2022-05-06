@@ -393,7 +393,10 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		sequenceValidators.put(this.getClass().getName(), validator);
 	}
 
-	public default List<ValidationResult> validateSequence(AlignedSequence<VirusT> alignedSeq, Collection<String> includeGenes) {
+	public default List<ValidationResult> validateSequence(
+		AlignedSequence<VirusT> alignedSeq,
+		Collection<String> includeGenes
+	) {
 		String className = this.getClass().getName();
 		if (sequenceValidators.containsKey(className)) {
 			@SuppressWarnings("unchecked")
@@ -428,12 +431,15 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		sequenceReadsValidators.put(this.getClass().getName(), validator);
 	}
 
-	public default List<ValidationResult> validateSequenceReads(SequenceReads<VirusT> seqReads) {
+	public default List<ValidationResult> validateSequenceReads(
+		SequenceReads<VirusT> seqReads,
+		Collection<String> includeGenes
+	) {
 		String className = this.getClass().getName();
 		if (sequenceReadsValidators.containsKey(className)) {
 			@SuppressWarnings("unchecked")
 			SequenceReadsValidator<VirusT> validator = (SequenceReadsValidator<VirusT>) sequenceReadsValidators.get(this.getClass().getName());
-			return validator.validate(seqReads);
+			return validator.validate(seqReads, includeGenes);
 		}
 		else {
 			return Collections.emptyList();

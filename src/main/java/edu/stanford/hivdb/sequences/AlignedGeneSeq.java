@@ -64,7 +64,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private transient Sequence reversedSeq;
 	private transient List<AlignedSite> alignedSites;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
-	private transient UnsequencedRegions<VirusT> unseqRegions;
+	private transient GeneRegions<VirusT> unseqRegions;
 
 	// Variables assigned by NucAminoAligner and changed by the methods in this class
 	private String alignedNAs;
@@ -371,9 +371,9 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return nonDrmTsms;
 	}
 	
-	public UnsequencedRegions<VirusT> getUnsequencedRegions() {
+	public GeneRegions<VirusT> getUnsequencedRegions() {
 		if (unseqRegions == null) {
-			unseqRegions = new UnsequencedRegions<>(gene, firstAA, lastAA, mutations);
+			unseqRegions = GeneRegions.newUnsequencedRegions(gene, firstAA, lastAA, mutations);
 		}
 		return unseqRegions;
 	}

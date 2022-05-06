@@ -40,7 +40,7 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.AggregationOption;
 import edu.stanford.hivdb.seqreads.SequenceReadsHistogram.WithSequenceReadsHistogram;
-import edu.stanford.hivdb.sequences.UnsequencedRegions;
+import edu.stanford.hivdb.sequences.GeneRegions;
 import edu.stanford.hivdb.utilities.CodonUtils;
 
 public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequenceReadsHistogram<VirusT>, WithGene<VirusT> {
@@ -52,7 +52,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 	private final CutoffCalculator<VirusT> cutoffObj;
 	private MutationSet<VirusT> mutations;
 	private transient DescriptiveStatistics readDepthStats;
-	private transient UnsequencedRegions<VirusT> unseqRegions;
+	private transient GeneRegions<VirusT> unseqRegions;
 
 	public GeneSequenceReads(
 		final Gene<VirusT> gene,
@@ -273,9 +273,9 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 			this.getAlignedNAs(false), firstAA, gene.getRefSequence());
 	}
 
-	public UnsequencedRegions<VirusT> getUnsequencedRegions() {
+	public GeneRegions<VirusT> getUnsequencedRegions() {
 		if (unseqRegions == null) {
-			unseqRegions = new UnsequencedRegions<>(gene, firstAA, lastAA, getMutations());
+			unseqRegions = GeneRegions.newUnsequencedRegions(gene, firstAA, lastAA, getMutations());
 		}
 		return unseqRegions;
 	}

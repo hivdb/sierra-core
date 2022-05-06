@@ -26,7 +26,7 @@ import java.util.Set;
 
 import edu.stanford.hivdb.comments.BoundComment;
 import edu.stanford.hivdb.drugs.DrugClass;
-import edu.stanford.hivdb.sequences.UnsequencedRegions;
+import edu.stanford.hivdb.sequences.GeneRegions;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;
@@ -153,7 +153,7 @@ public interface Mutation<VirusT extends Virus<VirusT>> extends Comparable<Mutat
 	 *
 	 * @return true if the position is unsequenced.
 	 */
-	public boolean isUnsequenced(UnsequencedRegions<VirusT> unseqRegions);
+	public boolean isUnsequenced(GeneRegions<VirusT> unseqRegions);
 
 	/**
 	 * Checks if the mutation is a DRM
