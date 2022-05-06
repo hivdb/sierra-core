@@ -52,10 +52,20 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		this.discordanceList = discordanceList;
 		int numWildcards = CharMatcher.is(StrainModifier.WILDCARD).countIn(sequence);
 		int numNs = CharMatcher.is('N').countIn(sequence);
-		this.distance = (
-				(double) discordanceList.size() /
-				(sequence.length() - numWildcards - numNs));
-		this.virusInstance = virusIns;
+		distance = (
+			(double) discordanceList.size() /
+			(sequence.length() - numWildcards - numNs));
+		if (Double.isNaN(distance) || Double.isInfinite(distance)) {
+			distance = 1.;
+			/* System.out.println(
+				"reference: " + reference.getAccession() +
+				", discordSize: " + discordanceList.size() +
+				", seqSize: " + sequence.length() +
+				", numWildcards: " + numWildcards +
+				", numNs: " + numNs
+			); */
+		}
+		virusInstance = virusIns;
 	}
 
 	/** get the sequence tested

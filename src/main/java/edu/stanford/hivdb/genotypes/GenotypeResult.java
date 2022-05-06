@@ -32,6 +32,10 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 	public GenotypeResult(List<BoundGenotype<VirusT>> genotypes) {
 		genotypes.sort((g1, g2) -> {
 			int cmp = g1.getDistance().compareTo(g2.getDistance());
+			/*
+			 * Comment out due to under certain case it "violates the general contract"
+			 * We should figure out the real reason behind this and fix it
+			 * 
 			if (cmp == 0) {
 				List<Genotype<VirusT>> g1Parents = g1.getParentGenotypes();
 				List<Genotype<VirusT>> g2Parents = g2.getParentGenotypes();
@@ -42,7 +46,7 @@ public class GenotypeResult<VirusT extends Virus<VirusT>> {
 				else if (g2Parents != null && g2Parents.contains(g1.getGenotype())) {
 					cmp = 1;
 				}
-			}
+			} */
 			return cmp;
 		});
 		this.genotypes = genotypes;

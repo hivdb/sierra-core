@@ -30,7 +30,6 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 		super(regions);
 	}
 	
-	@Override
 	public String assemble(
 		final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs,
 		final Map<String, UntranslatedRegion> utrLookup,

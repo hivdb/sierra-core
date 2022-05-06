@@ -112,10 +112,4 @@ public abstract class Assembler<
 	
 	public List<RegionT> getRegions() { return regions; }
 	
-	public abstract String assemble(
-		final Map<Gene<VirusT>, GeneSeqT> alignedGeneSeqs,
-		final Map<String, UntranslatedRegion> utrLookup,
-		final boolean skipIns
-	);
-	
 }

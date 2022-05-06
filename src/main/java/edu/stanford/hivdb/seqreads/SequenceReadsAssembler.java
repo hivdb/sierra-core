@@ -30,16 +30,6 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 		super(regions);
 	}
 	
-	@Override
-	@Deprecated
-	public String assemble(
-		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
-		final Map<String, UntranslatedRegion> utrLookup,
-		final boolean skipIns
-	) {
-		return assemble(allGeneSequenceReads, utrLookup, skipIns, true);
-	}
-
 	public String assemble(
 		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
 		final Map<String, UntranslatedRegion> utrLookup,
