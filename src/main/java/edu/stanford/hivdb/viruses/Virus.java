@@ -271,7 +271,12 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 				for (int i = 0; i < 2; i ++) {
 					String rx = treatments[i];
 					AminoAcidPercents<VirusT> aaPcnts = getAminoAcidPercents(strain, rx, subtype);
-					int max = aaPcnts.get().stream().filter(ap -> ap.getGene() == gene).mapToInt(ap -> ap.getTotal()).max().getAsInt();
+					int max = aaPcnts.get()
+						.stream()
+						.filter(ap -> ap.getGene() == gene)
+						.mapToInt(ap -> ap.getTotal())
+						.max()
+						.orElseGet(() -> 0);
 					geneNumPatients.get(subtype)[i] = max;
 				}
 			}

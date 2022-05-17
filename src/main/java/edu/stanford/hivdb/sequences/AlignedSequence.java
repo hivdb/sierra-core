@@ -290,7 +290,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 	}
 	
 	public double getMixturePcnt() {
-		return mixtureRate * 100.;
+		return getMixtureRate() * 100.;
 	}
 
 	public List<FrameShift<VirusT>> getFrameShifts() {
