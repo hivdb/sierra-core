@@ -112,7 +112,8 @@ public class GeneDR<VirusT extends Virus<VirusT>> implements WithGene<VirusT>  {
 		mutations = new MutationSet<>(
 			mutations.stream()
 			.filter(mut -> !mut.isUnsequenced())
-			.filter(mut -> !mut.isAmbiguousWithoutBDHVN())
+			// See hivdb/sierra-core#8
+			// .filter(mut -> !mut.isAmbiguousWithoutBDHVN())
 			.collect(Collectors.toList())
 		);
 		this.gene = gene;
