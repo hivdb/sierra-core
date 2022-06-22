@@ -34,13 +34,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.gson.reflect.TypeToken;
 
+import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.utilities.Json;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugClass<VirusT>> {
-	
+
 	private final String name;
 	private final Integer ordinal;
 	private final String fullName;
@@ -67,7 +68,7 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 			}
 		}
 		return Collections.unmodifiableMap(drugClasses);
-		
+
 	}
 
 	private void initStrains() {
@@ -93,7 +94,7 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 		this.synonyms = synonyms;
 		this.mutationTypes = mutationTypes;
 	}
-	
+
 	public List<String> getSynonyms() {
 		return synonyms;
 	}
@@ -104,11 +105,11 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 		}
 		return allDrugs;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public String name() {
 		return name;
 	}
@@ -116,11 +117,11 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 	public String getFullName() {
 		return fullName;
 	}
-	
+
 	public String getAbstractGene() {
 		return abstractGene;
 	}
-	
+
 	public Set<Strain<VirusT>> getStrains() {
 		if (strainObjs == null) {
 			initStrains();
@@ -134,7 +135,7 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 		}
 		return strainObjs.contains(strain);
 	}
-	
+
 	public Set<MutationType<VirusT>> getMutationTypes() {
 		if (mutationTypeObjects == null) {
 			Set<MutationType<VirusT>> mutationTypeObjects = (
@@ -145,6 +146,33 @@ public class DrugClass<VirusT extends Virus<VirusT>> implements Comparable<DrugC
 			this.mutationTypeObjects = Collections.unmodifiableSet(mutationTypeObjects);
 		}
 		return mutationTypeObjects;
+	}
+
+	public MutationSet<VirusT> getDrugResistMutations() {
+		return virusInstance.getDrugResistMutations(this);
+	}
+
+	public MutationSet<VirusT> getSurveilDrugResistMutations() {
+		return virusInstance.getSurveilDrugResistMutations(this);
+	}
+
+	public MutationSet<VirusT> getRxSelectedMutations() {
+		return virusInstance.getRxSelectedMutations(this);
+	}
+
+	public boolean hasDrugResistMutations() {
+		MutationSet<VirusT> drms = virusInstance.getDrugResistMutations(this);
+		return drms != null && !drms.isEmpty();
+	}
+
+	public boolean hasSurveilDrugResistMutations() {
+		MutationSet<VirusT> sdrms = virusInstance.getSurveilDrugResistMutations(this);
+		return sdrms != null && !sdrms.isEmpty();
+	}
+
+	public boolean hasRxSelectedMutations() {
+		MutationSet<VirusT> tsms = virusInstance.getRxSelectedMutations(this);
+		return tsms != null && !tsms.isEmpty();
 	}
 
 	@Override
