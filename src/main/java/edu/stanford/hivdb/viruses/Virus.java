@@ -460,4 +460,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	SequenceAssembler<VirusT> getSequenceAssembler(Strain<VirusT> strain);
 	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler(Strain<VirusT> strain);
 
+	public String getGeneDisplay(String geneName);
+	public String getGeneDisplay(Gene<VirusT> geneName);
+
 }

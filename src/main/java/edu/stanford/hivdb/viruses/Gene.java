@@ -115,6 +115,10 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		return name;
 	}
 	
+	public String getDisplay() {
+		return virusInstance.getGeneDisplay(abstractGene);
+	}
+	
 	/**
 	 * Get corresponding gene in main strain.
 	 * 

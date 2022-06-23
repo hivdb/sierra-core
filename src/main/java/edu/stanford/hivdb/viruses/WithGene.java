@@ -31,5 +31,9 @@ public interface WithGene<VirusT extends Virus<VirusT>> {
 	public default String getAbstractGene() {
 		return getGene().getAbstractGene();
 	}
+	
+	public default String getGeneDisplay() {
+		return getGene().getDisplay();
+	}
 
 }

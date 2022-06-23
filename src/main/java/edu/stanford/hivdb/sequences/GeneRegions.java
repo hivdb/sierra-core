@@ -78,6 +78,15 @@ public class GeneRegions<VirusT extends Virus<VirusT>> implements WithGene<Virus
 		regions.add(new GeneRegion(posStart, posEnd));
 		return new GeneRegions<>(gene, regions);
 	}
+
+	public static <T extends Virus<T>> GeneRegions<T> newGeneRegions(Gene<T> gene, List<Number> positions) {
+		return GeneRegions.unsafeNewGeneRegions(
+			gene,
+			positions.stream()
+				.mapToLong(pos -> pos.longValue())
+				.toArray()
+		);
+	}
 	
 	public static <T extends Virus<T>> List<GeneRegions<T>> newListOfGeneRegions(List<GenePosition<T>> genePos) {
 		return genePos
@@ -184,7 +193,7 @@ public class GeneRegions<VirusT extends Virus<VirusT>> implements WithGene<Virus
 
 	@Override
 	public String toString() {
-		return String.format("%s %s", getAbstractGene(), StringUtils.join(regions, ", "));
+		return String.format("%s %s", getGeneDisplay(), StringUtils.join(regions, ", "));
 	}
 
 }
