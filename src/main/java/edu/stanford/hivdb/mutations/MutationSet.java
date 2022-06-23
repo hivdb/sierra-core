@@ -536,11 +536,29 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 
 	/**
 	 * Returns only mutations of a specific gene.
+	 * @param geneName	String
+	 * @return 		A MutationSet contains all mutations of the given gene
+	 */
+	public MutationSet<VirusT> getGeneMutations(String geneName) {
+		return filterBy(mut -> mut.getAbstractGene().equals(geneName));
+	}
+	
+	/**
+	 * Returns only mutations of a specific gene.
 	 * @param gene	Gene
 	 * @return 		A MutationSet contains all mutations of the given gene
 	 */
 	public MutationSet<VirusT> getGeneMutationsNoSplit(Gene<VirusT> gene) {
 		return filterByNoSplit(mut -> mut.getGene() == gene);
+	}
+
+	/**
+	 * Returns only mutations of a specific gene.
+	 * @param geneName	String
+	 * @return 		A MutationSet contains all mutations of the given gene
+	 */
+	public MutationSet<VirusT> getGeneMutationsNoSplit(String geneName) {
+		return filterByNoSplit(mut -> mut.getAbstractGene().equals(geneName));
 	}
 
 	/**
