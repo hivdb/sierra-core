@@ -45,7 +45,7 @@ import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT> {
-	
+
 	private transient AminoAcidPercents<VirusT> mainAAPcnts;
 
 	protected static final int DEFAULT_MAX_DISPLAY_AAS = 6;
@@ -67,7 +67,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	protected transient DrugClass<VirusT> drmDrugClass;
 	protected transient DrugClass<VirusT> sdrmDrugClass;
 	protected transient DrugClass<VirusT> tsmDrugClass;
-	
+
 	public static Set<Character> normalizeAAChars(Set<Character> aaChars) {
 		if (aaChars == null) { return null; }
 		aaChars = new TreeSet<>(aaChars);
@@ -118,7 +118,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	}
 
 	protected int getMaxDisplayAAs() { return maxDisplayAAs; }
-	
+
 	protected AminoAcidPercents<VirusT> getMainAAPcnts() {
 		if (mainAAPcnts == null) {
 			mainAAPcnts = (
@@ -199,7 +199,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 
 	@Override
 	public boolean isUnsequenced() { return false; }
-	
+
 	@Override
 	public boolean isUnsequenced(GeneRegions<VirusT> unseqRegions) {
 		if (unseqRegions == null) {
@@ -209,13 +209,13 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			return unseqRegions.contains(gene, position);
 		}
 	}
-	
+
 	@Override
 	public final Strain<VirusT> getStrain() { return gene.getStrain(); }
 
 	@Override
 	public final Gene<VirusT> getGene() { return gene; }
-	
+
 	@Override
 	public final String getAbstractGene() { return gene.getAbstractGene(); }
 
@@ -257,7 +257,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public String getAAs() {
 		return StringUtils.join(aaChars.toArray());
 	}
-	
+
 	@Override
 	public String getUnusualAAs() {
 		return StringUtils.join(getMainAAPcnts().getUnusualAAs(gene, position, aaChars));
@@ -339,7 +339,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		Set<Character> myAAChars = getAAChars();
 		return hasBDHVN() || myAAChars.size() > maxDisplayAAs || myAAChars.contains('X');
 	}
-	
+
 	@Override
 	public boolean isAmbiguousWithoutBDHVN() {
 		Set<Character> myAAChars = getAAChars();
@@ -450,7 +450,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		}
 		return isAtDrugResistancePosition;
 	}
-	
+
 	private final boolean existsInMutationSets(Collection<MutationSet<VirusT>> mutSets) {
 		return (
 			mutSets.stream()
@@ -459,7 +459,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			))
 		);
 	}
-	
+
 	private final DrugClass<VirusT> lookupDrugClass(Map<DrugClass<VirusT>, MutationSet<VirusT>> lookup) {
 		for (
 			Map.Entry<DrugClass<VirusT>, MutationSet<VirusT>> entry : lookup.entrySet()
@@ -498,7 +498,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		}
 		return drmDrugClass;
 	}
-	
+
 	@Override
 	public final boolean isTSM() {
 		if (isUnsequenced()) {
@@ -515,7 +515,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		}
 		return isTSM;
 	}
-	
+
 	@Override
 	public final DrugClass<VirusT> getTSMDrugClass() {
 		if (tsmDrugClass == null) {
@@ -536,7 +536,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 	public boolean isUnusual() {
 		return isUnusual(getMainAAPcnts());
 	}
-	
+
 	@Override
 	public boolean isUnusual(AminoAcidPercents<VirusT> aaPcnts) {
 		if (isUnsequenced()) {
@@ -561,7 +561,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		}
 		return isUnusuals.get(aaPcnts);
 	}
-	
+
 	@Override
 	public boolean isUnusual(String treatment, String subtype) {
 		AminoAcidPercents<VirusT> aaPcnts = (
@@ -646,7 +646,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		}
 		return highestMutPrevalence;
 	}
-	
+
 	@Override
 	public List<MutationPrevalence<VirusT>> getPrevalences() {
 		return gene.getVirusInstance().getMutationPrevalence(getGenePosition());
@@ -681,9 +681,12 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 			.replace('-', 'd')
 			.replaceAll("[X*]", "Z")
 		);
+
+		/*
+		See sierra-core#8, don't convert a mutation to X, not to mention ASI rejects all X's
 		if (isUnsequenced() || fmtAAs.length() > maxDisplayAAs) {
 			fmtAAs = "X";
-		}
+		}*/
 		return String.format("%s%d%s", getRefChar(), position, fmtAAs);
 	}
 
