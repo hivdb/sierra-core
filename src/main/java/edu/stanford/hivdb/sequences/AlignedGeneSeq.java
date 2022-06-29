@@ -48,7 +48,7 @@ import edu.stanford.hivdb.viruses.WithGene;
  * Result object of data from {@link edu.stanford.hivdb.sequences.PostAlignAligner}.
  *
  */
-public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<VirusT> {
+public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<VirusT>, WithSequenceStat<VirusT> {
 
 	// Variables assigned by CLapAlign
 	private final Gene<VirusT> gene;
@@ -289,14 +289,10 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return matchPcnt;
 	}
 
+	@Override
 	public MutationSet<VirusT> getMutations() { return mutations; }  // Need
 
-	public Long getMutationCount() { return mutations.countIf(mut -> !mut.isUnsequenced()); }
-
-	public Long getUnusualMutationCount() {
-		return mutations.countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
-	}
-	
+	@Override
 	public List<FrameShift<VirusT>> getFrameShifts() { return frameShifts; } // Need
 
 	public PrettyPairwise<VirusT> getPrettyPairwise() {

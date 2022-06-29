@@ -24,23 +24,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.Collections;
 
-import org.apache.commons.lang3.StringUtils;
 
 import edu.stanford.hivdb.genotypes.BoundGenotype;
 import edu.stanford.hivdb.genotypes.GenotypeResult;
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.MutationSet;
-import edu.stanford.hivdb.mutations.StrainModifier;
 import edu.stanford.hivdb.utilities.ValidationResult;
 import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
-public class AlignedSequence<VirusT extends Virus<VirusT>> {
+public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequenceStat<VirusT> {
 
 	private final Strain<VirusT> strain;
 	private final Sequence inputSequence;
@@ -48,9 +45,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 	private List<ValidationResult> validationResults;
 	private Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSequenceMap;
 	private Map<Gene<VirusT>, String> discardedGenes;
-	private String concatenatedSequence;
 	private MutationSet<VirusT> mutations;
-	private MutationSet<VirusT> sdrms;
 	private GenotypeResult<VirusT> genotypeResult;
 	private Double mixtureRate;
 	private transient List<FrameShift<VirusT>> frameShifts;
@@ -151,13 +146,6 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return discardedGenes;
 	}
 
-	public String getConcatenatedSeq() {
-		if (concatenatedSequence == null) {
-			concatenatedSequence = concatAlignments(true, strain);
-		}
-		return concatenatedSequence;
-	}
-	
 	/**
 	 * 
 	 * @param skipIns: skip insertions (will be aligned with reference sequences
@@ -172,48 +160,8 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 				skipIns
 			);
 	}
-	
-	/**
-	 * @deprecated
-	 * Should gradually convert to using getAssembledAlignment()
-	 * 
-	 * @param <T>: virus class of the targetStrain
-	 * @param trimResult: should trimming N's at each side or not
-	 * @param targetStrain: apply modifier to concatSeq
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	private <T extends Virus<T>> String concatAlignments(boolean trimResult, Strain<T> targetStrain) {
-		String geneSeqNAs;
-		AlignedGeneSeq<VirusT> geneSeq;
-		StringBuilder concatSeq = new StringBuilder();
-		if (targetStrain == null) {
-			targetStrain = (Strain<T>) strain;
-		}
-		String targetStrainText = targetStrain.getName();
 
-		for (Gene<VirusT> srcGene : strain.getGenes()) {
-			Gene<T> targetGene = targetStrain.getGene(srcGene.getAbstractGene());
-			geneSeq = alignedGeneSequenceMap.get(srcGene);
-			if (geneSeq == null) {
-				concatSeq.append(StringUtils.repeat(StrainModifier.WILDCARD, targetGene.getNASize()));
-				continue;
-			}
-			StrainModifier strainModifier = srcGene.getTargetStrainModifier(targetStrainText);
-			geneSeqNAs = geneSeq.getAlignedNAs();
-			geneSeqNAs = strainModifier.modifyNASeq(
-				srcGene, geneSeqNAs, geneSeq.getFirstAA(), geneSeq.getLastAA());
-			concatSeq.append(geneSeqNAs);
-		}
-		if (trimResult) {
-			Matcher matcher = StrainModifier.TRIM_WILDCARD_PATTERN.matcher(concatSeq.toString());
-			return matcher.replaceAll("");
-		} else {
-			return concatSeq.toString();
-		}
-	}
-
+	@Override
 	public MutationSet<VirusT> getMutations() {
 		if (mutations == null) {
 			mutations = new MutationSet<>();
@@ -226,21 +174,6 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return mutations;
 	}
 	
-	public Long getMutationCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced());
-	}
-
-	public Long getUnusualMutationCount() {
-		return getMutations().countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
-	}
-
-	public MutationSet<VirusT> getSdrms() {
-		if (sdrms == null) {
-			sdrms = getMutations().getSDRMs();
-		}
-		return sdrms;
-	}
-
 	public GenotypeResult<VirusT> getGenotypeResult() {
 		if (!isEmpty && genotypeResult == null) {
 			Strain<VirusT> targetStrain = virusInstance.getMainStrain();
@@ -284,7 +217,8 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 
 	public double getMixtureRate() {
 		if (mixtureRate == null) {
-			mixtureRate = SeqUtils.calcMixtureRate(getConcatenatedSeq());
+			String concatSeq = getAssembledAlignment(false).replaceAll("^N+|N+$", "");
+			mixtureRate = SeqUtils.calcMixtureRate(concatSeq);
 		}
 		return mixtureRate;
 	}
@@ -293,6 +227,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> {
 		return getMixtureRate() * 100.;
 	}
 
+	@Override
 	public List<FrameShift<VirusT>> getFrameShifts() {
 		if (frameShifts == null) {
 			frameShifts = new ArrayList<>();

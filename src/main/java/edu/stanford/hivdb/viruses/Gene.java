@@ -258,6 +258,17 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		}
 		return mutationTypeObjs;
 	}
+	
+	public MutationType<VirusT> getOtherMutationType() {
+		for (MutationType<VirusT> mutType : getMutationTypes()) {
+			if (mutType.isOther()) {
+				return mutType;
+			}
+		}
+		throw new RuntimeException(
+			String.format("Gene must have 'Other' mutation type: %s", this)
+		);
+	}
 
 	public Collection<GenePosition<VirusT>> getGenePositionsBetween(int startPos, int endPos) {
 		Set<GenePosition<VirusT>> genePositions = new LinkedHashSet<>();

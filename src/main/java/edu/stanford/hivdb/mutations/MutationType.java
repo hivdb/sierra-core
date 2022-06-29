@@ -64,6 +64,10 @@ public class MutationType<VirusT extends Virus<VirusT>> implements Comparable<Mu
 		return name;
 	}
 	
+	public boolean isOther() {
+		return name.toLowerCase().equals("other");
+	}
+	
 	public String getFullName(DrugClass<VirusT> drugClass) {
 		if (name.equals("Other")) {
 			return String.format("%s Other", drugClass.getAbstractGene());

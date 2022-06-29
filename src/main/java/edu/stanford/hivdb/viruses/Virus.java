@@ -122,6 +122,9 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Map<String, DrugClass<VirusT>> getDrugClassSynonymMap();
 
 	public default DrugClass<VirusT> getDrugClass(String name) {
+		if (name == null) {
+			return null;
+		}
 		return getDrugClassSynonymMap().get(name);
 	}
 
@@ -461,6 +464,6 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	SequenceReadsAssembler<VirusT> getSequenceReadsAssembler(Strain<VirusT> strain);
 
 	public String getGeneDisplay(String geneName);
-	public String getGeneDisplay(Gene<VirusT> geneName);
+	public String getGeneDisplay(Gene<VirusT> gene);
 
 }
