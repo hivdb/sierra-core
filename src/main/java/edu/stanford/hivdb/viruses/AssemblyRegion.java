@@ -94,7 +94,9 @@ public abstract class AssemblyRegion<
 			int aapos0 = Math.toIntExact(napos0 / 3);
 			int bp0 = Math.toIntExact(napos0 % 3);
 			String codon = codonList.get(aapos0);
-			codon = codon.substring(0, bp0) + codon.substring(bp0 + 1);
+			if (bp0 < codon.length()) {
+				codon = codon.substring(0, bp0) + codon.substring(bp0 + 1);
+			}
 			codonList.set(aapos0, codon);
 		}
 		return codonList;
