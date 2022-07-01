@@ -278,34 +278,45 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 	public List<Genotype<VirusT>> getParentGenotypes() {
 		return getGenotype().getParentGenotypes();
 	}
+	
+	protected BoundGenotype<VirusT> fallbackTo(
+		BoundGenotype<VirusT> parentFb,
+		BoundGenotype<VirusT> childFb
+	) {
+		Double maxDistDiff = virusInstance.getGenotypeMaxFallbackToSecondaryDistanceDiff();
+		double parentFbDistDiff = parentFb == null ? 1. : parentFb.getDistance() - getDistance();
+		double childFbDistDiff = childFb == null ? 1. : childFb.getDistance() - getDistance();
+		boolean parentFbChk = parentFb == null ? false : parentFb.checkDistance();
+		boolean childFbChk = childFb == null ? false : childFb.checkDistance();
+		if (
+			parentFbDistDiff < maxDistDiff &&
+			(
+				(parentFbChk &&	!childFbChk) || 
+				parentFbDistDiff < childFbDistDiff
+			)
+		) {
+			return parentFb;
+		}
+		else if (
+			childFbDistDiff < maxDistDiff &&
+			(
+				(childFbChk && !parentFbChk) ||
+				childFbDistDiff < parentFbDistDiff
+			)
+		) {
+			return childFb;
+		}
+		return null;
+	}
 
 	public BoundGenotype<VirusT> useOrFallbackTo(
 		BoundGenotype<VirusT> parentFb,
 		BoundGenotype<VirusT> childFb
 	) {
-		Double maxDistDiff = virusInstance.getGenotypeMaxFallbackToSecondaryDistanceDiff();
 		if (!checkDistance()) {
-			double parentFbDistDiff = parentFb == null ? 1. : parentFb.getDistance() - getDistance();
-			double childFbDistDiff = childFb == null ? 1. : childFb.getDistance() - getDistance();
-			boolean parentFbChk = parentFb == null ? false : parentFb.checkDistance();
-			boolean childFbChk = childFb == null ? false : childFb.checkDistance();
-			if (
-				parentFbDistDiff < maxDistDiff &&
-				(
-					(parentFbChk &&	!childFbChk) || 
-					parentFbDistDiff < childFbDistDiff
-				)
-			) {
-				return parentFb;
-			}
-			else if (
-				childFbDistDiff < maxDistDiff &&
-				(
-					(childFbChk && !parentFbChk) ||
-					childFbDistDiff < parentFbDistDiff
-				)
-			) {
-				return childFb;
+			BoundGenotype<VirusT> fb = fallbackTo(parentFb, childFb);
+			if (fb != null) {
+				return fb;
 			}
 		}
 		return this;

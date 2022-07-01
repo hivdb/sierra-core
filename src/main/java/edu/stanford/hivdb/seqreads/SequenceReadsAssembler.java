@@ -33,27 +33,27 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 	public String assemble(
 		final Map<Gene<VirusT>, GeneSequenceReads<VirusT>> allGeneSequenceReads,
 		final Map<String, UntranslatedRegion> utrLookup,
-		final boolean skipIns,
+		final boolean strictAlign,
 		final boolean includeAmbiguousNA
 	) {
 		StringBuilder cons = new StringBuilder();
 		for (SequenceReadsAssemblyRegion<VirusT> abr : getRegions()) {
 			if (abr.getType() == AssemblyRegionType.UNTRANS_REGION) {
 				cons.append(
-					abr.assemble(utrLookup.get(abr.getName()), skipIns)
+					abr.assemble(utrLookup.get(abr.getName()), strictAlign)
 				);
 			}
 			else { // type == GENE
 				cons.append(
-					abr.assemble(allGeneSequenceReads.get(abr.getGene()), skipIns, includeAmbiguousNA)
+					abr.assemble(allGeneSequenceReads.get(abr.getGene()), strictAlign, includeAmbiguousNA)
 				);
 			}
 		}
-		if (skipIns) {
+		if (strictAlign) {
 			return cons.toString();
 		}
 		else {
-			return cons.toString().replace("-", "");
+			return cons.toString().replace("-", "").replaceAll("^N+|N+$", "");
 		}
 	}
 

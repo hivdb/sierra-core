@@ -151,13 +151,13 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 	 * @param skipIns: skip insertions (will be aligned with reference sequences
 	 * @return
 	 */
-	public String getAssembledAlignment(boolean skipIns) {
+	public String getAssembledAlignment(boolean strictAlign) {
 		return strain
 			.getSequenceAssembler()
 			.assemble(
 				/* alignedGeneSeqs = */getAlignedGeneSequenceMap(),
 				/* utrLookup = */Collections.emptyMap(),
-				skipIns
+				strictAlign
 			);
 	}
 

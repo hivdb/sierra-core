@@ -33,7 +33,7 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 	public String assemble(
 		final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs,
 		final Map<String, UntranslatedRegion> utrLookup,
-		final boolean skipIns
+		final boolean strictAlign
 	) {
 		StringBuilder cons = new StringBuilder();
 		for (SequenceAssemblyRegion<VirusT> abr : getRegions()) {
@@ -45,7 +45,7 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 					abr.assemble(utrLookup.get(abr.getName()), skipIns).length()
 				); */
 				cons.append(
-					abr.assemble(utrLookup.get(abr.getName()), skipIns)
+					abr.assemble(utrLookup.get(abr.getName()), strictAlign)
 				);
 			}
 			else { // type == GENE
@@ -61,16 +61,16 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 				cons.append(
 					abr.assemble(
 						alignedGeneSeqs.get(abr.getGene()),
-						skipIns
+						strictAlign
 					)
 				);
 			}
 		}
-		if (skipIns) {
+		if (strictAlign) {
 			return cons.toString();
 		}
 		else {
-			return cons.toString().replace("-", "");
+			return cons.toString().replace("-", "").replaceAll("^N+|N+$", "");
 		}
 	}
 	

@@ -102,7 +102,7 @@ public abstract class AssemblyRegion<
 		return codonList;
 	}
 	
-	public String assemble(UntranslatedRegion utr, boolean skipIns) {
+	public String assemble(UntranslatedRegion utr, boolean strictAlign) {
 		if (type != AssemblyRegionType.UNTRANS_REGION) {
 			throw new RuntimeException(
 				"UntranslatedRegion object passed to Non-UTR AssemblyRegion " + name
@@ -120,7 +120,7 @@ public abstract class AssemblyRegion<
 		String consensus = utr.getConsensus();
 		return (
 			Strings.repeat("N", addLeft) +
-			(skipIns ?
+			(strictAlign ?
 				consensus.substring(
 					trimLeft,
 					Math.toIntExact(trimLeft + utr.getRefEnd() - utr.getRefStart() + 1)

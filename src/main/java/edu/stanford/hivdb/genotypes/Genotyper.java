@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
@@ -36,6 +38,9 @@ import edu.stanford.hivdb.utilities.CodonUtils;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class Genotyper<VirusT extends Virus<VirusT>> {
+
+	private static final Pattern LEFT_SKIP_N = Pattern.compile("^(N*)");
+	private static final Pattern RIGHT_SKIP_N = Pattern.compile("(N*)$");
 
 	private final Integer treeFirstNA;
 	private final Integer treeLastNA;
@@ -276,6 +281,19 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 	
 	public GenotypeResult<VirusT> compareAll(String sequence, int firstNA) {
 		int lastNA = firstNA + sequence.length() - 1;
+		
+		// don't match leading or trailing N's
+		Matcher leftSkipNMatcher = LEFT_SKIP_N.matcher(sequence);
+		if (leftSkipNMatcher.find()) {
+			firstNA += leftSkipNMatcher.group(1).length();
+			sequence = leftSkipNMatcher.replaceAll("");
+		}
+		Matcher rightSkipNMatcher = RIGHT_SKIP_N.matcher(sequence);
+		if (rightSkipNMatcher.find()) {
+			lastNA -= rightSkipNMatcher.group(1).length();
+			sequence = rightSkipNMatcher.replaceAll("");
+		}
+		
 		return compareAll(sequence, firstNA, lastNA);
 	}
 

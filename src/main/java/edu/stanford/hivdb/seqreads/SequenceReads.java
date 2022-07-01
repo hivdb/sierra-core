@@ -160,27 +160,27 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 		return utrLookup;
 	}
 	
-	public String getAssembledUnambiguousConsensus(boolean skipIns) {
+	public String getAssembledUnambiguousConsensus(boolean strictAlign) {
 		return (
 			strain
 			.getSequenceReadsAssembler()
 			.assemble(
 				/* allGeneSeqReads = */allGeneSequenceReads,
 				/* utrLookup = */getUntranslatedRegionLookup(),
-				skipIns,
+				strictAlign,
 				/* includeAmbiguousNA = */false
 			)
 		);
 	}
 	
-	public String getAssembledConsensus(boolean skipIns) {
+	public String getAssembledConsensus(boolean strictAlign) {
 		return (
 			strain
 			.getSequenceReadsAssembler()
 			.assemble(
 				/* allGeneSeqReads = */allGeneSequenceReads,
 				/* utrLookup = */getUntranslatedRegionLookup(),
-				skipIns,
+				strictAlign,
 				/* includeAmbiguousNA = */true
 			)
 		);
