@@ -66,6 +66,7 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 	 *
 	 */
 	public AminoAcidPercents(String resourceName, VirusT virusInstance, Strain<VirusT> strain) {
+		List<AminoAcidPercent<VirusT>> aminoAcidPcnts;
 
 		try (
 			InputStream stream = this
@@ -75,7 +76,7 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 			String raw = IOUtils.toString(stream, StandardCharsets.UTF_8);
 			List<Map<String, ?>> aminoAcidPcntData = gson.fromJson(
 				raw, new TypeToken<List<Map<String, ?>>>(){}.getType());
-			List<AminoAcidPercent<VirusT>> aminoAcidPcnts = (
+			aminoAcidPcnts = (
 				aminoAcidPcntData.stream()
 				.map(aaPcnt -> new AminoAcidPercent<>(
 					strain.getGene((String) aaPcnt.get("gene")),
@@ -89,12 +90,13 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 				))
 				.collect(Collectors.toList())
 			);
-			this.aminoAcidPcnts = Collections.unmodifiableList(aminoAcidPcnts);
 		} catch (IOException|NullPointerException e) {
-			throw new ExceptionInInitializerError(
+			aminoAcidPcnts = Collections.emptyList();
+			/* throw new ExceptionInInitializerError(
 				String.format("Invalid resource name (%s)", resourceName)
-			);
+			); */
 		}
+		this.aminoAcidPcnts = Collections.unmodifiableList(aminoAcidPcnts);
 
 		for (AminoAcidPercent<VirusT> aaPcnt : aminoAcidPcnts) {
 			GenePosition<VirusT> gp = aaPcnt.getGenePosition();

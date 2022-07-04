@@ -78,6 +78,7 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	private final Map<String, String> FROM_FRAGMENT;
 	private final Map<String, Gene<VirusT>> GENE;
 	private final Map<String, List<Pair<Long, Long>>> REF_RANGES;
+	private final Map<String, String> MINIMAP2_OPTS;
 	private final Executor executor = Executors.newFixedThreadPool(4);
 
 	protected PostAlignAligner(VirusT virusIns) {
@@ -128,6 +129,8 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				)
 			)
 		);
+		
+		MINIMAP2_OPTS = Collections.unmodifiableMap(alignConfig.getConfigField("minimap2Opts"));
 	}
 
 
@@ -168,6 +171,10 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 				"-f", "MINIMAP2",
 				"-r", refSeqFile.getAbsolutePath()
 			);
+			if (MINIMAP2_OPTS.get(refFragmentName) != null) {
+				cmd.add("--minimap2-opts");
+				cmd.add(MINIMAP2_OPTS.get(refFragmentName));
+			}
 			cmd.addAll(POST_PROCESSORS.get(refFragmentName));
 			cmd.add("save-json");
 			for (String fragmentName : FROM_FRAGMENT.keySet()) {
@@ -270,14 +277,14 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 	 * @return list of AlignedSequence for all input sequences
 	 */
 	private List<AlignedSequence<VirusT>> processCommandOutput(
-			Strain<VirusT> strain,
-			List<Sequence> sequences,
-			Map<String, List<Map<String, ?>>> jsonObjs,
-			Map<Gene<VirusT>, String> geneLookup,
-			boolean sequenceReversed,
-			Map<Sequence, Map<Strain<VirusT>,
-			StringBuilder>> errors) {
-
+		Strain<VirusT> strain,
+		List<Sequence> sequences,
+		Map<String, List<Map<String, ?>>> jsonObjs,
+		Map<Gene<VirusT>, String> geneLookup,
+		boolean sequenceReversed,
+		Map<Sequence, Map<Strain<VirusT>,
+		StringBuilder>> errors
+	) {
 		int numSequences = sequences.size();
 		List<AlignedSequence<VirusT>> alignedSequences = new ArrayList<>();
 
