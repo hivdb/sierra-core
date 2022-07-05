@@ -128,19 +128,8 @@ public class GenePosition<VirusT extends Virus<VirusT>> implements Comparable<Ge
 		return position;
 	}
 	
-	public Integer getPositionInStrain() {
-		int absPos = 0;
-		Strain<VirusT> strain = gene.getStrain();
-		for (Gene<VirusT> prevGene : strain.getGenes()) {
-			if (prevGene == gene) {
-				absPos += position;
-				break;
-			}
-			else {
-				absPos += prevGene.getAASize();
-			}
-		}
-		return absPos;
+	public Integer getAbsoluteNAPosition() {
+		return gene.calcAbsoluteNAPosition(position);
 	}
 	
 	public boolean isDrugResistancePosition() {

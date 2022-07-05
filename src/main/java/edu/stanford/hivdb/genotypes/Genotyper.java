@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
@@ -122,23 +123,27 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		return Ints.toArray(inverseNAIndice);
 	}
 	
-	private static void appendCodonDiscordance(
-		int codonStartNAPos, String curCodon,
-		Map<Integer, List<Integer>> discordanceListPerRef,
-		Map<Integer, List<Integer>> curCodonDiscordancePerRef,
-		Map<Integer, Set<String>> ignoredCodons) {
-		Set<String> codons = ignoredCodons.get(codonStartNAPos);
-		if (codons == null || !codons.contains(curCodon)) {
-			// keep the result if the current codon is not a SDRM
-			for (Map.Entry<Integer, List<Integer>> entry :
-					curCodonDiscordancePerRef.entrySet()) {
-				int refIdx = entry.getKey();
-				if (!discordanceListPerRef.containsKey(refIdx)) {
-					discordanceListPerRef.put(refIdx, new ArrayList<>());
-				}
-				List<Integer> discordanceList = discordanceListPerRef.get(refIdx);
-				discordanceList.addAll(entry.getValue());
+	private static int hasIgnoredCodons(int naPos, Map<Integer, Set<String>> ignoredCodons) {
+		for (int i = 0; i < 3; i ++) {
+			if (ignoredCodons.containsKey(naPos - i)) {
+				return i;
 			}
+		}
+		return -1;
+	}
+	
+	private static void appendDiscordance(
+		Map<Integer, List<Integer>> discordanceListPerRef,
+		Map<Integer, List<Integer>> curCodonDiscordancePerRef
+	) {
+		for (Map.Entry<Integer, List<Integer>> entry :
+				curCodonDiscordancePerRef.entrySet()) {
+			int refIdx = entry.getKey();
+			if (!discordanceListPerRef.containsKey(refIdx)) {
+				discordanceListPerRef.put(refIdx, new ArrayList<>());
+			}
+			List<Integer> discordanceList = discordanceListPerRef.get(refIdx);
+			discordanceList.addAll(entry.getValue());
 		}
 	}
 
@@ -180,27 +185,34 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		
 	}
 	
-	private Map<Integer, Set<String>> getSDRMCodonMap() {
+	protected Map<Integer, Set<String>> getSDRMCodonMap() {
 		if (this.sdrmCodonMap == null) {
 			Map<DrugClass<VirusT>, MutationSet<VirusT>> sdrmsMap = virusInstance.getSurveilDrugResistMutations();
 			Map<Integer, Set<String>> sdrmCodonMap = new HashMap<>();
 			for (MutationSet<VirusT> sdrms : sdrmsMap.values()) {
 				for (Mutation<VirusT> mut : sdrms) {
-					int absPos = mut.getGenePosition().getPositionInStrain();
+					int absNAPos = mut.getGenePosition().getAbsoluteNAPosition();
 					for (char aa : mut.getAAChars()) {
 						if (aa == '-' || aa == '_') {
 							continue;
 						}
-						sdrmCodonMap.put(
-							absPos * 3 - 3,
-							Collections.unmodifiableSet(
-								Sets.newHashSet(CodonUtils.translateAA(aa))
-							)
-						);
+						if (!sdrmCodonMap.containsKey(absNAPos)) {
+							sdrmCodonMap.put(absNAPos, Sets.newHashSet());
+						}
+						Set<String> codons = sdrmCodonMap.get(absNAPos);
+						codons.addAll(CodonUtils.translateAA(aa));						
 					}
 				}
 			}
-			this.sdrmCodonMap = Collections.unmodifiableMap(sdrmCodonMap);
+			this.sdrmCodonMap = Collections.unmodifiableMap(
+				sdrmCodonMap.entrySet().stream()
+				.collect(
+					Collectors.toMap(
+						e -> e.getKey(),
+						e -> Collections.unmodifiableSet(e.getValue())
+					)
+				)
+			);
 		}
 		return this.sdrmCodonMap;
 	}
@@ -225,57 +237,53 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		Map<Integer, Set<String>> ignoredCodons = getSDRMCodonMap();
 		Map<Integer, List<Integer>> discordanceListPerRef = new HashMap<>();
 		Map<Integer, List<Integer>> curCodonDiscordancePerRef = new HashMap<>();
-		StringBuffer curCodon = new StringBuffer();
+		StringBuffer codonBuffer = new StringBuffer();
 		for (int i = 0; i < compareLength; i ++) {
-			if ((maxFirstNA + i) % 3 == 0) {
-				// to check if the current position is the beginning of a codon
-				appendCodonDiscordance(
-					/* codonStartNAPos */ maxFirstNA + i - 3,
-					curCodon.toString(),
-					discordanceListPerRef, curCodonDiscordancePerRef,
-					ignoredCodons
-				);
-				curCodon.setLength(0);
-				curCodonDiscordancePerRef.clear();
-			}
 			int[][] treeNAs = referenceMismatchTree[treeOffset + i];
 			char seqNA = sequence.charAt(seqOffset + i);
-			if (seqNA == '.' || seqNA == 'N') {
-				// no need for further processing if seqNA == '.' or 'N'
-				curCodon.append(seqNA);
-				continue;
-			}
-			int[] naIndice = getNAIndice(seqNA);
-			Map<Integer, Integer> mismatchRefs = new HashMap<>();
-			for (int naIdx : naIndice) {
-				for (int mismatchRef : treeNAs[naIdx]) {
-					if (mismatchRef < 0) {
-						// the end
-						break;
+			if (seqNA != '.' && seqNA != 'N') {
+				int[] naIndice = getNAIndice(seqNA);
+				Map<Integer, Integer> mismatchRefs = new HashMap<>();
+				for (int naIdx : naIndice) {
+					for (int mismatchRef : treeNAs[naIdx]) {
+						if (mismatchRef < 0) {
+							// the end
+							break;
+						}
+						int mismatchCount = mismatchRefs.getOrDefault(mismatchRef, 0) + 1;
+						mismatchRefs.put(mismatchRef, mismatchCount);
 					}
-					int mismatchCount = mismatchRefs.getOrDefault(mismatchRef, 0) + 1;
-					mismatchRefs.put(mismatchRef, mismatchCount);
+				}
+				for (Map.Entry<Integer, Integer> e : mismatchRefs.entrySet()) {
+					if (e.getValue() < naIndice.length) {
+						// only get counted as discordance when no unambiguous NA was matched
+						continue;
+					}
+					int mismatchRef = e.getKey();
+					if (!curCodonDiscordancePerRef.containsKey(mismatchRef)) {
+						curCodonDiscordancePerRef.put(mismatchRef, new ArrayList<>());
+					}
+					curCodonDiscordancePerRef.get(mismatchRef).add(maxFirstNA + i);
 				}
 			}
-			for (Map.Entry<Integer, Integer> e : mismatchRefs.entrySet()) {
-				if (e.getValue() < naIndice.length) {
-					// only get counted as discordance when no unambiguous NA was matched
-					continue;
+
+			int bp = hasIgnoredCodons(maxFirstNA + i, ignoredCodons);
+			if (bp > -1) {
+				codonBuffer.append(seqNA);
+				if (bp == 2) {
+					Set<String> codons = ignoredCodons.get(maxFirstNA + i - 2);
+					if (!codons.contains(codonBuffer.toString())) {
+						appendDiscordance(discordanceListPerRef, curCodonDiscordancePerRef);
+					}
+					codonBuffer.setLength(0);
+					curCodonDiscordancePerRef.clear();
 				}
-				int mismatchRef = e.getKey();
-				if (!curCodonDiscordancePerRef.containsKey(mismatchRef)) {
-					curCodonDiscordancePerRef.put(mismatchRef, new ArrayList<>());
-				}
-				curCodonDiscordancePerRef.get(mismatchRef).add(maxFirstNA + i);
 			}
-			curCodon.append(seqNA);
+			else {
+				appendDiscordance(discordanceListPerRef, curCodonDiscordancePerRef);
+				curCodonDiscordancePerRef.clear();
+			}
 		}
-		appendCodonDiscordance(
-			/* codonStartNAPos */ minLastNA - 3,
-			curCodon.toString(),
-			discordanceListPerRef, curCodonDiscordancePerRef,
-			ignoredCodons
-		);
 		return discordanceListPerRef;
 	}
 	

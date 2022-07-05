@@ -65,8 +65,8 @@ public class OneCodonReadsCoverage<VirusT extends Virus<VirusT>> implements With
 		return isTrimmed;
 	}
 	
-	public Integer getPositionInStrain() {
-		return getGenePosition().getPositionInStrain();
+	public Integer getAbsoluteNAPosition() {
+		return getGenePosition().getAbsoluteNAPosition();
 	}
 
 	public Map<String, Object> extMap() {

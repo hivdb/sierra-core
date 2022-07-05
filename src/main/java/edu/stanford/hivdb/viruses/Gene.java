@@ -50,6 +50,7 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 	private final Map<String, String> strainModifiers;
 	private final List<String> mutationTypes;
 	private final List<String> synonyms;
+	private final List<List<Integer>> refRanges;
 
 	private transient VirusT virusInstance;
 	private transient Map<String, StrainModifier> strainModifierMap;
@@ -95,7 +96,8 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		String refSequence,
 		List<String> mutationTypes,
 		Map<String, String> strainModifiers,
-		List<String> synonyms
+		List<String> synonyms,
+		List<List<Integer>> refRanges
 	) {
 		this.name = name;
 		this.ordinal = ordinal;
@@ -105,10 +107,31 @@ public class Gene<VirusT extends Virus<VirusT>> implements Comparable<Gene<Virus
 		this.mutationTypes = mutationTypes;
 		this.strainModifiers = strainModifiers;
 		this.synonyms = synonyms;
+		this.refRanges = refRanges;
 	}
 	
 	public String name() {
 		return name;
+	}
+	
+	public List<List<Integer>> getRefRanges() {
+		return refRanges;
+	}
+	
+	public int calcAbsoluteNAPosition(Integer aaPos) {
+		int minRelNAPos0 = 0;
+		int maxRelNAPos0;
+		int relNAPos0 = aaPos * 3 - 3;
+		for (List<Integer> refRange : refRanges) {
+			maxRelNAPos0 = refRange.get(1) - refRange.get(0) + 1 + minRelNAPos0;
+			if (relNAPos0 >= minRelNAPos0 && relNAPos0 < maxRelNAPos0) {
+				return relNAPos0 - minRelNAPos0 + refRange.get(0);
+			}
+			minRelNAPos0 = maxRelNAPos0;
+		}
+		throw new RuntimeException(
+			String.format("%s aaPos out of bound: %d", name, aaPos)
+		);
 	}
 	
 	public String getName() {

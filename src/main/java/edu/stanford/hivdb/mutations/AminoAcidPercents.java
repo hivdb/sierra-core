@@ -117,6 +117,10 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 		aminoAcidPcnts = Collections.emptyList();
 	}
 
+	public boolean isEmpty() {
+		return aminoAcidPcnts.isEmpty();
+	}
+
 	public List<AminoAcidPercent<VirusT>> get() {
 		// make a copy in case of any modification
 		return new ArrayList<>(aminoAcidPcnts);
