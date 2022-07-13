@@ -40,6 +40,7 @@ public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends Assemb
 		}
 		else {
 			seq = new ArrayList<>();
+			// TODO: merge this part with geneSeq.getAlignedNAs()
 			Map<Integer, String> codonLookup = geneSeq.getCodonLookup();
 			for (int pos = 1; pos <= aaSize; pos ++) {
 				String posCodon = codonLookup.getOrDefault(pos, "NNN");

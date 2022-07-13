@@ -20,7 +20,7 @@
 
 /**
  * @version 3.0
- * 
+ *
  */
 
 package edu.stanford.hivdb.viruses;
@@ -117,6 +117,10 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 		return absGenes;
 	}
 
+	public default Collection<String> getDefaultIncludedGenes() {
+		return getAbstractGenes();
+	}
+
 	public Collection<DrugClass<VirusT>> getDrugClasses();
 
 	public Map<String, DrugClass<VirusT>> getDrugClassSynonymMap();
@@ -161,11 +165,11 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public Genotyper<VirusT> getGenotyper();
 
 	public List<GenotypeReference<VirusT>> getGenotypeReferences();
-	
+
 	public default Double getGenotypeUnknownThreshold() {
 		return 0.11;
 	}
-	
+
 	public default Double getGenotypeMaxFallbackToSecondaryDistanceDiff() {
 		return 0.01;
 	}
@@ -227,11 +231,11 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 	public MutationSet<VirusT> getApobecDRMs();
 
 	public AminoAcidPercents<VirusT> getAminoAcidPercents(Strain<VirusT> strain, String treatment, String subtype);
-	
+
 	public AminoAcidPercents<VirusT> getMainAminoAcidPercents(Strain<VirusT> strain);
 
 	public CodonPercents<VirusT> getCodonPercents(Strain<VirusT> strain, String treatment, String subtype);
-	
+
 	public CodonPercents<VirusT> getMainCodonPercents(Strain<VirusT> strain);
 
 	public Collection<MutationType<VirusT>> getMutationTypes();
@@ -330,7 +334,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toList())
 		);
 	}
-	
+
 	public DrugResistanceAlgorithm<VirusT> getDefaultDrugResistAlgorithm();
 
 	public default DrugResistanceAlgorithm<VirusT> getLatestDrugResistAlgorithm(String family) {
@@ -339,7 +343,7 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			.stream()
 		).get();
 	}
-	
+
 	public default List<MutationPrevalence<VirusT>> getMutationPrevalence(GenePosition<VirusT> genePos) {
 		return defaultGetMutationPrevalence(genePos);
 	}
@@ -453,9 +457,9 @@ public interface Virus<VirusT extends Virus<VirusT>> {
 			return Collections.emptyList();
 		}
 	}
-	
+
 	public AlignmentConfig<VirusT> getAlignmentConfig();
-	
+
 	public default VirusGraphQLExtension getVirusGraphQLExtension() {
 		return DefaultVirusGraphQLExtension.getInstance();
 	}
