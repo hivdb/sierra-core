@@ -1,8 +1,6 @@
 package edu.stanford.hivdb.sequences;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,31 +27,20 @@ public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends Assemb
 
 	@Override
 	public String assemble(AlignedGeneSeq<VirusT> geneSeq, boolean skipIns) {
-		int aaSize = getGene().getAASize();
-		List<String> seq;
+		List<String> codons;
 		if (geneSeq == null) {
-			seq = (
+			int aaSize = getGene().getAASize();
+			codons = (
 				Stream.generate(() -> "NNN")
 				.limit(aaSize)
-				.collect(Collectors.toCollection(ArrayList::new))
+				.collect(Collectors.toList())
 			);
 		}
 		else {
-			seq = new ArrayList<>();
-			// TODO: merge this part with geneSeq.getAlignedNAs()
-			Map<Integer, String> codonLookup = geneSeq.getCodonLookup();
-			for (int pos = 1; pos <= aaSize; pos ++) {
-				String posCodon = codonLookup.getOrDefault(pos, "NNN");
-				if (skipIns) {
-					seq.add(posCodon.substring(0, 3));
-				}
-				else {
-					seq.add(posCodon.replace("-", ""));
-				}
-			}
+			codons = geneSeq.getAlignedCodons(skipIns);
 		}
-		seq = this.trimCodonList(seq);
-		return String.join("", seq);
+		codons = this.trimCodonList(codons);
+		return String.join("", codons);
 	}
 
 }

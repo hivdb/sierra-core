@@ -318,7 +318,6 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 							sequence,
 							gene,
 							report,
-							sequenceReversed,
 							MIN_MATCH_PCNT.get(fragmentName),
 							SEQUENCE_SHRINKAGE_WINDOW.get(fragmentName),
 							SEQUENCE_SHRINKAGE_CUTOFF_PCNT.get(fragmentName),

@@ -142,7 +142,6 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		Sequence sequence,
 		Gene<VirusT> gene,
 		Map<?, ?> report,
-		boolean sequenceReversed,
 		Double minMatchPcnt,
 		Double seqShrinkWindow,
 		Double seqShrinkCutoff,
@@ -242,7 +241,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			lastAA - trimDelsRight,
 			firstNA + trimDelsLeft * 3,
 			lastNA - trimDelsRight * 3,
-			alignedSites, mutations, frameShifts, 0, 0, sequenceReversed);
+			alignedSites, mutations, frameShifts, 0, 0);
 		if (geneSeq.getMatchPcnt() < minMatchPcnt) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s is discarded " +
@@ -272,7 +271,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 				geneSeq.getLastNA() - trimUUsRight * 3,
 				geneSeq.getAlignedSites(),
 				geneSeq.getMutations(),
-				geneSeq.getFrameShifts(), trimUUsLeft, trimUUsRight, sequenceReversed);
+				geneSeq.getFrameShifts(), trimUUsLeft, trimUUsRight);
 		}
 
 		if (geneSeq.getSize() < minNumOfSites) {

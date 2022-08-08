@@ -23,6 +23,7 @@ package edu.stanford.hivdb.sequences;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,8 +61,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final int leftTrimmed;
 	private final int rightTrimmed;
 	private Double matchPcnt;
-	private final boolean sequenceReversed;
-	private transient Sequence reversedSeq;
 	private transient List<AlignedSite> alignedSites;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
 	private transient GeneRegions<VirusT> unseqRegions;
@@ -105,8 +104,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			Collection<Mutation<VirusT>> mutations,
 			List<FrameShift<VirusT>> frameShifts,
 			final int leftTrimmed,
-			final int rightTrimmed,
-			final boolean sequenceReversed) {
+			final int rightTrimmed) {
 		this.sequence = sequence;
 		this.gene = gene;
 		this.firstAA = firstAA;
@@ -114,10 +112,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
 		this.matchPcnt = -1.;
-		this.sequenceReversed = sequenceReversed;
-		if (sequenceReversed) {
-			reversedSeq = sequence.reverseCompliment();
-		}
 		this.leftTrimmed = leftTrimmed;
 		this.rightTrimmed = rightTrimmed;
 
@@ -173,24 +167,9 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	}
 	
 	protected Map<Integer, String> getCodonLookup() {
-		return getAllCodons()
-			.stream()
-			.collect(Collectors.toMap(
-				pair -> pair.getLeft(),
-				pair -> pair.getRight()
-			));
-	}
-	
-	protected List<Pair<Integer, String>> getAllCodons() {
-		String naSeq;
-		if (sequenceReversed) {
-			naSeq = reversedSeq.getSequence();
-		}
-		else {
-			naSeq = sequence.getSequence();
-		}
+		String naSeq = sequence.getSequence();
 
-		List<Pair<Integer, String>> allCodons = new ArrayList<>();
+		Map<Integer, String> allCodons = new LinkedHashMap<>();
 
 		for (AlignedSite site : alignedSites) {
 			List<Integer> posNAs = site.getPosNAs();
@@ -203,22 +182,34 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 					codon.append(naSeq.charAt(posNA - 1));
 				}
 			}
-			allCodons.add(Pair.of(site.getPosAA(), codon.toString()));
+			allCodons.put(site.getPosAA(), codon.toString());
 		}
 		
 		return allCodons;
 	}
+	
+	public List<String> getAlignedCodons(boolean skipIns) {
+		int aaSize = getGene().getAASize();
+		List<String> codons = new ArrayList<>();
+		Map<Integer, String> codonLookup = getCodonLookup();
+		for (int pos = 1; pos <= aaSize; pos ++) {
+			String posCodon = codonLookup.getOrDefault(pos, "NNN");
+			if (skipIns) {
+				// skip insertions by only using first 3 chars
+				codons.add(posCodon.substring(0, 3));
+			}
+			else {
+				codons.add(posCodon.replace("-", ""));
+			}
+		}
+		return codons;
+	}
 
 	public String getAlignedNAs() {
 		if (this.alignedNAs == null) {
-			StringBuilder alignedNAs = new StringBuilder();
-			Map<Integer, String> codonLookup = getCodonLookup();
-			for (int pos = firstAA; pos <= lastAA; pos ++) {
-				// skip insertions by only using first 3 chars
-				String noInsCodon = codonLookup.getOrDefault(pos, "NNN").substring(0, 3);
-				alignedNAs.append(noInsCodon);
-			}
-			this.alignedNAs = alignedNAs.toString();
+			List<String> codons = getAlignedCodons(true);
+			codons = codons.subList(firstAA - 1, lastAA);
+			this.alignedNAs = String.join("", codons);
 		}
 		return this.alignedNAs;
 	} // Need
