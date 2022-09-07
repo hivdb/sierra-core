@@ -330,7 +330,7 @@ public class StrainModifier {
 			switch (flag) {
 				case M:
 					targetNASeq.append(naseq.substring(0, offset * 3));
-					naseq = naseq.substring(offset);
+					naseq = naseq.substring(offset * 3);
 					break;
 				case I:
 					targetNASeq.append(StringUtils.repeat(WILDCARD, offset * 3));
