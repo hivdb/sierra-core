@@ -93,13 +93,23 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 			})
 			.collect(Collectors.toList());
 	}
+
+	protected long calcMinReads(double minPrevalence, long minCodonReads) {
+		return Math.max(
+			((Double) Math.ceil(totalReads * minPrevalence)).longValue(),
+			minCodonReads
+		);
+	}
+
 	public List<CodonReads<VirusT>> getCodonReadsUsingThreshold(
 		double minPrevalence, long minCodonReads
 	) {
-		long minReads = Math.max(
-			((Double) Math.floor(totalReads * minPrevalence)).longValue(),
-			minCodonReads
-		);
+		long minReads = calcMinReads(minPrevalence, minCodonReads);
+		if (gene.name().equals("SARS2PLpro") && position == 736) {
+			for (CodonReads<VirusT> cr : getCodonReads()) {
+				System.out.println("  " + cr.getCodon() + "/" + cr.getAminoAcid() + ": " + cr.getReads());
+			}
+		}
 		return (
 			getCodonReads().stream()
 			.filter(cdr -> cdr.getReads() >= minReads)
