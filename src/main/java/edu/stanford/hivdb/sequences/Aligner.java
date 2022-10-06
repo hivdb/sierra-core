@@ -214,7 +214,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 				"Alignment of gene %s is discarded " +
 				"since the List of 'alignedSites' is " +
 				"empty or contains only gaps.",
-				gene
+				gene.getAbstractGene()
 			), false);
 		}
 		
@@ -246,7 +246,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s is discarded " +
 				"since the discordance rate is too high (%.1f%% > %.0f%%).",
-				gene, 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
+				gene.getAbstractGene(), 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
 			), false);
 		}
 
@@ -278,7 +278,7 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s was discarded " +
 				"since the length of alignment (%d) was too short (< %d).",
-				gene, aaSize, minNumOfSites
+				gene.getAbstractGene(), aaSize, minNumOfSites
 			), false);
 		}
 

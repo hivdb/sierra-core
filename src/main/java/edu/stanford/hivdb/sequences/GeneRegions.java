@@ -2,12 +2,15 @@ package edu.stanford.hivdb.sequences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Streams;
 
@@ -110,6 +113,29 @@ public class GeneRegions<VirusT extends Virus<VirusT>> implements WithGene<Virus
 	public static <T extends Virus<T>> GeneRegions<T> newUnsequencedRegions(Gene<T> gene, long firstAA, long lastAA, MutationSet<T> mutations) {
 		MutationSet<T> geneMuts = mutations.getGeneMutationsNoSplit(gene); 
 		final MutationSet<T> definitiveUnseqs = geneMuts.filterByNoSplit(Mutation::isUnsequenced);
+		final List<Pair<Integer, Integer>> consecutiveDels = new ArrayList<>();
+		for (Mutation<T> mut : mutations) {
+			int pos = mut.getPosition();
+			boolean breakFlag = false;
+			for (int i = 0; i < consecutiveDels.size(); i ++) {
+				Pair<Integer, Integer> range = consecutiveDels.get(i);
+				if (pos == range.getRight()) {
+					consecutiveDels.set(i, Pair.of(range.getLeft(), pos + 1));
+					breakFlag = true;
+					break;
+				}
+			}
+			if (!breakFlag) {
+				consecutiveDels.add(Pair.of(pos, pos + 1));
+			}
+		}
+		final Set<Integer> unseqDels = consecutiveDels
+			.stream()
+			.filter(pair -> pair.getRight() - pair.getLeft() >= 20)
+			.flatMapToInt(pair -> IntStream.range(pair.getLeft(), pair.getRight()))
+			.mapToObj(i -> i)
+			.collect(Collectors.toSet());
+		
 		final MutationSet<T> conditionalUnseqs = geneMuts.filterByNoSplit(mut -> {
 			// mutation is considered "conditionally unsequenced"
 			// if its "N" part is adjacent to a "definitively unsequenced" mutation
@@ -118,6 +144,10 @@ public class GeneRegions<VirusT extends Virus<VirusT>> implements WithGene<Virus
 			}
 			if (mut.isInsertion()) {
 				return false;
+			}
+			if (mut.isDeletion() && unseqDels.contains(mut.getPosition())) {
+				// long-stretch del are unsequenced regions
+				return true;
 			}
 			if (mut instanceof CodonMutation) {
 				String triplet = mut.getTriplet();

@@ -3,21 +3,23 @@ package edu.stanford.hivdb.sequences;
 import java.util.List;
 
 import edu.stanford.hivdb.mutations.FrameShift;
+import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
+import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
 public interface WithSequenceStat<VirusT extends Virus<VirusT>> {
 	
-	public MutationSet<VirusT> getMutations();
+	public MutationSet<VirusT> getSequencedMutations();
 	
 	public List<FrameShift<VirusT>> getFrameShifts();
-
+	
 	default public Long getMutationCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced());
+		return getSequencedMutations().count();
 	}
 
 	default public Long getUnusualMutationCount() {
-		return getMutations().countIf(mut -> mut.isUnusual() && !mut.isUnsequenced());
+		return getSequencedMutations().countIf(Mutation::isUnusual);
 	}
 	
 	default public Long getFrameShiftCount() {
@@ -25,27 +27,27 @@ public interface WithSequenceStat<VirusT extends Virus<VirusT>> {
 	}
 	
 	default public Long getInsertionCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.isInsertion());
+		return getSequencedMutations().countIf(Mutation::isInsertion);
 	}
 	
 	default public Long getDeletionCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.isDeletion());
+		return getSequencedMutations().countIf(Mutation::isDeletion);
 	}
 
 	default public Long getStopCodonCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.hasStop());
+		return getSequencedMutations().countIf(Mutation::hasStop);
 	}
 
 	default public Long getAmbiguousMutationCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.isAmbiguous());
+		return getSequencedMutations().countIf(Mutation::isAmbiguous);
 	}
 	
 	default public Long getApobecMutationCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.isApobecMutation());
+		return getSequencedMutations().countIf(Mutation::isApobecMutation);
 	}
 
 	default public Long getApobecDRMCount() {
-		return getMutations().countIf(mut -> !mut.isUnsequenced() && mut.isApobecDRM());
+		return getSequencedMutations().countIf(Mutation::isApobecDRM);
 	}
 
 }

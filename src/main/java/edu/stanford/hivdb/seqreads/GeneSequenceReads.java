@@ -196,7 +196,7 @@ public class GeneSequenceReads<VirusT extends Virus<VirusT>> implements WithSequ
 			this.cutoffObj.getMinCodonReads()
 		);
 	}
-
+	
 	public Long getMutationCount() {
 		return getMutations().countIf(mut -> !mut.isUnsequenced());
 	}

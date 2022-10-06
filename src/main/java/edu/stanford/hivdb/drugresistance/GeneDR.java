@@ -45,6 +45,7 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.seqreads.GeneSequenceReads;
 import edu.stanford.hivdb.sequences.AlignedGeneSeq;
+import edu.stanford.hivdb.sequences.GeneRegions;
 import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.MySetUtils;
 import edu.stanford.hivdb.viruses.Gene;
@@ -72,7 +73,11 @@ public class GeneDR<VirusT extends Virus<VirusT>> implements WithGene<VirusT>  {
 			.parallelStream()
 			.collect(Collectors.toMap(
 				geneSeq -> geneSeq.getGene(),
-				geneSeq -> new GeneDR<>(geneSeq.getGene(), geneSeq.getMutations(), algorithm),
+				geneSeq -> new GeneDR<>(
+					geneSeq.getGene(),
+					geneSeq.getSequencedMutations(),
+					algorithm
+				),
 				(g1, g2) -> g1,
 				TreeMap::new
 			));
@@ -105,7 +110,7 @@ public class GeneDR<VirusT extends Virus<VirusT>> implements WithGene<VirusT>  {
 	}
 
 	public GeneDR(Gene<VirusT> gene, AlignedGeneSeq<VirusT> seq, DrugResistanceAlgorithm<VirusT> algorithm) {
-		this(gene, seq.getMutations(), algorithm);
+		this(gene, seq.getSequencedMutations(), algorithm);
 	}
 
 	public GeneDR(Gene<VirusT> gene, MutationSet<VirusT> mutations, DrugResistanceAlgorithm<VirusT> algorithm) {

@@ -46,6 +46,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 	private Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSequenceMap;
 	private Map<Gene<VirusT>, String> discardedGenes;
 	private MutationSet<VirusT> mutations;
+	private MutationSet<VirusT> sequencedMutations;
 	private GenotypeResult<VirusT> genotypeResult;
 	private Double mixtureRate;
 	private transient List<FrameShift<VirusT>> frameShifts;
@@ -161,7 +162,6 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 			);
 	}
 
-	@Override
 	public MutationSet<VirusT> getMutations() {
 		if (mutations == null) {
 			mutations = new MutationSet<>();
@@ -172,6 +172,20 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 				});
 		}
 		return mutations;
+	}
+	
+	@Override
+	public MutationSet<VirusT> getSequencedMutations() {
+		if (sequencedMutations == null) {
+			sequencedMutations = new MutationSet<>();
+			alignedGeneSequenceMap.values()
+				.stream()
+				.forEach(geneSeq -> {
+					sequencedMutations = sequencedMutations.mergesWith(geneSeq.getSequencedMutations());
+				});
+		}
+		return sequencedMutations;
+		
 	}
 	
 	public GenotypeResult<VirusT> getGenotypeResult() {
@@ -252,4 +266,5 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 		}
 		return numMatchedNAs;
 	}
+
 }
