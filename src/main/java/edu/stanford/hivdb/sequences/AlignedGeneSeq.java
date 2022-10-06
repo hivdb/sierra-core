@@ -289,7 +289,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	public MutationSet<VirusT> getSequencedMutations() {
 		if (sequencedMutations == null) {
 			GeneRegions<VirusT> unseqRegions = getUnsequencedRegions();
-			sequencedMutations = mutations.filterBy(mut -> !mut.isUnsequenced(unseqRegions));
+			sequencedMutations = mutations.filterByNoSplit(mut -> !mut.isUnsequenced(unseqRegions));
 		}
 		return sequencedMutations;
 	}  // Need
