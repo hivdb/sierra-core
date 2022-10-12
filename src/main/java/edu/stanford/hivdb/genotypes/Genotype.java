@@ -132,8 +132,9 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 		RegionalGenotype<VirusT> primary = results
 			.stream()
 			.sorted((r1, r2) -> r2.proportion.compareTo(r1.proportion))
-			.findFirst().get();
-		if (primary.proportion >= getMinPrimaryRegionalGenotypeProportion()) {
+			.findFirst()
+			.orElse(null);
+		if (primary != null && primary.proportion >= getMinPrimaryRegionalGenotypeProportion()) {
 			return primary;
 		}
 		return new RegionalGenotype<>(this, 1.0);
