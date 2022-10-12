@@ -61,6 +61,8 @@ public class Sequence {
 	private String header;
 	private String sequence;
 	private String removedInvalidChars;
+	private int removedLeadingNs;
+	private int removedTrailingNs;
 	private Boolean isReversed;
 
 	/**
@@ -83,6 +85,8 @@ public class Sequence {
 	public Sequence(String header, String sequenceText, boolean isReversed) {
 		this.header = header;
 		this.removedInvalidChars = "";
+		this.removedLeadingNs = 0;
+		this.removedTrailingNs = 0;
 		this.sequence = sanitizeSequence(sequenceText);
 		this.isReversed = isReversed;
 	}
@@ -122,6 +126,11 @@ public class Sequence {
 		sequenceText = sequenceText.toUpperCase();
 		this.removedInvalidChars += sequenceText
 			.replaceAll("[ACGTRYMWSKBDHVN]", "");
+		int seqLen = sequenceText.length();
+		sequenceText = sequenceText.replaceAll("^N+", "");
+		this.removedLeadingNs = seqLen - sequenceText.length();
+		sequenceText = sequenceText.replaceAll("N+$", "");
+		this.removedTrailingNs = seqLen - this.removedLeadingNs - sequenceText.length();
 		return sequenceText
 			.replaceAll("[^ACGTRYMWSKBDHVN]", "");
 	}
@@ -138,6 +147,20 @@ public class Sequence {
 		}
 		return result;
 	}
+	
+	/**
+	 * Gets number of removed leading Ns
+	 * 
+	 * @return int
+	 */
+	public int getRemovedLeadingNs() { return removedLeadingNs; }
+
+	/**
+	 * Gets number of removed trailing Ns
+	 * 
+	 * @return int
+	 */
+	public int getRemovedTrailingNs() { return removedTrailingNs; }
 
 	/**
 	 * Gets the header name of the sequence.
