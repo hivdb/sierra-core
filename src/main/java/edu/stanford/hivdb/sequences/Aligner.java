@@ -425,6 +425,9 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		Map<Sequence, AlignedSequence<VirusT>> knownAlignments
 	) {
 		for (AlignedSequence<VirusT> alignedSeq : newAlignments) {
+			if (alignedSeq == null) {
+				continue;
+			}
 			Sequence inputSeq = alignedSeq.getInputSequence();
 			
 			if (knownAlignments.containsKey(inputSeq)) {
