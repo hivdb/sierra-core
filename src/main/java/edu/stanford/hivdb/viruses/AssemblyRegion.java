@@ -94,8 +94,15 @@ public abstract class AssemblyRegion<
 			int aapos0 = Math.toIntExact(napos0 / 3);
 			int bp0 = Math.toIntExact(napos0 % 3);
 			String codon = codonList.get(aapos0);
-			if (bp0 < codon.length()) {
-				codon = codon.substring(0, bp0) + codon.substring(bp0 + 1);
+			int codonLen = codon.length();
+			if (bp0 < codonLen) {
+				if (bp0 == 2 || bp0 + 1 == codonLen) {
+					// If the last bp of the codon is trimmed, don't keep the insertion
+					codon = codon.substring(0, bp0);
+				}
+				else {
+					codon = codon.substring(0, bp0) + codon.substring(bp0 + 1);
+				}
 			}
 			codonList.set(aapos0, codon);
 		}
