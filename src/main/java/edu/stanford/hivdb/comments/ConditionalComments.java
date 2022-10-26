@@ -23,10 +23,10 @@ package edu.stanford.hivdb.comments;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.fstrf.stanfordAsiInterpreter.resistance.evaluate.EvaluatedResultCommentRule;
 
@@ -65,12 +65,17 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 		}
 		virusInstance = virusIns;
 		condCommentMap = Collections.unmodifiableMap(condComments);
-		condCommentsByGenePos = Collections.unmodifiableMap(
-			condComments.values()
-			.stream()
-			.filter(cmt -> cmt.getConditionType() == ConditionType.MUTATION)
-			.collect(Collectors.groupingBy(ConditionalComment::getMutationGenePosition))
-		);
+		Map<GenePosition<VirusT>, List<ConditionalComment<VirusT>>> selfCondCommentsByGenePos = new HashMap<>();
+		for (ConditionalComment<VirusT> cmt : condComments.values()) {
+			if (cmt.getConditionType() != ConditionType.MUTATION) {
+				continue;
+			}
+			for (GenePosition<VirusT> genePos : cmt.getMutationLookup().keySet()) {
+				selfCondCommentsByGenePos.putIfAbsent(genePos, new ArrayList<>());
+				selfCondCommentsByGenePos.get(genePos).add(cmt);
+			}
+		}
+		condCommentsByGenePos = Collections.unmodifiableMap(selfCondCommentsByGenePos);
 	}
 	
 	public static String getCommentWildcardRegex() {
@@ -83,7 +88,7 @@ public class ConditionalComments<VirusT extends Virus<VirusT>> {
 			Mutation<VirusT> mutation, ConditionalComment<VirusT> cc) {
 
 		List<Character> aaChars = Chars.asList(
-			cc.getMutationAAs().toCharArray()
+			cc.getMutationAAs(mutation.getGenePosition()).toCharArray()
 		);
 		Mutation<VirusT> resultMut = mutation.intersectsWith(aaChars);
 		if (resultMut == null) {

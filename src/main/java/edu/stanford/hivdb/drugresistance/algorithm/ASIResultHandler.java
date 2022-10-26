@@ -206,7 +206,7 @@ public class ASIResultHandler {
 			return null;
 		}
 
-		MutationComparator mutationComparator = new StringMutationComparator(false);
+		MutationComparator<String> mutationComparator = new StringMutationComparator(false);
 		if (!mutationComparator.areMutationsValid(asiMutations)){
 			throw new RuntimeException(
 				String.format("Invalid list of mutations: %s",
@@ -275,29 +275,34 @@ public class ASIResultHandler {
 				);
 			}
 			
-			Mutation<T> matchedMut = mutMap.get(condComment.getMutationGenePosition());
-			if (matchedMut != null) {
-				mut = matchedMut.intersectsWith(condComment.getMutationAAs().chars()
+			for (Map.Entry<GenePosition<T>, String> entry : condComment.getMutationLookup().entrySet()) {
+				GenePosition<T> genePos = entry.getKey();
+			
+				Mutation<T> matchedMut = mutMap.get(genePos);
+
+				if (matchedMut != null) {
+					mut = matchedMut.intersectsWith(entry.getValue().chars()
 						.mapToObj(e -> (char) e)
 						.collect(Collectors.toList())
-						);
-				if (mut == null) {
-					throw new IllegalArgumentException(String.format(
+					);
+					if (mut == null) {
+						throw new IllegalArgumentException(String.format(
 							"Mutation %s is not match with comment definition %s.",
 							matchedMut.getHumanFormat(), commentName));
+					}
+					List<String> highlight = new ArrayList<>();
+					highlight.add(mut.getHumanFormat());
+					results.add(new BoundComment<T>(
+						condComment.getStrain(), condComment.getName(),
+						condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
+						cmtDef.getText().replaceAll(
+							ConditionalComments.getCommentWildcardRegex(),
+							mut.getHumanFormat()
+						),
+						highlight,
+						mut
+					));
 				}
-				List<String> highlight = new ArrayList<>();
-				highlight.add(mut.getHumanFormat());
-				results.add(new BoundComment<T>(
-					condComment.getStrain(), condComment.getName(),
-					condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
-					cmtDef.getText().replaceAll(
-						ConditionalComments.getCommentWildcardRegex(),
-						mut.getHumanFormat()
-					),
-					highlight,
-					mut
-				));
 			}
 
 		}

@@ -34,11 +34,11 @@ import edu.stanford.hivdb.viruses.Virus;
 import edu.stanford.hivdb.viruses.WithGene;
 
 public class ConditionalComment<VirusT extends Virus<VirusT>> implements WithGene<VirusT> {
-	final private Strain<VirusT> strain;
+	final protected Strain<VirusT> strain;
 	final private String commentName;
 	final private DrugClass<VirusT> drugClass;
 	final private ConditionType conditionType;
-	final private Map<String, ?> conditionValue;
+	final protected Map<String, ?> conditionValue;
 	final private String comment;
 	
 	final private transient VirusT virusInstance;
@@ -56,32 +56,46 @@ public class ConditionalComment<VirusT extends Virus<VirusT>> implements WithGen
 		this.virusInstance = strain.getVirusInstance();
 	}
 	
-	public Gene<VirusT> getMutationGene() {
-		if (conditionType != ConditionType.MUTATION) {
-			return null;
-		}
-		return strain.getGene((String) conditionValue.get("gene"));
+	protected static <T extends Virus<T>> Gene<T> extractMutationGene(Map<?, ?> value, Strain<T> strain) {
+		return strain.getGene((String) value.get("gene"));
 	}
 
-	public Integer getMutationPosition() {
-		if (conditionType != ConditionType.MUTATION) {
-			return null;
-		}
-		return ((Double) conditionValue.get("pos")).intValue();
+	protected static Integer extractMutationPosition(Map<?, ?> value) {
+		return ((Double) value.get("pos")).intValue();
 	}
 
-	public String getMutationAAs() {
-		if (conditionType != ConditionType.MUTATION) {
-			return null;
-		}
-		return AAUtils.normalizeAAs((String) conditionValue.get("aas"));
+	protected static String extractMutationAAs(Map<?, ?> value) {
+		return AAUtils.normalizeAAs((String) value.get("aas"));
 	}
 	
-	public GenePosition<VirusT> getMutationGenePosition() {
+	public String getMutationAAs(GenePosition<VirusT> genePos) {
 		if (conditionType != ConditionType.MUTATION) {
 			return null;
 		}
-		return new GenePosition<>(getMutationGene(), getMutationPosition());
+		return getMutationLookup().get(genePos);
+	}
+	
+	public Map<GenePosition<VirusT>, String> getMutationLookup() {
+		if (conditionType != ConditionType.MUTATION) {
+			return null;
+		}
+		Map<GenePosition<VirusT>, String> mutLookup = new LinkedHashMap<>();
+		if (conditionValue.containsKey("or")) {
+			for (Object mut : ((List<?>) conditionValue.get("or"))) {
+				Map<?, ?> mutMap = ((Map<?, ?>) mut);
+				Gene<VirusT> gene = extractMutationGene(mutMap, strain);
+				Integer pos = extractMutationPosition(mutMap);
+				String aas = extractMutationAAs(mutMap);
+				mutLookup.put(new GenePosition<>(gene, pos), aas);
+			}
+		}
+		else {
+			Gene<VirusT> gene = extractMutationGene(conditionValue, strain);
+			Integer pos = extractMutationPosition(conditionValue);
+			String aas = extractMutationAAs(conditionValue);
+			mutLookup.put(new GenePosition<>(gene, pos), aas);
+		}
+		return mutLookup;
 	}
 
 	public Map<Drug<VirusT>, List<Integer>> getDrugLevels() {
