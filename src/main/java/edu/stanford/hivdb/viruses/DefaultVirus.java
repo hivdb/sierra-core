@@ -29,10 +29,25 @@ public abstract class DefaultVirus<VirusT extends DefaultVirus<VirusT>> implemen
 
 	protected abstract VirusDataLoader<VirusT> getVirusDataLoader();
 
-	public DefaultVirus() {
-		this.dataLoader = getVirusDataLoader();
+	protected void initMutationsValidator() {
+		registerMutationsValidator(new DefaultMutationsValidator<>());
 	}
 
+	protected void initSequenceValidator() {
+		registerSequenceValidator(new DefaultSequenceValidator<>());
+	}
+
+	protected void initSequenceReadsValidator() {
+		registerSequenceReadsValidator(new DefaultSequenceReadsValidator<>());
+	}
+
+	public DefaultVirus() {
+		this.dataLoader = getVirusDataLoader();
+		initMutationsValidator();
+		initSequenceValidator();
+		initSequenceReadsValidator();
+	}
+	
 	@Override
 	public String getName() {
 		return dataLoader.getName();

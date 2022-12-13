@@ -143,8 +143,6 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 		Gene<VirusT> gene,
 		Map<?, ?> report,
 		Double minMatchPcnt,
-		Double seqShrinkWindow,
-		Double seqShrinkCutoff,
 		final int minNumOfSites
 	) {
 		int geneLength = gene.getAASize();
@@ -241,37 +239,13 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 			lastAA - trimDelsRight,
 			firstNA + trimDelsLeft * 3,
 			lastNA - trimDelsRight * 3,
-			alignedSites, mutations, frameShifts, 0, 0);
+			alignedSites, mutations, frameShifts);
 		if (geneSeq.getMatchPcnt() < minMatchPcnt) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s is discarded " +
 				"since the discordance rate is too high (%.1f%% > %.0f%%).",
 				gene.getAbstractGene(), 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
 			), false);
-		}
-
-		int[] trimUUs = trimLowQualities(
-			sequence,
-			gene,
-			geneSeq.getFirstAA(),
-			geneSeq.getLastAA(),
-			geneSeq.getMutations(),
-			geneSeq.getFrameShifts(),
-			seqShrinkWindow,
-			seqShrinkCutoff
-		);
-		int trimUUsLeft = trimUUs[0];
-		int trimUUsRight = trimUUs[1];
-		if (trimUUsLeft > 0 || trimUUsRight > 0) {
-			geneSeq = new AlignedGeneSeq<>(
-				sequence, gene,
-				geneSeq.getFirstAA() + trimUUsLeft,
-				geneSeq.getLastAA() - trimUUsRight,
-				geneSeq.getFirstNA() + trimUUsLeft * 3,
-				geneSeq.getLastNA() - trimUUsRight * 3,
-				geneSeq.getAlignedSites(),
-				geneSeq.getMutations(),
-				geneSeq.getFrameShifts(), trimUUsLeft, trimUUsRight);
 		}
 
 		if (geneSeq.getSize() < minNumOfSites) {
@@ -330,93 +304,6 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 				break;
 			}
 		}
-		return new int[]{trimLeft, trimRight};
-	}
-
-	/**
-	 *  Input sequence may contain non-POL NAs in the beginning and the end, e.g. AF442565, KF134931.
-	 *
-	 * Following code did two things:
-	 *
-	 *   1. Remove large (length > SEQUENCE_TRIM_SITES_CUTOFF) low quality pieces from gene sequence
-	 *   2. Keep small (length <= SEQUENCE_TRIM_SITES_CUTOFF) low quality pieces from gene sequence
-	 *
-	 * A site is considered "low quality" if it:
-	 *   - is unusual mutation;
-	 *   - has "X" in aas; or
-	 *   - has stop codon
-	 */
-	public default int[] trimLowQualities(
-		Sequence sequence,
-		Gene<VirusT> gene,
-		int firstAA,
-		int lastAA,
-		Collection<Mutation<VirusT>> mutations,
-		Collection<FrameShift<VirusT>> frameShifts,
-		Double seqShrinkWindow,
-		Double seqShrinkCutoff
-	) {
-		int badPcnt;
-		int trimLeft = 0;
-		int trimRight = 0;
-		int problemSites = 0;
-		int sinceLastBadQuality = 0;
-		int proteinSize = lastAA - firstAA + 1;
-		List<Integer> candidates = new ArrayList<>();
-		List<Boolean> invalidSites = new ArrayList<>(Collections.nCopies(proteinSize, false));
-		if (seqShrinkWindow == 0. || seqShrinkCutoff == 100.) {
-			return new int[]{trimLeft, trimRight};
-		}
-
-		for (Mutation<VirusT> mut : mutations) {
-			int idx = mut.getPosition() - firstAA;
-			if (!mut.isUnsequenced() && (
-					mut.isUnusual()
-					|| mut.getDisplayAAs().equals("X") || mut.isApobecMutation() || mut.hasStop())) {
-				invalidSites.set(idx, true);
-			}
-		}
-		for (FrameShift<VirusT> fs : frameShifts) {
-			int idx = fs.getPosition() - firstAA;
-			invalidSites.set(idx,  true);
-		}
-		// forward scan for trimming left
-		for (int idx=0; idx < proteinSize; idx ++) {
-			if (sinceLastBadQuality > seqShrinkWindow) {
-				break;
-			} else if (invalidSites.get(idx)) {
-				problemSites ++;
-				trimLeft = idx + 1;
-				badPcnt = trimLeft > 0 ? problemSites * 100 / trimLeft : 0;
-				if (badPcnt > seqShrinkCutoff) {
-					candidates.add(trimLeft);
-				}
-				sinceLastBadQuality = 0;
-			} else {
-				sinceLastBadQuality ++;
-			}
-		}
-		trimLeft = candidates.size() > 0 ? candidates.get(candidates.size() - 1) : 0;
-		candidates.clear();
-		// backward scan for trimming right
-		problemSites = 0;
-		sinceLastBadQuality = 0;
-		for (int idx=proteinSize-1; idx > -1; idx --) {
-			if (sinceLastBadQuality > seqShrinkWindow) {
-				break;
-			} else if (invalidSites.get(idx)) {
-				problemSites ++;
-				trimRight = proteinSize - idx;
-				badPcnt = trimRight > 0 ? problemSites * 100 / trimRight : 0;
-				if (badPcnt > seqShrinkCutoff) {
-					candidates.add(trimRight);
-				}
-				sinceLastBadQuality = 0;
-			} else {
-				sinceLastBadQuality ++;
-			}
-		}
-		trimRight = candidates.size() > 0 ? candidates.get(candidates.size() - 1) : 0;
 		return new int[]{trimLeft, trimRight};
 	}
 

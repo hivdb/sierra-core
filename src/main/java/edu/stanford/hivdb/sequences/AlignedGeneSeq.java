@@ -58,8 +58,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final int lastAA;
 	private final int firstNA;
 	private final int lastNA;
-	private final int leftTrimmed;
-	private final int rightTrimmed;
 	private Double matchPcnt;
 	private transient List<AlignedSite> alignedSites;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
@@ -93,8 +91,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	 * @param alignedSites		Aligned sequence sites
 	 * @param mutations			Mutations
 	 * @param frameShifts		List&lt;FrameShift&gt;
-	 * @param leftTrimmed		Number of string trimed from left side
-	 * @param rightTrimmed		Number of string trimed from right side
 	 * @param sequenceReversed	If sequence should be reversed
 	 */
 	public AlignedGeneSeq(
@@ -103,9 +99,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			final int firstNA, final int lastNA,
 			List<AlignedSite> alignedSites,
 			Collection<Mutation<VirusT>> mutations,
-			List<FrameShift<VirusT>> frameShifts,
-			final int leftTrimmed,
-			final int rightTrimmed) {
+			List<FrameShift<VirusT>> frameShifts) {
 		this.sequence = sequence;
 		this.gene = gene;
 		this.firstAA = firstAA;
@@ -113,8 +107,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
 		this.matchPcnt = -1.;
-		this.leftTrimmed = leftTrimmed;
-		this.rightTrimmed = rightTrimmed;
 
 		alignedSites = alignedSites.stream()
 			.filter(m -> {
@@ -161,10 +153,6 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	 */
 	public int getSize() {
 		return StringUtils.replace(getAlignedNAs(), "N", "").length() / 3;
-	}
-
-	public int[] getShrinkage() {
-		return new int [] { leftTrimmed, rightTrimmed };
 	}
 	
 	protected Map<Integer, String> getCodonLookup() {

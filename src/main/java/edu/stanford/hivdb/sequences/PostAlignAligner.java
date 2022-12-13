@@ -70,8 +70,6 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 
 	private final String EXECUTABLE;
 	private final Map<String, Double> MIN_MATCH_PCNT;
-	private final Map<String, Double> SEQUENCE_SHRINKAGE_WINDOW;
-	private final Map<String, Double> SEQUENCE_SHRINKAGE_CUTOFF_PCNT;
 	private final Map<String, Double> MIN_NUM_OF_AA;
 	private final Map<String, File> REF_SEQUENCE;
 	private final Map<String, List<String>> POST_PROCESSORS;
@@ -92,8 +90,6 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 
 		AlignmentConfig<VirusT> alignConfig = virusIns.getAlignmentConfig();
 		MIN_MATCH_PCNT = Collections.unmodifiableMap(alignConfig.getConfigField("minMatchPcnt"));
-		SEQUENCE_SHRINKAGE_WINDOW = Collections.unmodifiableMap(alignConfig.getConfigField("seqShrinkageWindow"));
-		SEQUENCE_SHRINKAGE_CUTOFF_PCNT = Collections.unmodifiableMap(alignConfig.getConfigField("seqShrinkageCutoffPcnt"));
 		MIN_NUM_OF_AA = Collections.unmodifiableMap(alignConfig.getConfigField("minNumOfAA"));
 		FROM_FRAGMENT = Collections.unmodifiableMap(alignConfig.getConfigField("fromFragment"));
 		GENE = Collections.unmodifiableMap(alignConfig.getConfigField("gene"));
@@ -319,8 +315,6 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 							gene,
 							report,
 							MIN_MATCH_PCNT.get(fragmentName),
-							SEQUENCE_SHRINKAGE_WINDOW.get(fragmentName),
-							SEQUENCE_SHRINKAGE_CUTOFF_PCNT.get(fragmentName),
 							MIN_NUM_OF_AA.get(fragmentName).intValue()
 						));
 					} catch (MisAlignedException e) {
