@@ -45,7 +45,6 @@ import edu.stanford.hivdb.mutations.MutationSet;
 import edu.stanford.hivdb.mutations.MutationType;
 import edu.stanford.hivdb.seqreads.GeneSequenceReads;
 import edu.stanford.hivdb.sequences.AlignedGeneSeq;
-import edu.stanford.hivdb.sequences.GeneRegions;
 import edu.stanford.hivdb.utilities.AssertUtils;
 import edu.stanford.hivdb.utilities.MySetUtils;
 import edu.stanford.hivdb.viruses.Gene;

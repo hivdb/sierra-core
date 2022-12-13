@@ -61,12 +61,7 @@ public class Strain<VirusT extends Virus<VirusT>> implements Comparable<Strain<V
 	
 	private Strain(
 		String name, Integer ordinal, String displayText,
-		Integer offsetNA,
-		Integer nucaminoStopCodonPenalty,
-		Integer nucaminoGapOpeningPenalty,
-		Integer nucaminoGapExtensionPenalty,
-		Integer nucaminoIndelCodonOpeningBonus,
-		Integer nucaminoIndelCodonExtensionBonus
+		Integer offsetNA
 	) {
 		this.name = name;
 		this.ordinal = ordinal;

@@ -5,7 +5,6 @@ import java.util.List;
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
-import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Virus;
 
 public interface WithSequenceStat<VirusT extends Virus<VirusT>> {
