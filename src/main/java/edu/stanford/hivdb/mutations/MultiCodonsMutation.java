@@ -75,10 +75,10 @@ public class MultiCodonsMutation<VirusT extends Virus<VirusT>> extends AAMutatio
 		Map<Character, Long> aaCharReadsMap = new TreeMap<>();
 
 		for (CodonReads<VirusT> cdr : codonReads) {
-			char aa = cdr.getAminoAcid();
-			if (aa == 'X') {
+			if (cdr.isAmbiguous() || cdr.isDelFrameshift()) {
 				continue;
 			}
+			char aa = cdr.getAminoAcid();
 			long count = cdr.getReads();
 			aaCharReadsMap.put(aa, aaCharReadsMap.getOrDefault(aa, 0L) + count);
 		}
