@@ -85,7 +85,7 @@ public class PositionCodonReads<VirusT extends Virus<VirusT>> implements WithGen
 	) {
 		return allCodonReads.entrySet().stream()
 			.map(e -> new CodonReads<>(gene, position, e.getKey(), e.getValue(), totalReads))
-			.filter(cr -> cr.getAminoAcid() != 'X')
+			.filter(cr -> !cr.isAmbiguous())  // Illumina, ONT nor Ion Torrent would report ambiguous NAs
 			.filter(cr -> mutationOnly ? !cr.isReference() : true)
 			.filter(cr -> {
 				double prop = cr.getProportion();

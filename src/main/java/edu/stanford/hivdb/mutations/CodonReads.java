@@ -43,8 +43,8 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 
 
 	public static String normalizeCodon(String codon) {
-		// Tolerant spaces, commas, colons, semicolons and dashes
-		return codon.replaceAll("[ ,:;-]", "");
+		// Tolerant spaces, commas, colons and semicolons
+		return codon.replaceAll("[ ,:;]", "");
 	}
 
 	public CodonReads(
@@ -75,32 +75,47 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 	public Character getRefAminoAcid() {
 		return gene.getRefChar(position);
 	}
+	
+	public boolean isDelFrameshift() {
+		int naLen = codon.replace("-", "").length();
+		return naLen > 0 && naLen < 3;
+	}
+	
+	public boolean isInsertion() {
+		return codon.replace("-", "").length() > 5;
+	}
+	
+	public boolean isDeletion() {
+		return codon.length() == 0 || codon.equals("---");
+	}
+	
+	public boolean isAmbiguous() {
+		return !codon.matches("^[ACGT-]*$");
+	}
 
 	public Character getAminoAcid() {
 		if (aminoAcid == null) {
-			int cdLen = codon.length();
-			if (!codon.matches("^[ACGT]*$")) {
+			if (isAmbiguous()) {
 				// do not allow ambiguous codes
 				aminoAcid = 'X';
 			}
-			if (cdLen > 5) {
-				aminoAcid = '_';  // insertion
+			else if (isInsertion()) {
+				aminoAcid = '_';
 			}
-			else if (cdLen == 0) {
-				aminoAcid = '-';  // deletion
+			else if (isDeletion()) {
+				aminoAcid = '-';
 			}
-			else if (cdLen < 3) {
-				aminoAcid = 'X';  // deletion frameshift
+			else if (isDelFrameshift()) {
+				aminoAcid = 'X';
 			}
 			else {
-				String aminoAcids = CodonUtils.translateNATriplet(codon.substring(0, 3));
-				if (aminoAcids.length() > 1) {
-					// Ambiguous codon should not happen in NGS codons
-					aminoAcid = 'X';
-				}
-				else {
-					aminoAcid = aminoAcids.charAt(0);
-				}
+				String aminoAcids = CodonUtils.translateNATriplet(
+					// drop any frameshift
+					codon.replace("-", "").substring(0, 3)
+				);
+				// since codon is strictly consisted of ACGT (isAmbiguous() has been excluded),
+				// it is safe to say it can be only translated to one and only one AA
+				aminoAcid = aminoAcids.charAt(0);
 			}
 		}
 		return aminoAcid;
