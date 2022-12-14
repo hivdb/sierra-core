@@ -41,7 +41,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 	private transient Double aaPcnt;
 	private transient Double codonPcnt;
 
-	
+
 	public static String normalizeCodon(String codon) {
 		// Tolerant spaces, commas, colons, semicolons and dashes
 		return codon.replaceAll("[ ,:;-]", "");
@@ -58,35 +58,39 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		this.totalReads = totalReads;
 		this.proportion = (double) reads / totalReads;
 	}
-	
+
 	public String getCodon() { return codon; }
 	public Long getReads() { return reads; }
 	public Long getTotalReads() { return totalReads; }
 
 	@Override
 	public Strain<VirusT> getStrain() { return gene.getStrain(); }
-	
+
 	@Override
 	public Gene<VirusT> getGene() { return gene; }
-	
+
 	@Override
 	public String getAbstractGene() { return gene.getAbstractGene(); }
-	
+
 	public Character getRefAminoAcid() {
 		return gene.getRefChar(position);
 	}
-	
+
 	public Character getAminoAcid() {
 		if (aminoAcid == null) {
+			int cdLen = codon.length();
 			if (!codon.matches("^[ACGT]*$")) {
 				// do not allow ambiguous codes
 				aminoAcid = 'X';
 			}
-			if (codon.length() > 5) {
+			if (cdLen > 5) {
 				aminoAcid = '_';  // insertion
 			}
-			else if (codon.length() < 3) {
+			else if (cdLen == 0) {
 				aminoAcid = '-';  // deletion
+			}
+			else if (cdLen < 3) {
+				aminoAcid = 'X';  // deletion frameshift
 			}
 			else {
 				String aminoAcids = CodonUtils.translateNATriplet(codon.substring(0, 3));
@@ -108,11 +112,11 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		}
 		return mutation;
 	}
-	
+
 	public Double getProportion() {
 		return this.proportion;
 	}
-	
+
 	public Double getCodonPercent() {
 		if (this.codonPcnt == null) {
 			Double codonPcntNumber;
@@ -144,7 +148,7 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		}
 		return this.codonPcnt;
 	}
-	
+
 	public Double getAAPercent() {
 		if (aaPcnt == null) {
 			AminoAcidPercent<?> aaPcntObj = (
@@ -161,42 +165,42 @@ public class CodonReads<VirusT extends Virus<VirusT>> implements WithGene<VirusT
 		}
 		return aaPcnt;
 	}
-	
+
 	public boolean isReference() {
 		return getAminoAcid() == gene.getRefChar(position);
 	}
-	
+
 	public boolean isApobecMutation() {
 		return isReference() ? false : getMutation().isApobecMutation();
 	}
-	
+
 	public boolean isApobecDRM() {
 		return isReference() ? false : getMutation().isApobecDRM();
 	}
-	
+
 	public boolean hasStop() {
 		return isReference() ? false : getMutation().hasStop();
 	}
-	
+
 	public boolean isUnusual() {
 		return isReference() ? false : getMutation().isUnusual();
 	}
-	
+
 	public boolean isUnusual(String treatment, String subtype) {
 		return isReference() ? false : getMutation().isUnusual(treatment, subtype);
 	}
-	
+
 	public boolean isUnusualByCodon() {
 		return getCodonPercent() < 0.0001;
 	}
-	
+
 	public boolean isDRM() {
 		return isReference() ? false : getMutation().isDRM();
 	}
-	
+
 	/**
 	 * Get Extended map
-	 * 
+	 *
 	 * @return Map&lt;String, Object&gt;
 	 */
 	public Map<String, Object> extMap() {
