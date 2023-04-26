@@ -41,10 +41,11 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 
 	private final Strain<VirusT> strain;
 	private final Sequence inputSequence;
+	private final List<AlignmentMessage> alignmentMessages;
 
 	private List<ValidationResult> validationResults;
-	private Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSequenceMap;
-	private Map<Gene<VirusT>, String> discardedGenes;
+	private final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSequenceMap;
+	private final Map<Gene<VirusT>, String> discardedGenes;
 	private MutationSet<VirusT> mutations;
 	private MutationSet<VirusT> sequencedMutations;
 	private GenotypeResult<VirusT> genotypeResult;
@@ -62,12 +63,14 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 			final Sequence unalignedSequence,
 			final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSequenceMap,
 			final Map<Gene<VirusT>, String> discardedGenes,
-			final boolean sequenceReversed) {
+			final boolean sequenceReversed,
+			final List<AlignmentMessage> alignmentMessages) {
 		inputSequence = unalignedSequence;
 		this.strain = strain;
 		this.virusInstance = strain.getVirusInstance();
 		this.alignedGeneSequenceMap = alignedGeneSequenceMap;
 		this.discardedGenes = discardedGenes;
+		this.alignmentMessages = alignmentMessages;
 		isReverseComplement = sequenceReversed;
 		isEmpty = alignedGeneSequenceMap.isEmpty();
 		numMatchedNAs = null;
@@ -87,6 +90,10 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 
 	public Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> getAlignedGeneSequenceMap() {
 		return alignedGeneSequenceMap;
+	}
+	
+	public List<AlignmentMessage> getAlignmentMessages() {
+		return alignmentMessages;
 	}
 
 	/**

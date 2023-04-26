@@ -29,8 +29,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -288,12 +290,24 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 			Sequence sequence = sequences.get(idx);
 			Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs = new TreeMap<>();
 			Map<Gene<VirusT>, String> discardedGenes = new LinkedHashMap<>();
+			Set<AlignmentMessage> alignmentMessages = new LinkedHashSet<>();
 
 			for (Gene<VirusT> gene : geneLookup.keySet()) {
 				String fragmentName = geneLookup.get(gene);
 				String refFragmentName = FROM_FRAGMENT.get(fragmentName);
 				Map<String, ?> result = jsonObjs.get(refFragmentName).get(idx);
-
+				alignmentMessages.addAll(
+					((List<?>) result.get("Messages"))
+					.stream()
+					.map(m -> {
+						Map<?, ?> msg = (Map<?, ?>) m;
+						return new AlignmentMessage(
+							(String) msg.get("level"),
+							(String) msg.get("message")
+						);
+					})
+					.collect(Collectors.toList())
+				);
 				Map<?, ?> geneResult = ((List<?>) result.get("GeneReports"))
 					.stream()
 					.filter(map -> (
@@ -326,7 +340,7 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 			}
 
 			if (sequence == null) {
-				throw new RuntimeException("Nucamino returns malformed results.");
+				throw new RuntimeException("PostAlign returns malformed results.");
 			}
 
 			if (alignedGeneSeqs.isEmpty()) {
@@ -337,7 +351,9 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 			alignedSequences.add(
 				new AlignedSequence<>(
 					strain, sequence, alignedGeneSeqs,
-					discardedGenes, sequenceReversed)
+					discardedGenes, sequenceReversed,
+					new ArrayList<>(alignmentMessages)
+				)
 			);
 		}
 
