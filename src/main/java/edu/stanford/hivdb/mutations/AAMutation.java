@@ -274,6 +274,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		if (isUnsequenced()) {
 			r.add(this);
 		}
+		else if (isAmbiguousWithoutBDHVN()) {
+			r.add(this);
+		}
 		else {
 			for (char aa : getAAChars()) {
 				if (aa == getRefChar()) {
