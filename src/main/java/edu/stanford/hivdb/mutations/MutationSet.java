@@ -590,7 +590,7 @@ public class MutationSet<VirusT extends Virus<VirusT>> extends TreeSet<Mutation<
 	 * @return A new MutationSet instance
 	 */
 	public MutationSet<VirusT> getAmbiguousCodons() {
-		return filterBy(mut -> mut.isAmbiguous());
+		return filterByNoSplit(mut -> mut.isAmbiguous());
 	}
 
 	/**
