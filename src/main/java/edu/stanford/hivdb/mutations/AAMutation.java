@@ -664,6 +664,7 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 				.stream()
 				.filter(mtp -> mtp.isMutationMatched(this))
 				.map(mtp -> mtp.getMutationType())
+				.sorted()
 				.collect(Collectors.toList())
 			);
 			if (types.size() == 0) {
