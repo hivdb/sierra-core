@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -41,12 +42,14 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 
 	public static class RegionalGenotype<VirusT extends Virus<VirusT>> {
 		private Double proportion;
+		private Integer length;
 		private Genotype<VirusT> genotype;
 
 		public RegionalGenotype(
-			Genotype<VirusT> genotype, double proportion
+			Genotype<VirusT> genotype, double proportion, int length
 		) {
 			this.proportion = proportion;
+			this.length = length;
 			this.genotype = genotype;
 		}
 
@@ -56,6 +59,10 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 
 		public Double getProportion() {
 			return proportion;
+		}
+
+		public Integer getLength() {
+			return length;
 		}
 
 		@Override
@@ -76,6 +83,7 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 
 
 	private static final Double MIN_PRIMARY_REGIONAL_GENOTYPE_PROPORTION = 0.9; // 90%
+	private static final Integer MAX_SECONDARY_REGIONAL_GENOTYPE_LENGTH = 100; // 100 bps
 	// private static Map<String, HIVGenotype> genotypes = new LinkedHashMap<>();
 	private String name;
 	private Boolean isSimpleCRF;
@@ -129,19 +137,16 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 	 */
 	public RegionalGenotype<VirusT> getPrimaryRegionalGenotype(int firstNA, int lastNA) {
 		List<RegionalGenotype<VirusT>> results = getRegionalGenotypes(firstNA, lastNA);
-		RegionalGenotype<VirusT> primary = results
-			.stream()
-			.sorted((r1, r2) -> r2.proportion.compareTo(r1.proportion))
-			.findFirst()
-			.orElse(null);
-		if (primary != null && primary.proportion >= getMinPrimaryRegionalGenotypeProportion()) {
+		RegionalGenotype<VirusT> primary = results.stream().findFirst().orElse(null);
+		RegionalGenotype<VirusT> secondary = results.stream().skip(1).findFirst().orElse(null);
+		if (
+			primary != null &&
+			primary.proportion >= MIN_PRIMARY_REGIONAL_GENOTYPE_PROPORTION &&
+			(secondary == null || secondary.length <= MAX_SECONDARY_REGIONAL_GENOTYPE_LENGTH)
+		) {
 			return primary;
 		}
-		return new RegionalGenotype<>(this, 1.0);
-	}
-
-	public Double getMinPrimaryRegionalGenotypeProportion() {
-		return MIN_PRIMARY_REGIONAL_GENOTYPE_PROPORTION;
+		return new RegionalGenotype<>(this, 1.0, lastNA - firstNA);
 	}
 
 	/** get genotype index name
@@ -194,13 +199,12 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 	 * @return			Is distance less than upper limit
 	 */
 	public Boolean checkDistance(double distance) {
-		// System.out.printf("name: %s; distance: %f; distanceUL: %f\n", name, distance, distanceUpperLimit);
 		return distance < distanceUpperLimit;
 	}
 
 	public List<RegionalGenotype<VirusT>> getRegionalGenotypes(int firstNA, int lastNA) {
-		Map<Genotype<VirusT>, Double> mapResults = new LinkedHashMap<>();
-		double length = lastNA - firstNA;
+		Map<Genotype<VirusT>, Pair<Double, Integer>> mapResults = new LinkedHashMap<>();
+		double total = lastNA - firstNA;
 		if (isSimpleCRF) {
 			for (CRFRegion region : regions) {
 				if (lastNA >= region.start && firstNA <= region.end) {
@@ -208,18 +212,22 @@ public class Genotype<VirusT extends Virus<VirusT>> {
 					int start = firstNA > region.start ? firstNA : region.start;
 					int end = lastNA < region.end ? lastNA : region.end;
 					Genotype<VirusT> genotype = virusInstance.getGenotype(region.genotypeName);
-					double proportion = mapResults.getOrDefault(genotype, 0.0);
-					proportion += (end - start) / length;
-					mapResults.put(genotype, proportion);
+					Pair<Double, Integer> propLen = mapResults.getOrDefault(genotype, Pair.of(0.0, 0));
+					double proportion = propLen.getLeft();
+					int len = propLen.getRight();
+					proportion += (end - start) / total;
+					len += end - start;
+					mapResults.put(genotype, Pair.of(proportion, len));
 				}
 			}
 		}
 		else {
-			mapResults.put(this, 1.0);
+			mapResults.put(this, Pair.of(1.0, lastNA - firstNA));
 		}
 		return mapResults
 			.entrySet().stream()
-			.map(e -> new RegionalGenotype<>(e.getKey(), e.getValue()))
+			.map(e -> new RegionalGenotype<>(e.getKey(), e.getValue().getLeft(), e.getValue().getRight()))
+			.sorted((r1, r2) -> r2.proportion.compareTo(r1.proportion))
 			.collect(Collectors.toList());
 	}
 
