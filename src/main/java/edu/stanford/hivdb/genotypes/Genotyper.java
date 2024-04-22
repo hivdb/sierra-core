@@ -67,16 +67,18 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		for (int refIdx = 0; refIdx < numRefs; refIdx ++) {
 			GenotypeReference<VirusT> ref = references.get(refIdx);
 			String sequence = ref.getSequence().toUpperCase();
+			int refOffset = ref.getFirstNA() - firstNA;
+			int refLen = sequence.length();
 			// build tree for each position
-			for (int i = 0; i < seqLen; i ++) {
+			for (int i = 0; i < refLen; i ++) {
 				char na = sequence.charAt(i);	
 				// should search for mismatched refs but not matched
 				int[] inverseNAIndice = getInverseNAIndice(na);
 				for (int naIdx : inverseNAIndice) {
-					int[] naNode = rootNode[i][naIdx];
+					int[] naNode = rootNode[i + refOffset][naIdx];
 					// add the newly found refIdx and shift end by 1
-					naNode[rootNodePointer[i][naIdx] ++] = refIdx;
-					naNode[rootNodePointer[i][naIdx]] = -1;
+					naNode[rootNodePointer[i + refOffset][naIdx] ++] = refIdx;
+					naNode[rootNodePointer[i + refOffset][naIdx]] = -1;
 				}
 			}
 		}
@@ -162,20 +164,13 @@ public class Genotyper<VirusT extends Virus<VirusT>> {
 		}
 		
 		for (GenotypeReference<VirusT> ref : references) {
-			if (firstNA == null) {
-				firstNA = ref.getFirstNA();
+			int refFirstNA = ref.getFirstNA();
+			int refLastNA = ref.getLastNA();
+			if (firstNA == null || firstNA > refFirstNA) {
+				firstNA = refFirstNA;
 			}
-			if (lastNA == null) {
-				lastNA = ref.getLastNA();
-			}
-			if (!firstNA.equals(ref.getFirstNA()) || !lastNA.equals(ref.getLastNA())) {
-				throw new IllegalArgumentException(String.format(
-					"Reference %s has a different NA boundary (%d - %d) " +
-					"like other references (%d - %d).",
-					ref.getAccession(),
-					ref.getFirstNA(), ref.getLastNA(),
-					firstNA, lastNA
-				));
+			if (lastNA == null || lastNA < refLastNA) {
+				lastNA = refLastNA;
 			}
 		}
 		treeFirstNA = firstNA;
