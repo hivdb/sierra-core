@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.drugs.DrugClass;
@@ -58,6 +57,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	private final int lastAA;
 	private final int firstNA;
 	private final int lastNA;
+	private Long aaSize;
 	private Double matchPcnt;
 	private transient List<AlignedSite> alignedSites;
 	private transient PrettyPairwise<VirusT> prettyPairwise;
@@ -106,6 +106,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		this.lastAA = lastAA;
 		this.firstNA = firstNA;
 		this.lastNA = lastNA;
+		this.aaSize = -1L;
 		this.matchPcnt = -1.;
 
 		alignedSites = alignedSites.stream()
@@ -151,8 +152,13 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	 * Retrieve amino acids size of alignment.
 	 * @return integer
 	 */
-	public int getSize() {
-		return StringUtils.replace(getAlignedNAs(), "N", "").length() / 3;
+	public long getSize() {
+		if (aaSize == -1L) {
+			aaSize = (long) lastAA - firstAA + 1;
+			GeneRegions<VirusT> unseqRegions = getUnsequencedRegions();
+			aaSize -= unseqRegions.size();
+		}
+		return aaSize;
 	}
 	
 	protected Map<Integer, String> getCodonLookup() {
@@ -256,7 +262,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	public Double getMatchPcnt() {
 		if (matchPcnt == -1) {
 			GeneRegions<VirusT> unseqRegions = getUnsequencedRegions();
-			int numNAs = lastNA - firstNA + 1;
+			int numNAs = (lastAA - firstAA + 1) * 3;
 			for (Mutation<VirusT> mut : mutations) {
 				if (mut.isUnsequenced(unseqRegions)) {
 					// unsequenced region doesn't count
