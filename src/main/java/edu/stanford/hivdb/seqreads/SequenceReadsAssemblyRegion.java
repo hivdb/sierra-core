@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import edu.stanford.hivdb.mutations.PositionCodonReads;
 import edu.stanford.hivdb.viruses.AssemblyRegion;
 import edu.stanford.hivdb.viruses.Gene;
+import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class SequenceReadsAssemblyRegion<VirusT extends Virus<VirusT>> extends AssemblyRegion<
@@ -29,12 +30,13 @@ public class SequenceReadsAssemblyRegion<VirusT extends Virus<VirusT>> extends A
 	
 	@Override
 	@Deprecated
-	public String assemble(GeneSequenceReads<VirusT> geneSeqReads, boolean skipIns) {
-		return assemble(geneSeqReads, skipIns, true);
+	public String assemble(GeneSequenceReads<VirusT> geneSeqReads, Strain<VirusT> targetStrain, boolean skipIns) {
+		return assemble(geneSeqReads, targetStrain, skipIns, true);
 	}
 
 	public String assemble(
 		GeneSequenceReads<VirusT> geneSeqReads,
+		Strain<VirusT> targetStrain,
 		boolean skipIns,
 		boolean includeAmbiguousNA
 	) {

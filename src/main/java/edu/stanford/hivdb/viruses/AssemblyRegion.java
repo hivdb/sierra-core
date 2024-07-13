@@ -138,5 +138,5 @@ public abstract class AssemblyRegion<
 		);
 	}
 
-	public abstract String assemble(GeneSeqT geneSeq, boolean skipIns);
+	public abstract String assemble(GeneSeqT geneSeq, Strain<VirusT> targetStrain, boolean skipIns);
 }

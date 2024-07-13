@@ -26,8 +26,8 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 		return Assembler.loadJson(SequenceReadsAssembler.class, SequenceReadsAssemblyRegion.class, raw, virusIns);
 	}
 
-	public SequenceReadsAssembler(List<SequenceReadsAssemblyRegion<VirusT>> regions) {
-		super(regions);
+	public SequenceReadsAssembler(Strain<VirusT> strain, List<SequenceReadsAssemblyRegion<VirusT>> regions) {
+		super(strain, regions);
 	}
 	
 	public String assemble(
@@ -45,7 +45,7 @@ public class SequenceReadsAssembler<VirusT extends Virus<VirusT>> extends Assemb
 			}
 			else { // type == GENE
 				cons.append(
-					abr.assemble(allGeneSequenceReads.get(abr.getGene()), strictAlign, includeAmbiguousNA)
+					abr.assemble(allGeneSequenceReads.get(abr.getGene()), getStrain(), strictAlign, includeAmbiguousNA)
 				);
 			}
 		}

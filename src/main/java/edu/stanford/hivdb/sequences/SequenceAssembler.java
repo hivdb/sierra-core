@@ -5,7 +5,6 @@ import java.util.Map;
 
 import edu.stanford.hivdb.viruses.Assembler;
 import edu.stanford.hivdb.viruses.AssemblyRegion.AssemblyRegionType;
-import edu.stanford.hivdb.viruses.Gene;
 import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.UntranslatedRegion;
 import edu.stanford.hivdb.viruses.Virus;
@@ -26,12 +25,12 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 		return Assembler.loadJson(SequenceAssembler.class, SequenceAssemblyRegion.class, raw, virusIns);
 	}
 
-	public SequenceAssembler(List<SequenceAssemblyRegion<VirusT>> regions) {
-		super(regions);
+	public SequenceAssembler(Strain<VirusT> strain, List<SequenceAssemblyRegion<VirusT>> regions) {
+		super(strain, regions);
 	}
 	
 	public String assemble(
-		final Map<Gene<VirusT>, AlignedGeneSeq<VirusT>> alignedGeneSeqs,
+		final AlignedSequence<VirusT> alignedSeq,
 		final Map<String, UntranslatedRegion> utrLookup,
 		final boolean strictAlign
 	) {
@@ -58,9 +57,11 @@ public class SequenceAssembler<VirusT extends Virus<VirusT>> extends Assembler<
 						skipIns
 					).length()
 				); */
+				Strain<VirusT> targetStrain = getStrain();
 				cons.append(
 					abr.assemble(
-						alignedGeneSeqs.get(abr.getGene()),
+						alignedSeq.getAlignedGeneSequence(abr.getAbstractGene()),
+						targetStrain,
 						strictAlign
 					)
 				);

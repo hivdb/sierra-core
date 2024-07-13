@@ -154,16 +154,15 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 		return discardedGenes;
 	}
 
-	/**
-	 * 
-	 * @param skipIns: skip insertions (will be aligned with reference sequences
-	 * @return
-	 */
 	public String getAssembledAlignment(boolean strictAlign) {
-		return strain
+		return getAssembledAlignment(strain, strictAlign);
+	}
+	
+	public String getAssembledAlignment(Strain<VirusT> targetStrain, boolean strictAlign) {
+		return targetStrain
 			.getSequenceAssembler()
 			.assemble(
-				/* alignedGeneSeqs = */getAlignedGeneSequenceMap(),
+				/* alignedSeq = */this,
 				/* utrLookup = */Collections.emptyMap(),
 				strictAlign
 			);
@@ -199,7 +198,7 @@ public class AlignedSequence<VirusT extends Virus<VirusT>> implements WithSequen
 		if (!isEmpty && genotypeResult == null) {
 			Strain<VirusT> targetStrain = virusInstance.getMainStrain();
 			// Tweak the alignment first
-			String assembledAlignment = getAssembledAlignment(true);
+			String assembledAlignment = getAssembledAlignment(targetStrain, true);
 			int absFirstNA = targetStrain.getAbsoluteFirstNA();
 			genotypeResult = (
 				virusInstance

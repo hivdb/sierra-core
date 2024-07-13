@@ -72,7 +72,7 @@ public abstract class Assembler<
 					trim == null ? null : trimLong
 				));
 			}
-			T assembler = T.of(myClass, regions);
+			T assembler = T.of(myClass, strain, regions);
 			results.put(strain, assembler);
 		}
 		return results;
@@ -84,13 +84,13 @@ public abstract class Assembler<
 		RegionT extends AssemblyRegion<VirusT, GeneSeqT, RegionT>,
 		T extends Assembler<VirusT, GeneSeqT, RegionT, T>
 	>
-	T of(Class<T> myClass, List<RegionT> regions) {
+	T of(Class<T> myClass, Strain<VirusT> strain, List<RegionT> regions) {
 		
 		
 		try {
 			T instance = myClass
-				.getDeclaredConstructor(List.class)
-				.newInstance(regions);
+				.getDeclaredConstructor(Strain.class, List.class)
+				.newInstance(strain, regions);
 			return instance;
 		} catch (
 			InstantiationException
@@ -104,11 +104,15 @@ public abstract class Assembler<
 		}
 	}
 	
+	private final Strain<VirusT> strain;
 	private final List<RegionT> regions;
 	
-	protected Assembler(List<RegionT> regions) {
+	protected Assembler(Strain<VirusT> strain, List<RegionT> regions) {
+		this.strain = strain;
 		this.regions = Collections.unmodifiableList(regions);
 	}
+	
+	public Strain<VirusT> getStrain() { return strain; }
 	
 	public List<RegionT> getRegions() { return regions; }
 	

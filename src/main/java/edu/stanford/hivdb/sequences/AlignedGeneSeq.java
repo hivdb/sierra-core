@@ -199,7 +199,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		}
 		return codons;
 	}
-
+	
 	public String getAlignedNAs() {
 		if (this.alignedNAs == null) {
 			List<String> codons = getAlignedCodons(true);
@@ -209,6 +209,14 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return this.alignedNAs;
 	} // Need
 
+	public String getAlignedNAsNoTrim() {
+		if (this.alignedNAs == null) {
+			List<String> codons = getAlignedCodons(true);
+			this.alignedNAs = String.join("", codons);
+		}
+		return this.alignedNAs;
+	} // Need
+	
 	public String getAlignedAAs() {
 		return CodonUtils.simpleTranslate(
 			this.getAlignedNAs(), firstAA, gene.getRefSequence());
@@ -223,6 +231,11 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	public String getAdjustedAlignedNAs(String targetStrain) {
 		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
 		return strainModifier.modifyNASeq(gene, getAlignedNAs(), firstAA, lastAA);
+	}
+	
+	public String getAdjustedAlignedNAsNoTrim(String targetStrain) {
+		StrainModifier strainModifier = gene.getTargetStrainModifier(targetStrain);
+		return strainModifier.modifyNASeq(gene, getAlignedNAsNoTrim(), 1, gene.getAASize());
 	}
 
 	public String getAdjustedAlignedAAs() {

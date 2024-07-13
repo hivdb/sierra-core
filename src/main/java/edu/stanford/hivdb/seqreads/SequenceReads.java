@@ -386,6 +386,7 @@ implements WithSequenceReadsHistogram<VirusT>, WithSequenceReadsHistogramByCodon
 
 	public GenotypeResult<VirusT> getSubtypeResult() {
 		if (!isEmpty() && subtypeResult == null) {
+			// TODO: this will break if there are multiple strains
 			subtypeResult = strain
 				.getVirusInstance()
 				.getGenotyper()

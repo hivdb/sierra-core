@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
 import edu.stanford.hivdb.viruses.AssemblyRegion;
 import edu.stanford.hivdb.viruses.Gene;
+import edu.stanford.hivdb.viruses.Strain;
 import edu.stanford.hivdb.viruses.Virus;
 
 public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends AssemblyRegion<
@@ -26,7 +30,7 @@ public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends Assemb
 	}
 
 	@Override
-	public String assemble(AlignedGeneSeq<VirusT> geneSeq, boolean skipIns) {
+	public String assemble(AlignedGeneSeq<VirusT> geneSeq, Strain<VirusT> targetStrain, boolean skipIns) {
 		List<String> codons;
 		if (geneSeq == null) {
 			int aaSize = getGene().getAASize();
@@ -37,7 +41,14 @@ public class SequenceAssemblyRegion<VirusT extends Virus<VirusT>> extends Assemb
 			);
 		}
 		else {
-			codons = geneSeq.getAlignedCodons(skipIns);
+			String alignedNAs;
+			if (targetStrain != geneSeq.getStrain()) {
+				alignedNAs = geneSeq.getAdjustedAlignedNAsNoTrim(targetStrain.getName());
+			}
+			else {
+				alignedNAs = geneSeq.getAlignedNAsNoTrim();
+			}
+			codons = Lists.newArrayList(Splitter.fixedLength(3).split(alignedNAs));
 		}
 		codons = this.trimCodonList(codons);
 		return String.join("", codons);
