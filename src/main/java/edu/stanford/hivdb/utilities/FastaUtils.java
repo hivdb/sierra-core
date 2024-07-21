@@ -111,17 +111,11 @@ public class FastaUtils {
 			}
 		}
 		fetchGenbankLastRun = System.currentTimeMillis();
-		String baseUrl = "https://www.ncbi.nlm.nih.gov/sviewer/viewer.cgi";
+		String url = "https://www.ebi.ac.uk/ena/browser/api/fasta/";
+		url  = url + String.join(",", accessions);
 		HttpResponse<InputStream> response;
 		try {
-			response = Unirest.post(baseUrl)
-				.queryString("tool", "portal")
-				.queryString("save", "file")
-				.queryString("log$", "seqview")
-				.queryString("db", "nuccore")
-				.queryString("report", "fasta")
-				.queryString("conwithfeat", "on")
-				.field("id", String.join(",", accessions))
+			response = Unirest.get(url)
 				.asBinary();
 		} catch (UnirestException e) {
 			return Collections.emptyList();
