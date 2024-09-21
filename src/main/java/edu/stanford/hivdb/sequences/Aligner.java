@@ -247,12 +247,12 @@ public interface Aligner<VirusT extends Virus<VirusT>> {
 				gene.getAbstractGene(), 100 - geneSeq.getMatchPcnt(), 100 - minMatchPcnt
 			), false);
 		}
-
-		if (geneSeq.getSize() < minNumOfSites) {
+		long geneSize = geneSeq.getSize();
+		if (geneSize < minNumOfSites) {
 			throw new MisAlignedException(String.format(
 				"Alignment of gene %s was discarded " +
 				"since the length of alignment (%d) was too short (< %d).",
-				gene.getAbstractGene(), aaSize, minNumOfSites
+				gene.getAbstractGene(), geneSize, minNumOfSites
 			), false);
 		}
 

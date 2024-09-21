@@ -155,7 +155,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 	 */
 	public long getSize() {
 		if (aaSize == -1L) {
-			aaSize = (long) lastAA - firstAA + 1;
+			aaSize = (long) gene.getAASize();
 			GeneRegions<VirusT> unseqRegions = getUnsequencedRegions();
 			aaSize -= unseqRegions.size();
 		}
