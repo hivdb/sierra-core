@@ -545,6 +545,9 @@ public class AAMutation<VirusT extends Virus<VirusT>> implements Mutation<VirusT
 		if (isUnsequenced()) {
 			return false;
 		}
+		if (aaPcnts.isNoData(gene)) {
+			return false;
+		}
 		if (!isUnusuals.containsKey(aaPcnts)) {
 			Boolean isUnusual;
 			Set<Character> myAAChars = getAAChars();

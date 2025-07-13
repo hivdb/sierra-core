@@ -212,6 +212,20 @@ public class AminoAcidPercents<VirusT extends Virus<VirusT>> {
 			.collect(Collectors.toCollection(TreeSet::new));		
 	}
 
+	public Boolean isNoData(Gene<VirusT> gene) {
+		GenePosition<VirusT> placeholderPos = new GenePosition<VirusT>(gene, -1);
+		List<AminoAcidPercent<VirusT>> placeholderPcnts = get(placeholderPos);
+		if (placeholderPcnts != null) {
+			for (AminoAcidPercent<VirusT> phPcnt : placeholderPcnts) {
+				if (phPcnt.getReason().equals("NODATA")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
 	/**
 	 * Returns true if the given mutation contains any unusual AA
 	 *
