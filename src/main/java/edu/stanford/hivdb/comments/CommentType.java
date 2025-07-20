@@ -25,7 +25,7 @@ import edu.stanford.hivdb.viruses.Virus;
 
 public enum CommentType {
 	// TODO: change this enum to class; the enum elements should be decided by virus
-	Major, Accessory, NRTI, NNRTI, Uncertain, Other, Dosage;
+	Major, Accessory, NRTI, NNRTI, bNAb, AI, FI, Uncertain, Other, Dosage;
 
 	public static CommentType fromMutType(MutationType<? extends Virus<?>> mutType) {
 		return CommentType.valueOf(mutType.name());
