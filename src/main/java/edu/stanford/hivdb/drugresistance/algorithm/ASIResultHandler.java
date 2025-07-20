@@ -290,9 +290,14 @@ public class ASIResultHandler {
 					}
 					List<String> highlight = new ArrayList<>();
 					highlight.add(mut.getHumanFormat());
+					CommentType cmtType = CommentType.fromCommentName(condComment.getName());
+					if (cmtType == null) {
+						cmtType = CommentType.fromMutType(mut.getPrimaryType());
+					}
 					results.add(new BoundComment<T>(
 						condComment.getStrain(), condComment.getName(),
-						condComment.getDrugClass(), CommentType.fromMutType(mut.getPrimaryType()),
+						condComment.getDrugClass(),
+						cmtType,
 						cmtDef.getText().replaceAll(
 							ConditionalComments.getCommentWildcardRegex(),
 							mut.getHumanFormat()

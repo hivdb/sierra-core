@@ -25,8 +25,18 @@ import edu.stanford.hivdb.viruses.Virus;
 
 public enum CommentType {
 	// TODO: change this enum to class; the enum elements should be decided by virus
-	Major, Accessory, NRTI, NNRTI, bNAb, AI, FI, Uncertain, Other, Dosage;
+	Major, Accessory, NRTI, NNRTI, CD4_bnAb, V2_bnAb, V3_bnAb, FTR, ENF, Uncertain, Other, Dosage;
 
+	public static CommentType fromCommentName(String commentName) {
+		// This allows specify comment type by suffix ASI comment name/id with "-{CommentType}"
+		for (CommentType typeEnum : CommentType.values()) {
+			if (commentName.endsWith("-" + typeEnum.name())) {
+				return typeEnum;
+			}
+		}
+		return null;
+	}
+	
 	public static CommentType fromMutType(MutationType<? extends Virus<?>> mutType) {
 		return CommentType.valueOf(mutType.name());
 	}
