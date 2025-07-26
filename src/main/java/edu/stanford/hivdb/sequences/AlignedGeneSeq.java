@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.stanford.hivdb.drugs.DrugClass;
+import edu.stanford.hivdb.motif.MotifMatch;
+import edu.stanford.hivdb.motif.MotifUtils;
 import edu.stanford.hivdb.mutations.FrameShift;
 import edu.stanford.hivdb.mutations.Mutation;
 import edu.stanford.hivdb.mutations.MutationSet;
@@ -162,7 +164,7 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		return aaSize;
 	}
 	
-	protected Map<Integer, String> getCodonLookup() {
+	public Map<Integer, String> getCodonLookup() {
 		String naSeq = sequence.getSequence();
 
 		Map<Integer, String> allCodons = new LinkedHashMap<>();
@@ -182,6 +184,17 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 		}
 		
 		return allCodons;
+	}
+	
+	public Map<Integer, String> getAALookup() {
+		Map<Integer, String> allAAs = new LinkedHashMap<>();
+		
+		for (Map.Entry<Integer, String> codon : getCodonLookup().entrySet()) {
+			int pos = codon.getKey();
+			String aas = CodonUtils.translateNATriplet(codon.getValue());
+			allAAs.put(pos, aas);
+		}
+		return allAAs;
 	}
 	
 	public List<String> getAlignedCodons(boolean skipIns) {
@@ -389,6 +402,11 @@ public class AlignedGeneSeq<VirusT extends Virus<VirusT>> implements WithGene<Vi
 			return getUnsequencedRegions();
 		}
 		return null;
+	}
+	
+	public List<MotifMatch> getMotifMatches(String pattern) {
+		Map<Integer, String> aaLookup = getAALookup();
+		return MotifUtils.findMotifMatches(aaLookup, pattern);
 	}
 
 }
