@@ -5,12 +5,14 @@ plugins {
 }
 
 group = 'edu.stanford.hivdb'
-version = '3.5.1'
+version = '3.5.6'
 
 description = 'Sierra - Core'
 
-sourceCompatibility = 15
-targetCompatibility = 15
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
 
 repositories {
     mavenCentral()
