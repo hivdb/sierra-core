@@ -192,7 +192,12 @@ public class PostAlignAligner<VirusT extends Virus<VirusT>> implements Aligner<V
 					try {
 						Process proc = Runtime.getRuntime().exec(cmd.stream().toArray(String[]::new));
 						OutputStream stdin = proc.getOutputStream();
-						FastaUtils.writeStream(partialSet, stdin);
+						// Send the ASCII SHA-512 hash as the FASTA name instead of the
+						// original header. postalign encodes names as ASCII and aborts on
+						// a non-ASCII header; the real header is left untouched on the
+						// Sequence object and results are matched back by index (see
+						// processCommandOutput), so the name sent here is throwaway.
+						FastaUtils.writeStream(partialSet, stdin, true);
 						String jsonString = IOUtils.toString(proc.getInputStream(), "UTF-8");
 						String errString = IOUtils.toString(proc.getErrorStream(), "UTF-8");
 						if (errString.length() > 0) {
