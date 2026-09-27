@@ -277,6 +277,27 @@ public class BoundGenotype<VirusT extends Virus<VirusT>> {
 		return getDistance() > virusInstance.getGenotypeUnknownThreshold();
 	}
 
+	/** check if this match is a pure subtype reported above its distance limit
+	 *
+	 * This corresponds to the "point 5" scenario of the subtyping algorithm
+	 * (see https://hivdb.stanford.edu/page/hiv-subtyper/): the closest matching
+	 * reference is a pure subtype (not a CRF or other recombinant), yet the
+	 * distance is above the distance upper-limit defined for that subtype while
+	 * still below the universal "unknown" threshold. In this situation the pure
+	 * subtype is still reported, but the assignment is uncertain and a further
+	 * analysis using a more sophisticated subtyping program is recommended.
+	 *
+	 * @return Boolean
+	 */
+	public Boolean isPureSubtypeAboveDistanceUpperLimit() {
+		return (
+			!shouldDisplayUnknown() &&
+			!checkDistance() &&
+			getGenotype().getClassificationLevel() == GenotypeClassificationLevel.SUBTYPE &&
+			!getGenotype().hasParentGenotypes()
+		);
+	}
+
 	public List<Genotype<VirusT>> getParentGenotypes() {
 		return getGenotype().getParentGenotypes();
 	}
